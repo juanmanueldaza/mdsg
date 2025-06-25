@@ -47,6 +47,36 @@ for repo in "${repos[@]}"; do
 done
 
 echo ""
+echo "🔗 Checking /etc/hosts for custom .local domains..."
+SITES=(cv onepager data wallpapers start navbar mdsite)
+MISSING=()
+for SITE in "${SITES[@]}"; do
+    DOMAIN="$SITE.local"
+    if ! grep -q "$DOMAIN" /etc/hosts; then
+        MISSING+=("$DOMAIN")
+    fi
+done
+
+if [ ${#MISSING[@]} -gt 0 ]; then
+    echo "The following domains are missing from /etc/hosts:"
+    for DOMAIN in "${MISSING[@]}"; do
+        echo "  127.0.0.1   $DOMAIN"
+    done
+    echo "Add them now? (requires sudo) [y/N]"
+    read -r REPLY
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        for DOMAIN in "${MISSING[@]}"; do
+            echo "127.0.0.1   $DOMAIN" | sudo tee -a /etc/hosts
+        done
+        echo "Domains added. You may need to restart your browser."
+    else
+        echo "Aborting domain setup. Please add the domains manually to /etc/hosts."
+    fi
+else
+    echo "All custom .local domains are already present in /etc/hosts."
+fi
+
+echo ""
 echo "🎉 Setup completed successfully!"
 echo "📍 All repositories are now available in the 'sites' directory:"
 ls -la

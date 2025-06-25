@@ -2,13 +2,13 @@
   "name": "daza.ar-env",
   "private": true,
   "scripts": {
-    "dev:cv": "cd sites/cv && vite --port 3001",
-    "dev:onepager": "cd sites/onepager && vite --port 3002",
-    "dev:start": "cd sites/start && vite --port 3003",
-    "dev:navbar": "cd sites/navbar && vite --port 3004",
-    "dev:mdsite": "cd sites/mdsite && vite --port 3005",
-    "dev:data": "cd sites/data && vite --port 3006 --open /README.md",
-    "dev:wallpapers": "cd sites/wallpapers && vite --port 3007"
+    "dev:cv": "cd sites/cv && vite --port 3001 --host cv.local",
+    "dev:onepager": "cd sites/onepager && vite --port 3002 --host onepager.local",
+    "dev:start": "cd sites/start && vite --port 3003 --host start.local",
+    "dev:navbar": "cd sites/navbar && vite --port 3004 --host navbar.local",
+    "dev:mdsite": "cd sites/mdsite && vite --port 3005 --host mdsite.local",
+    "dev:data": "cd sites/data && vite --port 3006 --host data.local --open /README.md",
+    "dev:wallpapers": "cd sites/wallpapers && vite --port 3007 --host wallpapers.local"
   },
   "devDependencies": {
     "vite": "^7.0.0"
