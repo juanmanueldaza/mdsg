@@ -25,6 +25,8 @@ repos=(
     "juanmanueldaza/data"
     "juanmanueldaza/wallpapers"
     "juanmanueldaza/start"
+    "juanmanueldaza/navbar"
+    "juanmanueldaza/mdsite"
 )
 
 # Clone each repository
