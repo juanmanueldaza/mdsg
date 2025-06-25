@@ -1,0 +1,15 @@
+# Ignore the sites directory (contains cloned repositories)
+sites/
+
+# Ignore macOS system files
+.DS_Store
+
+# Ignore log files
+*.log
+
+# Ignore temporary files
+*.tmp
+*.swp
+
+# Ignore node_modules if any JS projects are added in the future
+node_modules/
