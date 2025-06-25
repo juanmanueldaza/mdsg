@@ -4,15 +4,16 @@ A simple setup script to bootstrap the development environment for daza.ar proje
 
 ## Overview
 
-This setup script automatically creates a `sites` directory and clones all the required repositories for the daza.ar ecosystem, providing a consistent development environment setup.
+This repository provides tools to quickly set up and develop the daza.ar ecosystem locally. It includes:
+- A setup script to clone all required repositories into a `sites/` directory.
+- A unified development workflow to serve all sites locally with Vite, each on its own port.
 
 ## Prerequisites
 
-Before running the setup script, ensure you have the following installed:
-
-- **GitHub CLI (`gh`)** - [Installation guide](https://cli.github.com/)
-- **Git** - [Installation guide](https://git-scm.com/downloads)
-- **Bash shell** (available on Linux, macOS, and Windows with WSL)
+- **GitHub CLI (`gh`)** ([Installation guide](https://cli.github.com/))
+- **Git** ([Installation guide](https://git-scm.com/downloads))
+- **Node.js** (v18+ recommended)
+- **Bash shell** (Linux, macOS, or Windows with WSL)
 
 ### Authentication
 
@@ -30,29 +31,36 @@ gh auth login
    cd daza.ar-env
    ```
 
-2. Run the setup script:
+2. Run the setup script to clone all project repositories:
    ```bash
    ./setup.sh
    ```
 
-3. Navigate to the sites directory:
+3. Install dependencies:
    ```bash
-   cd sites
+   npm install
    ```
+
+4. Start all development servers (each site will open in your browser):
+   ```bash
+   ./dev.sh
+   ```
+
+   > Each site will be served on a different port (see below).
 
 ## What Gets Cloned
 
 The setup script clones the following repositories into the `sites` directory:
 
-| Repository | Description |
-|------------|-------------|
-| `juanmanueldaza/cv` | Personal CV/Resume website |
-| `juanmanueldaza/onepager` | One-page portfolio site |
-| `juanmanueldaza/data` | Data and content management |
-| `juanmanueldaza/wallpapers` | Wallpaper collection |
-| `juanmanueldaza/start` | Start page/dashboard |
-| `juanmanueldaza/navbar` | Navigation bar component |
-| `juanmanueldaza/mdsite` | Markdown-based static site |
+| Repository              | Description                    |
+|-------------------------|--------------------------------|
+| `juanmanueldaza/cv`     | Personal CV/Resume website     |
+| `juanmanueldaza/onepager` | One-page portfolio site      |
+| `juanmanueldaza/data`   | Data and content management    |
+| `juanmanueldaza/wallpapers` | Wallpaper collection       |
+| `juanmanueldaza/start`  | Start page/dashboard           |
+| `juanmanueldaza/navbar` | Navigation bar component       |
+| `juanmanueldaza/mdsite` | Markdown-based static site     |
 
 ## Directory Structure
 
@@ -62,62 +70,43 @@ After running the setup script, your directory structure will look like this:
 daza.ar-env/
 ├── README.md
 ├── setup.sh
-└── sites/
-    ├── cv/
-    ├── onepager/
-    ├── data/
-    ├── wallpapers/
-    ├── start/
-    ├── navbar/
-    └── mdsite/
-```
-
-## Features
-
-- **Idempotent**: Safe to run multiple times - skips existing repositories
-- **Error handling**: Stops on errors and provides clear feedback
-- **Progress indicators**: Shows what's happening during setup
-- **Validation**: Checks for existing directories before cloning
-
-## Troubleshooting
-
-### Common Issues
-
-**Error: `gh: command not found`**
-- Install GitHub CLI: https://cli.github.com/
-
-**Error: `gh auth login required`**
-- Run `gh auth login` and follow the prompts
-
-**Permission denied errors**
-- Make sure the script is executable: `chmod +x setup.sh`
-
-**Repository already exists**
-- This is normal behavior - the script will skip existing repositories
-
-### Manual Setup
-
-If you prefer to set up manually:
-
-```bash
-mkdir sites
-cd sites
-gh repo clone juanmanueldaza/cv
-gh repo clone juanmanueldaza/onepager
-gh repo clone juanmanueldaza/data
-gh repo clone juanmanueldaza/wallpapers
-gh repo clone juanmanueldaza/start
-gh repo clone juanmanueldaza/navbar
-gh repo clone juanmanueldaza/mdsite
+├── dev.sh
+├── package.json
+├── vite.config.js
+├── sites/           # (cloned repos, ignored by git)
+│   ├── cv/
+│   ├── onepager/
+│   ├── data/
+│   ├── wallpapers/
+│   ├── start/
+│   ├── navbar/
+│   └── mdsite/
+└── logs/            # (optional, for custom logging)
 ```
 
 ## Development Workflow
 
-After setup, you can:
+- Run `./dev.sh` to start all Vite dev servers in the background. Each site will open in your browser:
+  - CV:           http://localhost:3001
+  - Onepager:     http://localhost:3002
+  - Start:        http://localhost:3003
+  - Navbar:       http://localhost:3004
+  - Mdsite:       http://localhost:3005
+  - Data:         http://localhost:3006 (opens /README.md by default)
+- Make changes in any site and see them live with hot reload.
+- The `sites/` directory is ignored by git; you can safely re-run `setup.sh` to update or re-clone projects.
 
-1. Navigate to any project: `cd sites/<project-name>`
-2. Follow individual repository setup instructions
-3. Start developing!
+## Features
+
+- **Idempotent setup:** Safe to run multiple times—skips existing repositories.
+- **Unified dev environment:** Serve all sites with Vite, each on its own port.
+- **No extra dependencies:** Only Vite is required for development.
+- **Easy error tracking:** Vite shows errors in the browser overlay.
+
+## Troubleshooting
+
+- **Permission denied:**
+  - Make sure scripts are executable: `chmod +x setup.sh dev.sh`
 
 ## Contributing
 
