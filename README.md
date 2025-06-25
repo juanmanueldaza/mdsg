@@ -51,6 +51,8 @@ The setup script clones the following repositories into the `sites` directory:
 | `juanmanueldaza/data` | Data and content management |
 | `juanmanueldaza/wallpapers` | Wallpaper collection |
 | `juanmanueldaza/start` | Start page/dashboard |
+| `juanmanueldaza/navbar` | Navigation bar component |
+| `juanmanueldaza/mdsite` | Markdown-based static site |
 
 ## Directory Structure
 
@@ -65,7 +67,9 @@ daza.ar-env/
     ├── onepager/
     ├── data/
     ├── wallpapers/
-    └── start/
+    ├── start/
+    ├── navbar/
+    └── mdsite/
 ```
 
 ## Features
@@ -103,6 +107,8 @@ gh repo clone juanmanueldaza/onepager
 gh repo clone juanmanueldaza/data
 gh repo clone juanmanueldaza/wallpapers
 gh repo clone juanmanueldaza/start
+gh repo clone juanmanueldaza/navbar
+gh repo clone juanmanueldaza/mdsite
 ```
 
 ## Development Workflow
