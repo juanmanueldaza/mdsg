@@ -56,7 +56,9 @@ echo -e "${INFO} Starting servers (each will open in browser)..."
 
 for site in $SITES; do
     NAME=$(echo "$site" | jq -r '.name')
+    # shellcheck disable=SC2034
     PORT=$(echo "$site" | jq -r '.port')
+    # shellcheck disable=SC2034
     HOST=$(echo "$site" | jq -r '.host')
     OPEN=$(echo "$site" | jq -r '.open // empty')
     if [ -n "$OPEN" ]; then

@@ -5,7 +5,7 @@
 
 set -e
 
-# Source shared utilities
+# shellcheck source=./lib.sh
 source "$(dirname "$0")/lib.sh"
 
 echo -e "${BLUE}📊 daza.ar-env Status Check${NC}"

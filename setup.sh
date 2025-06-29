@@ -6,7 +6,7 @@
 
 set -e  # Exit on any error
 
-# Source shared utilities
+# shellcheck source=./lib.sh
 source "$(dirname "$0")/lib.sh"
 
 # Parse command line arguments

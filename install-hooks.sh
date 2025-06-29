@@ -2,7 +2,7 @@
 # Simple pre-commit hook installer - no extra dependencies needed
 # Usage: ./install-hooks.sh
 
-# Source shared utilities
+# shellcheck source=./lib.sh
 source "$(dirname "$0")/lib.sh"
 
 HOOK_FILE=".git/hooks/pre-commit"
