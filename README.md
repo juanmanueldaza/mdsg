@@ -1,12 +1,47 @@
 # daza.ar Environment Setup
+<!-- SITES_TABLE_START -->
+| Site | Port | URL |
+|------|------|-----|
+| cv | 3001 | http://cv.local:3001 |
+| onepager | 3002 | http://onepager.local:3002 |
+| start | 3003 | http://start.local:3003 |
+| navbar | 3004 | http://navbar.local:3004 |
+| mdsite | 3005 | http://mdsite.local:3005 |
+| data | 3006 | http://data.local:3006 |
+| wallpapers | 3007 | http://wallpapers.local:3007 |
+
+<!-- SITES_TABLE_END -->
 
 A simple setup script to bootstrap the development environment for daza.ar projects by creating a structured workspace and cloning all necessary repositories.
 
 ## Overview
 
 This repository provides tools to quickly set up and develop the daza.ar ecosystem locally. It includes:
+
 - A setup script to clone all required repositories into a `sites/` directory.
 - A unified development workflow to serve all sites locally with Vite, each on its own port.
+
+## Quick Start
+
+To check prerequisites and set up your environment, simply run:
+
+```bash
+./setup.sh
+```
+
+This script will guide you through all required steps and report any missing tools. For troubleshooting, see [TROUBLESHOOTING.md](./TROUBLESHOOTING.md).
+
+## Workflow and Usage
+
+- For development server status and health checks, run:
+  ```bash
+  ./status.sh
+  ```
+- For starting all dev servers:
+  ```bash
+  ./dev.sh
+  ```
+- For more details on workflow, branching, and PRs, see the sections below.
 
 ## Prerequisites
 
@@ -24,15 +59,29 @@ gh auth login
 ```
 
 # Git, GitHub CLI, and Workflow Documentation
+<!-- SITES_TABLE_START -->
+| Site | Port | URL |
+|------|------|-----|
+| cv | 3001 | http://cv.local:3001 |
+| onepager | 3002 | http://onepager.local:3002 |
+| start | 3003 | http://start.local:3003 |
+| navbar | 3004 | http://navbar.local:3004 |
+| mdsite | 3005 | http://mdsite.local:3005 |
+| data | 3006 | http://data.local:3006 |
+| wallpapers | 3007 | http://wallpapers.local:3007 |
+
+<!-- SITES_TABLE_END -->
 
 ## Branching Strategy
+
 - **main**: Stable, production-ready code.
 - **develop**: Integration branch for tested features.
-- **feature/***: Short-lived branches for new features or fixes, branched from `develop`.
+- **feature/\***: Short-lived branches for new features or fixes, branched from `develop`.
 
 ## Typical Workflow
 
 1. **Sync your local repo**
+
    ```bash
    git checkout main
    git pull origin main
@@ -41,6 +90,7 @@ gh auth login
    ```
 
 2. **Create a feature branch**
+
    ```bash
    git checkout -b feature/issue-XX-short-description develop
    ```
@@ -53,6 +103,7 @@ gh auth login
      ```
 
 4. **Push and open a PR**
+
    ```bash
    git push -u origin feature/issue-XX-short-description
    gh pr create --base develop --head feature/issue-XX-short-description --title "Short summary (fixes #XX)" --body "Details and closes #XX"
@@ -89,51 +140,27 @@ gh auth login
 ## Principles
 
 - **KISS**: Keep scripts and workflow simple.
+- **Minimal dependencies**: Use only Vite as an npm dependency. Prefer built-in tools and avoid extra packages.
+- **GitHub CLI first**: Use the GitHub CLI (`gh`) for all repo, issue, and PR management tasks whenever possible. Use plain git only for low-level or unsupported operations.
 - **SOLID/CLEAN**: Structure scripts and documentation for clarity and maintainability.
-- **Minimal dependencies**: Use only essential tools (git, GitHub CLI).
 
 ---
 
-*For more detail, see `.github/ISSUE_TEMPLATE/branch_workflow.md` and `.github/ISSUE_TEMPLATE/feature_improvement.md`.*
-
-## Quick Start
-
-1. Clone this repository:
-   ```bash
-   git clone <this-repository-url>
-   cd daza.ar-env
-   ```
-
-2. Run the setup script to clone all project repositories:
-   ```bash
-   ./setup.sh
-   ```
-
-3. Install dependencies:
-   ```bash
-   npm install
-   ```
-
-4. Start all development servers (each site will open in your browser):
-   ```bash
-   ./dev.sh
-   ```
-
-   > Each site will be served on a different port (see below).
+_For more detail, see `.github/ISSUE_TEMPLATE/branch_workflow.md` and `.github/ISSUE_TEMPLATE/feature_improvement.md`._
 
 ## What Gets Cloned
 
 The setup script clones the following repositories into the `sites` directory:
 
-| Repository              | Description                    |
-|-------------------------|--------------------------------|
-| `juanmanueldaza/cv`     | Personal CV/Resume website     |
-| `juanmanueldaza/onepager` | One-page portfolio site      |
-| `juanmanueldaza/data`   | Data and content management    |
-| `juanmanueldaza/wallpapers` | Wallpaper collection       |
-| `juanmanueldaza/start`  | Start page/dashboard           |
-| `juanmanueldaza/navbar` | Navigation bar component       |
-| `juanmanueldaza/mdsite` | Markdown-based static site     |
+| Repository                  | Description                 |
+| --------------------------- | --------------------------- |
+| `juanmanueldaza/cv`         | Personal CV/Resume website  |
+| `juanmanueldaza/onepager`   | One-page portfolio site     |
+| `juanmanueldaza/data`       | Data and content management |
+| `juanmanueldaza/wallpapers` | Wallpaper collection        |
+| `juanmanueldaza/start`      | Start page/dashboard        |
+| `juanmanueldaza/navbar`     | Navigation bar component    |
+| `juanmanueldaza/mdsite`     | Markdown-based static site  |
 
 ## Directory Structure
 
@@ -160,12 +187,12 @@ daza.ar-env/
 ## Development Workflow
 
 - Run `./dev.sh` to start all Vite dev servers in the background. Each site will open in your browser with its custom .local domain:
-  - CV:           http://cv.localhost:3001
-  - Onepager:     http://onepager.localhost:3002
-  - Start:        http://start.localhost:3003
-  - Navbar:       http://navbar.localhost:3004
-  - Mdsite:       http://mdsite.localhost:3005
-  - Data:         http://data.localhost:3006 (opens /README.md by default)
+  - CV: http://cv.localhost:3001
+  - Onepager: http://onepager.localhost:3002
+  - Start: http://start.localhost:3003
+  - Navbar: http://navbar.localhost:3004
+  - Mdsite: http://mdsite.localhost:3005
+  - Data: http://data.localhost:3006 (opens /README.md by default)
 - Make changes in any site and see them live with hot reload.
 - The `sites/` directory is ignored by git; you can safely re-run `setup.sh` to update or re-clone projects.
 
@@ -187,10 +214,12 @@ daza.ar-env/
 The GitHub CLI (`gh`) is a powerful tool for automating and streamlining your workflow. Here are some advanced and recommended usages for this project:
 
 ### Authentication & Setup
+
 - Authenticate once: `gh auth login`
 - Check your status: `gh auth status`
 
 ### Issues
+
 - List issues: `gh issue list`
 - View an issue: `gh issue view <number>`
 - Create an issue: `gh issue create --title "Title" --body "Description" --label enhancement`
@@ -198,6 +227,7 @@ The GitHub CLI (`gh`) is a powerful tool for automating and streamlining your wo
 - Close with comment: `gh issue close <number> --comment "Fixed in PR #XX"`
 
 ### Pull Requests
+
 - List PRs: `gh pr list`
 - View PR: `gh pr view <number> --web`
 - Create PR: `gh pr create --base develop --head feature/issue-XX-description --title "Title" --body "Details"`
@@ -206,10 +236,12 @@ The GitHub CLI (`gh`) is a powerful tool for automating and streamlining your wo
 - Merge (squash & delete): `gh pr merge <number> --squash --delete-branch`
 
 ### Branch Protection (Admin)
+
 - Protect main: `gh api --method PUT repos/<owner>/<repo>/branches/main/protection --input protection.json`
 - Unprotect (solo dev): set `required_pull_request_reviews` to `null` as shown above.
 
 ### Automation & Scripting
+
 - Combine with bash for automation:
   ```bash
   for i in {1..5}; do gh issue close $i --comment "Batch closed"; done
@@ -217,13 +249,64 @@ The GitHub CLI (`gh`) is a powerful tool for automating and streamlining your wo
 - Use in CI/CD scripts for releases, tagging, or status checks.
 
 ### Tips
+
 - Use `gh` with `jq` for JSON output and scripting.
 - Use `gh` to manage releases, gists, and more: see `gh help`.
 - All actions are logged in GitHub for traceability.
 
 ---
 
-*For more CLI usage examples, see the [GitHub CLI docs](https://cli.github.com/manual/).*
+_For more CLI usage examples, see the [GitHub CLI docs](https://cli.github.com/manual/)._
+
+## Code Quality & Formatting
+
+### Linting and Formatting
+
+- **Lint all code**: `npm run lint`
+- **Fix linting issues**: `npm run lint:fix`
+- **Format all code**: `npm run format`
+- **Check formatting**: `npm run format:check`
+
+The project uses ESLint for JavaScript linting and Prettier for consistent code formatting. Both tools are configured to work on root files and all subprojects in the `sites/` directory.
+
+### Pre-commit Hooks
+
+Install git hooks to automatically check code before commits:
+
+```bash
+./install-hooks.sh
+```
+
+This ensures all committed code passes linting and formatting checks, preventing style-related issues from entering the repository.
+
+### CI Integration
+
+The GitHub Actions workflow automatically:
+
+- Runs ESLint on all JavaScript files
+- Checks code formatting with Prettier
+- Validates shell scripts with ShellCheck
+
+All checks must pass before merging pull requests.
+
+### Configuration Files
+
+- **ESLint**: `eslint.config.js` (modern flat config format)
+- **Prettier**: `.prettierrc` (JSON configuration)
+
+Both configurations follow the project's KISS principle with sensible defaults that work across all subprojects.
+
+## Scripts
+
+- `npm run dev`: Starts all development servers using `./dev.sh`.
+- `npm run build`: (Placeholder) Use site-specific build scripts or Vite as needed.
+- `npm run clean`: Removes `sites/` and `node_modules/` for a fresh start.
+- `npm run lint`: Lints all JavaScript files in root and sites directories.
+- `npm run lint:fix`: Automatically fixes linting issues where possible.
+- `npm run format`: Formats all code files using Prettier.
+- `npm run format:check`: Checks if all files are properly formatted.
+
+> This project follows KISS and minimal dependencies. Only essential scripts, Vite, ESLint, and Prettier are included. For advanced builds, use site-specific configs.
 
 ## Scripts
 

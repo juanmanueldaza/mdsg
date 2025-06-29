@@ -4,13 +4,16 @@
 
 set -e
 
+# Source shared utilities
+source "$(dirname "$0")/lib.sh"
+
 ISSUE_NUMBER="$1"
 COMMIT_MESSAGE="$2"
 PR_TITLE="$3"
 PR_BODY="$4"
 
 if [ -z "$ISSUE_NUMBER" ] || [ -z "$COMMIT_MESSAGE" ] || [ -z "$PR_TITLE" ] || [ -z "$PR_BODY" ]; then
-  echo "Usage: $0 <issue_number> <commit_message> <pr_title> <pr_body>"
+  echo -e "${WARNING} Usage: $0 <issue_number> <commit_message> <pr_title> <pr_body>"
   exit 1
 fi
 
@@ -44,7 +47,6 @@ else
   git checkout -b "$BRANCH_NAME" $BASE
 fi
 
-# Only commit if there are changes (should always be true here, but double-check)
 git add .
 if git diff --cached --quiet; then
   echo "No changes to commit. Exiting."
