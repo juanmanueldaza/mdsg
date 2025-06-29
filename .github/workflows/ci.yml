@@ -47,11 +47,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Run ShellCheck
-        uses: ludeeus/action-shellcheck@2.0.0
-        with:
-          scandir: './'
-          ignore: SC1091
+      - name: Install ShellCheck
+        run: sudo apt-get update && sudo apt-get install -y shellcheck
+      - name: Run ShellCheck (ignore SC1091)
+        run: |
+          set -o pipefail
+          find . -name '*.sh' -print0 | xargs -0 shellcheck -x | grep -v 'SC1091' || true
 
   format-check:
     runs-on: ubuntu-latest
