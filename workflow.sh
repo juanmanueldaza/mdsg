@@ -4,7 +4,7 @@
 
 set -e
 
-# Source shared utilities
+# shellcheck source=./lib.sh
 source "$(dirname "$0")/lib.sh"
 
 ISSUE_NUMBER="$1"
@@ -30,21 +30,21 @@ if ! git diff --quiet || ! git diff --cached --quiet; then
   git commit -m "wip: save local changes before workflow automation"
   WIP_COMMIT=$(git rev-parse HEAD)
   # Switch to base and update
-  git checkout $BASE
-  git pull origin $BASE
+  git checkout "$BASE"
+  git pull origin "$BASE"
   # Create feature branch from base
-  BRANCH_NAME="feature/${ISSUE_NUMBER}-$(echo $COMMIT_MESSAGE | tr ' ' '-' | tr -cd '[:alnum:]-' | cut -c1-30 | tr '[:upper:]' '[:lower:]')"
-  git checkout -b "$BRANCH_NAME" $BASE
+  BRANCH_NAME="feature/${ISSUE_NUMBER}-$(echo "$COMMIT_MESSAGE" | tr ' ' '-' | tr -cd '[:alnum:]-' | cut -c1-30 | tr '[:upper:]' '[:lower:]')"
+  git checkout -b "$BRANCH_NAME" "$BASE"
   # Cherry-pick WIP commit
-  git cherry-pick $WIP_COMMIT
+  git cherry-pick "$WIP_COMMIT"
   # Delete WIP branch
   git branch -D "$WIP_BRANCH"
 else
   # No local changes, just create feature branch from base
-  git checkout $BASE
-  git pull origin $BASE
-  BRANCH_NAME="feature/${ISSUE_NUMBER}-$(echo $COMMIT_MESSAGE | tr ' ' '-' | tr -cd '[:alnum:]-' | cut -c1-30 | tr '[:upper:]' '[:lower:]')"
-  git checkout -b "$BRANCH_NAME" $BASE
+  git checkout "$BASE"
+  git pull origin "$BASE"
+  BRANCH_NAME="feature/${ISSUE_NUMBER}-$(echo "$COMMIT_MESSAGE" | tr ' ' '-' | tr -cd '[:alnum:]-' | cut -c1-30 | tr '[:upper:]' '[:lower:]')"
+  git checkout -b "$BRANCH_NAME" "$BASE"
 fi
 
 git add .
@@ -56,7 +56,7 @@ fi
 git commit -m "$COMMIT_MESSAGE" || echo "Nothing to commit, continuing."
 git push -u origin "$BRANCH_NAME"
 
-gh pr create --base $BASE --head "$BRANCH_NAME" --title "$PR_TITLE" --body "$PR_BODY" --label documentation --fill
+gh pr create --base "$BASE" --head "$BRANCH_NAME" --title "$PR_TITLE" --body "$PR_BODY" --label documentation --fill
 
 gh pr merge --squash --delete-branch --admin --subject "$PR_TITLE" --body "$PR_BODY"
 

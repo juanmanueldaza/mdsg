@@ -4,7 +4,7 @@
 
 set -e  # Exit on any error
 
-# Source shared utilities
+# shellcheck source=./lib.sh
 source "$(dirname "$0")/lib.sh"
 
 # Read sites config
@@ -36,8 +36,8 @@ for site in $SITES; do
     FOLDER=$(echo "$site" | jq -r '.folder')
     PKG_JSON="$FOLDER/package.json"
     if [ -f "$PKG_JSON" ]; then
-        DEPS=$(jq -r '.dependencies, .devDependencies | keys[]?' "$PKG_JSON" | sort -u)
-        for dep in $DEPS; do
+        mapfile -t DEPS < <(jq -r '.dependencies, .devDependencies | keys[]?' "$PKG_JSON" | sort -u)
+        for dep in "${DEPS[@]}"; do
             if ! npm ls "$dep" >/dev/null 2>&1; then
                 MISSING_DEPS+=("$dep")
             fi
@@ -47,7 +47,7 @@ for site in $SITES; do
 done
 
 if [ ${#MISSING_DEPS[@]} -gt 0 ]; then
-    UNIQUE_DEPS=($(printf "%s\n" "${MISSING_DEPS[@]}" | sort -u))
+    mapfile -t UNIQUE_DEPS < <(printf "%s\n" "${MISSING_DEPS[@]}" | sort -u)
     echo -e "${WARNING} Installing missing dependencies: ${UNIQUE_DEPS[*]}"
     npm install "${UNIQUE_DEPS[@]}"
 fi
@@ -60,9 +60,9 @@ for site in $SITES; do
     HOST=$(echo "$site" | jq -r '.host')
     OPEN=$(echo "$site" | jq -r '.open // empty')
     if [ -n "$OPEN" ]; then
-        npm run dev:$NAME -- --open "$OPEN" &
+        npm run dev:"$NAME" -- --open "$OPEN" &
     else
-        npm run dev:$NAME -- --open &
+        npm run dev:"$NAME" -- --open &
     fi
 done
 
