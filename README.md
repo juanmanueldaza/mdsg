@@ -335,5 +335,19 @@ This project provides an automated workflow script (`workflow.sh`) that uses the
 - **Minimal dependencies**: Only Vite as an npm dependency; all repo management via GitHub CLI.
 - **gh-first**: Prefer `gh` for all automation; use git only for local diff/staging.
 
+---
+
+## Branch Workflow (Contributing)
+
+All contributors must follow the documented branch workflow for new features and improvements. This ensures code quality, reduces merge conflicts, and aligns with KISS, SOLID, and CLEAN principles.
+
+- See [CONTRIBUTING.md](./CONTRIBUTING.md) for the full workflow, including:
+  - Branch naming conventions
+  - Issue-driven development
+  - Commit and PR guidelines
+  - Review and merge process
+
+Always use the [feature_improvement.md](.github/ISSUE_TEMPLATE/feature_improvement.md) template for new work and reference issues in branches, commits, and PRs.
+
 **Author**: Juan Manuel Daza  
 **Website**: [daza.ar](https://daza.ar)
