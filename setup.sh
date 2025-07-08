@@ -53,7 +53,7 @@ check_prerequisites() {
 # Function to setup /etc/hosts domains
 setup_hosts() {
     echo "🔗 Checking /etc/hosts for custom .local domains..."
-    local SITES=(cv onepager data wallpapers start navbar mdsite)
+    local SITES=(cv onepager data wallpapers start navbar mdsite laboratoriodeprogramacioncreativa spanishlessons)
     local MISSING=()
 
     for SITE in "${SITES[@]}"; do
@@ -125,6 +125,8 @@ repos=(
     "juanmanueldaza/start"
     "juanmanueldaza/navbar"
     "juanmanueldaza/mdsite"
+    "juanmanueldaza/laboratoriodeprogramacioncreativa"
+    "juanmanueldaza/spanishlessons"
 )
 
 echo "📦 Cloning repositories..."

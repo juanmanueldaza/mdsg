@@ -79,7 +79,7 @@ if [ -d "sites" ]; then
     echo -e "${CHECK} sites directory: ${GREEN}Found${NC}"
 
     # Check individual repositories
-    EXPECTED_REPOS=("cv" "onepager" "start" "navbar" "mdsite" "data" "wallpapers")
+    EXPECTED_REPOS=("cv" "onepager" "start" "navbar" "mdsite" "data" "wallpapers" "laboratoriodeprogramacioncreativa" "spanishlessons")
     MISSING_REPOS=()
 
     for repo in "${EXPECTED_REPOS[@]}"; do
@@ -130,8 +130,8 @@ echo ""
 echo -e "${BLUE}🌐 Development Servers${NC}"
 echo "---------------------"
 
-PORTS=(3001 3002 3003 3004 3005 3006 3007)
-PORT_NAMES=("cv" "onepager" "start" "navbar" "mdsite" "data" "wallpapers")
+PORTS=(3001 3002 3003 3004 3005 3006 3007 3008 3009)
+PORT_NAMES=("cv" "onepager" "start" "navbar" "mdsite" "data" "wallpapers" "laboratoriodeprogramacioncreativa" "spanishlessons")
 RUNNING_SERVERS=0
 
 for i in "${!PORTS[@]}"; do
@@ -146,7 +146,7 @@ for i in "${!PORTS[@]}"; do
     fi
 done
 
-echo -e "${INFO} Servers running: ${RUNNING_SERVERS}/7"
+echo -e "${INFO} Servers running: ${RUNNING_SERVERS}/9"
 
 if [ $RUNNING_SERVERS -eq 0 ]; then
     echo -e "${INFO} Run: ./dev.sh or npm run dev to start all servers"
@@ -158,10 +158,10 @@ echo ""
 echo -e "${BLUE}🔗 Local Domain Configuration${NC}"
 echo "-----------------------------"
 
-DOMAINS=("cv.local" "onepager.local" "start.local" "navbar.local" "mdsite.local" "data.local" "wallpapers.local")
+LOCAL_DOMAINS=("cv.local" "onepager.local" "start.local" "navbar.local" "mdsite.local" "data.local" "wallpapers.local" "laboratoriodeprogramacioncreativa.local" "spanishlessons.local")
 MISSING_DOMAINS=()
 
-for domain in "${DOMAINS[@]}"; do
+for domain in "${LOCAL_DOMAINS[@]}"; do
     if domain_resolves "$domain"; then
         echo -e "${CHECK} $domain: ${GREEN}Configured${NC}"
     else
