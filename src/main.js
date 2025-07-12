@@ -90,22 +90,52 @@ class MDSG {
 
         <div class="editor-container">
           <div class="editor-pane">
-            <h3>Write your markdown:</h3>
-            <textarea id="markdown-editor" placeholder="# My Awesome Site
+            <div class="editor-header">
+              <h3>📝 Write your markdown</h3>
+              <div class="editor-tools">
+                <button id="clear-btn" class="tool-btn" title="Clear content">🗑️</button>
+                <button id="sample-btn" class="tool-btn" title="Load sample content">📄</button>
+                <span class="word-count" id="word-count">0 words</span>
+              </div>
+            </div>
+            <textarea id="markdown-editor"
+              placeholder="# My Awesome Site
 
-Welcome to my site!
+Welcome to my site! This is where you can write your content in markdown.
 
-## About
-Write something about yourself...
+## Features
+- **Easy editing** with live preview
+- *Markdown* support for formatting
+- \`Code snippets\` and links
+- Lists and much more!
+
+## About Me
+Write something interesting about yourself here...
 
 ## Contact
 - Email: your.email@example.com
-- GitHub: github.com/yourusername">${this.content}</textarea>
+- GitHub: [yourusername](https://github.com/yourusername)
+- Website: https://yoursite.com
+
+> Start typing to see the live preview! ✨"
+              spellcheck="true"
+              autocomplete="off"
+              rows="20">${this.content}</textarea>
+            <div class="editor-status">
+              <span class="char-count" id="char-count">0 characters</span>
+              <span class="auto-save-status" id="auto-save-status">Auto-save: Ready</span>
+            </div>
           </div>
 
           <div class="preview-pane">
-            <h3>Preview:</h3>
-            <div id="preview"></div>
+            <div class="preview-header">
+              <h3>👁️ Live Preview</h3>
+              <div class="preview-tools">
+                <button id="preview-mode" class="tool-btn active" title="Toggle preview mode">📱</button>
+                <button id="fullscreen-preview" class="tool-btn" title="Fullscreen preview">🔍</button>
+              </div>
+            </div>
+            <div id="preview" class="preview-content"></div>
           </div>
         </div>
 
@@ -281,10 +311,79 @@ Write something about yourself...
     const editor = document.getElementById('markdown-editor');
     const deployBtn = document.getElementById('deploy-btn');
     const logoutBtn = document.getElementById('logout-btn');
+    const clearBtn = document.getElementById('clear-btn');
+    const sampleBtn = document.getElementById('sample-btn');
+    const previewMode = document.getElementById('preview-mode');
+    const fullscreenPreview = document.getElementById('fullscreen-preview');
 
+    // Main editor input handler with debouncing
+    let inputTimer;
     editor?.addEventListener('input', e => {
       this.content = e.target.value;
+      this.updateWordCount();
       this.updatePreview();
+
+      // Auto-save with debouncing
+      clearTimeout(inputTimer);
+      inputTimer = setTimeout(() => {
+        this.autoSave();
+      }, 1000);
+    });
+
+    // Keyboard shortcuts
+    editor?.addEventListener('keydown', e => {
+      if (e.ctrlKey || e.metaKey) {
+        switch (e.key) {
+          case 's':
+            e.preventDefault();
+            this.autoSave();
+            break;
+          case 'b':
+            e.preventDefault();
+            this.insertMarkdown('**', '**', 'bold text');
+            break;
+          case 'i':
+            e.preventDefault();
+            this.insertMarkdown('*', '*', 'italic text');
+            break;
+        }
+      }
+
+      // Tab handling for code blocks
+      if (e.key === 'Tab') {
+        e.preventDefault();
+        const start = e.target.selectionStart;
+        const end = e.target.selectionEnd;
+        e.target.value =
+          e.target.value.substring(0, start) +
+          '    ' +
+          e.target.value.substring(end);
+        e.target.selectionStart = e.target.selectionEnd = start + 4;
+        this.content = e.target.value;
+        this.updatePreview();
+      }
+    });
+
+    // Tool buttons
+    clearBtn?.addEventListener('click', () => {
+      if (confirm('Are you sure you want to clear all content?')) {
+        this.content = '';
+        editor.value = '';
+        this.updatePreview();
+        this.updateWordCount();
+      }
+    });
+
+    sampleBtn?.addEventListener('click', () => {
+      this.loadSampleContent();
+    });
+
+    previewMode?.addEventListener('click', () => {
+      this.togglePreviewMode();
+    });
+
+    fullscreenPreview?.addEventListener('click', () => {
+      this.toggleFullscreenPreview();
     });
 
     deployBtn?.addEventListener('click', () => {
@@ -294,40 +393,307 @@ Write something about yourself...
     logoutBtn?.addEventListener('click', () => {
       this.logout();
     });
+
+    // Load saved content if available
+    this.loadSavedContent();
   }
 
   updatePreview() {
     const preview = document.getElementById('preview');
     if (preview) {
-      // Simple markdown to HTML conversion
-      preview.innerHTML = this.markdownToHTML(this.content);
+      if (this.content.trim() === '') {
+        preview.innerHTML = `
+          <div class="preview-empty">
+            <p>✨ Start typing in the editor to see your markdown come to life!</p>
+            <p>Try some basic formatting:</p>
+            <ul>
+              <li><strong>**bold text**</strong></li>
+              <li><em>*italic text*</em></li>
+              <li><code>\`code\`</code></li>
+              <li><a href="#">[links](https://example.com)</a></li>
+            </ul>
+          </div>
+        `;
+      } else {
+        preview.innerHTML = this.markdownToHTML(this.content);
+      }
+
+      // Scroll preview to match editor scroll position
+      this.syncPreviewScroll();
     }
   }
 
   markdownToHTML(markdown) {
-    // Enhanced markdown parsing
-    return markdown
-      .replace(/^# (.*$)/gm, '<h1>$1</h1>')
-      .replace(/^## (.*$)/gm, '<h2>$1</h2>')
-      .replace(/^### (.*$)/gm, '<h3>$1</h3>')
-      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-      .replace(/\*(.*?)\*/g, '<em>$1</em>')
-      .replace(/`(.*?)`/g, '<code>$1</code>')
-      .replace(/^\> (.*$)/gm, '<blockquote>$1</blockquote>')
-      .replace(/^\- (.*$)/gm, '<li>$1</li>')
-      .replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>')
-      .replace(
-        /\[([^\]]+)\]\(([^\)]+)\)/g,
-        '<a href="$2" target="_blank">$1</a>'
-      )
-      .replace(/\n\n/g, '</p><p>')
-      .replace(/\n/g, '<br>')
-      .replace(/^(.)/gm, '<p>$1')
-      .replace(/(.*)$/gm, '$1</p>')
-      .replace(/<p><\/p>/g, '')
-      .replace(/<p>(<h[1-6]>.*<\/h[1-6]>)<\/p>/g, '$1')
-      .replace(/<p>(<ul>.*<\/ul>)<\/p>/g, '$1')
-      .replace(/<p>(<blockquote>.*<\/blockquote>)<\/p>/g, '$1');
+    if (!markdown) return '';
+
+    // Enhanced markdown parsing with better regex patterns
+    let html = markdown;
+
+    // Code blocks (must be processed first)
+    html = html.replace(/```([^`]*?)```/gs, '<pre><code>$1</code></pre>');
+
+    // Headers (with ID generation for links)
+    html = html.replace(/^### (.*$)/gm, (match, text) => {
+      const id = text.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+      return `<h3 id="${id}">${text}</h3>`;
+    });
+    html = html.replace(/^## (.*$)/gm, (match, text) => {
+      const id = text.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+      return `<h2 id="${id}">${text}</h2>`;
+    });
+    html = html.replace(/^# (.*$)/gm, (match, text) => {
+      const id = text.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+      return `<h1 id="${id}">${text}</h1>`;
+    });
+
+    // Horizontal rules
+    html = html.replace(/^---$/gm, '<hr>');
+
+    // Blockquotes
+    html = html.replace(/^> (.*$)/gm, '<blockquote>$1</blockquote>');
+
+    // Lists (improved handling)
+    html = html.replace(/^[\*\-\+] (.+$)/gm, '<li>$1</li>');
+    html = html.replace(/^(\d+)\. (.+$)/gm, '<oli>$2</oli>');
+
+    // Group consecutive list items
+    html = html.replace(/(<li>.*?<\/li>)(\n<li>.*?<\/li>)*/gs, '<ul>$&</ul>');
+    html = html.replace(
+      /(<oli>.*?<\/oli>)(\n<oli>.*?<\/oli>)*/gs,
+      '<ol>$&</ol>'
+    );
+    html = html.replace(/<oli>/g, '<li>').replace(/<\/oli>/g, '</li>');
+
+    // Text formatting
+    html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    html = html.replace(/(?<!\*)\*([^*]+)\*(?!\*)/g, '<em>$1</em>');
+    html = html.replace(/~~(.*?)~~/g, '<del>$1</del>');
+    html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
+
+    // Links and images
+    html = html.replace(
+      /!\[([^\]]*)\]\(([^)]+)\)/g,
+      '<img src="$2" alt="$1" />'
+    );
+    html = html.replace(
+      /\[([^\]]+)\]\(([^)]+)\)/g,
+      '<a href="$2" target="_blank" rel="noopener">$1</a>'
+    );
+
+    // Email links
+    html = html.replace(
+      /([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/g,
+      '<a href="mailto:$1">$1</a>'
+    );
+
+    // Auto-link URLs
+    html = html.replace(
+      /(https?:\/\/[^\s<]+)/g,
+      '<a href="$1" target="_blank" rel="noopener">$1</a>'
+    );
+
+    // Paragraphs
+    html = html.replace(/\n\s*\n/g, '</p><p>');
+    html = html.replace(/^(.)/gm, '<p>$1');
+    html = html.replace(/(.*)$/gm, '$1</p>');
+
+    // Clean up
+    html = html.replace(/<p><\/p>/g, '');
+    html = html.replace(/<p>(<h[1-6][^>]*>.*?<\/h[1-6]>)<\/p>/g, '$1');
+    html = html.replace(/<p>(<ul>.*?<\/ul>)<\/p>/gs, '$1');
+    html = html.replace(/<p>(<ol>.*?<\/ol>)<\/p>/gs, '$1');
+    html = html.replace(/<p>(<blockquote>.*?<\/blockquote>)<\/p>/g, '$1');
+    html = html.replace(/<p>(<pre>.*?<\/pre>)<\/p>/gs, '$1');
+    html = html.replace(/<p>(<hr>)<\/p>/g, '$1');
+
+    return html;
+  }
+
+  updateWordCount() {
+    const wordCount = document.getElementById('word-count');
+    const charCount = document.getElementById('char-count');
+
+    if (wordCount) {
+      const words = this.content
+        .trim()
+        .split(/\s+/)
+        .filter(word => word.length > 0).length;
+      wordCount.textContent = `${words} word${words !== 1 ? 's' : ''}`;
+    }
+
+    if (charCount) {
+      charCount.textContent = `${this.content.length} character${this.content.length !== 1 ? 's' : ''}`;
+    }
+  }
+
+  autoSave() {
+    try {
+      localStorage.setItem('mdsg_content', this.content);
+      localStorage.setItem('mdsg_last_save', new Date().toISOString());
+
+      const status = document.getElementById('auto-save-status');
+      if (status) {
+        status.textContent = 'Auto-save: Saved';
+        status.style.color = '#28a745';
+        setTimeout(() => {
+          status.textContent = 'Auto-save: Ready';
+          status.style.color = '#666';
+        }, 2000);
+      }
+    } catch (error) {
+      console.error('Auto-save failed:', error);
+      const status = document.getElementById('auto-save-status');
+      if (status) {
+        status.textContent = 'Auto-save: Failed';
+        status.style.color = '#dc3545';
+      }
+    }
+  }
+
+  loadSavedContent() {
+    try {
+      const savedContent = localStorage.getItem('mdsg_content');
+      if (savedContent && savedContent !== this.content) {
+        this.content = savedContent;
+        const editor = document.getElementById('markdown-editor');
+        if (editor) {
+          editor.value = this.content;
+        }
+        this.updatePreview();
+        this.updateWordCount();
+      }
+    } catch (error) {
+      console.error('Failed to load saved content:', error);
+    }
+  }
+
+  loadSampleContent() {
+    const sampleContent = `# Welcome to MDSG! 🚀
+
+## What is MDSG?
+
+MDSG (Markdown Site Generator) is a simple tool that lets you create beautiful GitHub Pages sites from markdown content. No coding required!
+
+## Features
+
+- **Live Preview** - See your changes instantly
+- **GitHub Integration** - Deploy directly to GitHub Pages
+- **Simple Markdown** - Easy formatting for everyone
+- *Responsive Design* - Looks great on all devices
+
+## Getting Started
+
+1. Write your content in markdown (like this!)
+2. Watch the live preview update
+3. Click deploy when you're ready
+4. Your site goes live instantly! ✨
+
+## Markdown Examples
+
+### Text Formatting
+
+You can make text **bold**, *italic*, or even ~~strikethrough~~.
+
+### Code
+
+Inline \`code\` looks like this, and code blocks:
+
+\`\`\`javascript
+function hello() {
+    console.log("Hello, world!");
+}
+\`\`\`
+
+### Lists
+
+Unordered lists:
+- First item
+- Second item
+- Third item
+
+Ordered lists:
+1. First step
+2. Second step
+3. Third step
+
+### Links and More
+
+Check out [GitHub](https://github.com) or email me at hello@example.com
+
+> This is a blockquote. Perfect for highlighting important information!
+
+---
+
+## Ready to Build?
+
+Start editing this content to create your own site. The preview updates as you type!
+
+*Happy building!* 🎉`;
+
+    this.content = sampleContent;
+    const editor = document.getElementById('markdown-editor');
+    if (editor) {
+      editor.value = this.content;
+    }
+    this.updatePreview();
+    this.updateWordCount();
+  }
+
+  insertMarkdown(before, after, placeholder) {
+    const editor = document.getElementById('markdown-editor');
+    if (!editor) return;
+
+    const start = editor.selectionStart;
+    const end = editor.selectionEnd;
+    const selectedText = editor.value.substring(start, end);
+    const replacement = selectedText || placeholder;
+
+    const newText = before + replacement + after;
+    editor.value =
+      editor.value.substring(0, start) + newText + editor.value.substring(end);
+
+    // Set cursor position
+    const newCursorPos = start + before.length + replacement.length;
+    editor.selectionStart = editor.selectionEnd = newCursorPos;
+
+    this.content = editor.value;
+    this.updatePreview();
+    editor.focus();
+  }
+
+  syncPreviewScroll() {
+    const editor = document.getElementById('markdown-editor');
+    const preview = document.getElementById('preview');
+
+    if (editor && preview) {
+      const scrollPercentage =
+        editor.scrollTop / (editor.scrollHeight - editor.clientHeight);
+      preview.scrollTop =
+        scrollPercentage * (preview.scrollHeight - preview.clientHeight);
+    }
+  }
+
+  togglePreviewMode() {
+    const editorContainer = document.querySelector('.editor-container');
+    const previewModeBtn = document.getElementById('preview-mode');
+
+    if (editorContainer && previewModeBtn) {
+      editorContainer.classList.toggle('preview-only');
+      previewModeBtn.classList.toggle('active');
+    }
+  }
+
+  toggleFullscreenPreview() {
+    const preview = document.getElementById('preview');
+    if (preview) {
+      if (preview.requestFullscreen) {
+        preview.requestFullscreen();
+      } else if (preview.webkitRequestFullscreen) {
+        preview.webkitRequestFullscreen();
+      } else if (preview.msRequestFullscreen) {
+        preview.msRequestFullscreen();
+      }
+    }
   }
 
   async deployToGitHub() {
