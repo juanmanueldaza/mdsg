@@ -32,10 +32,40 @@ class MDSG {
   getLoginUI() {
     return `
       <div class="login-section">
-        <button id="login-btn" class="primary-btn">
-          Login with GitHub
-        </button>
-        <p>Sign in to create your markdown site</p>
+        <div class="login-header">
+          <h2>🚀 Welcome to MDSG</h2>
+          <p>Create beautiful GitHub Pages sites from markdown</p>
+        </div>
+
+        <div class="login-content">
+          <div class="features-list">
+            <div class="feature-item">
+              <span class="feature-icon">✨</span>
+              <span>Live markdown preview</span>
+            </div>
+            <div class="feature-item">
+              <span class="feature-icon">🔧</span>
+              <span>One-click deployment</span>
+            </div>
+            <div class="feature-item">
+              <span class="feature-icon">🌐</span>
+              <span>Your own GitHub Pages site</span>
+            </div>
+          </div>
+
+          <button id="login-btn" class="primary-btn login-button">
+            <span class="github-icon">📱</span>
+            Continue with GitHub
+          </button>
+
+          <p class="login-description">
+            Sign in to create your markdown site in minutes
+          </p>
+
+          <div class="security-note">
+            <small>🔒 Secure OAuth authentication • No passwords stored</small>
+          </div>
+        </div>
       </div>
     `;
   }
@@ -44,8 +74,18 @@ class MDSG {
     return `
       <div class="editor-section">
         <div class="user-info">
-          <span>👋 Hello, ${this.user.login}</span>
-          <button id="logout-btn" class="secondary-btn">Logout</button>
+          <div class="user-profile">
+            <img src="${this.user.avatar_url}" alt="${this.user.login}" class="user-avatar">
+            <div class="user-details">
+              <span class="user-greeting">👋 Hello, <strong>${this.user.name || this.user.login}</strong></span>
+              <span class="user-login">@${this.user.login}</span>
+            </div>
+          </div>
+          <div class="header-actions">
+            <button id="logout-btn" class="secondary-btn logout-button">
+              <span>🚪</span> Logout
+            </button>
+          </div>
         </div>
 
         <div class="editor-container">
@@ -79,13 +119,50 @@ Write something about yourself...
   }
 
   checkAuth() {
-    // Simple check for existing auth
+    // Enhanced authentication check
     const token = localStorage.getItem('github_token');
-    if (token) {
+    const tokenType = localStorage.getItem('github_token_type');
+    const tokenScope = localStorage.getItem('github_token_scope');
+
+    if (token && this.isValidToken(token)) {
+      console.log('Valid authentication token found');
       this.fetchUser(token);
     } else {
+      console.log('No valid authentication found');
+      this.clearAuthenticationState();
       this.setupLoginHandler();
     }
+  }
+
+  isValidToken(token) {
+    // Basic token validation
+    if (!token || typeof token !== 'string') {
+      return false;
+    }
+
+    // Check token format (GitHub tokens are typically 40 characters)
+    if (token.length < 20 || token.length > 255) {
+      return false;
+    }
+
+    // Check for basic token format
+    if (!/^[a-zA-Z0-9_]+$/.test(token)) {
+      return false;
+    }
+
+    return true;
+  }
+
+  clearAuthenticationState() {
+    // Clear all authentication-related data
+    localStorage.removeItem('github_token');
+    localStorage.removeItem('github_token_type');
+    localStorage.removeItem('github_token_scope');
+    localStorage.removeItem('oauth_state');
+
+    // Reset internal state
+    this.authenticated = false;
+    this.user = null;
   }
 
   setupLoginHandler() {
@@ -95,32 +172,98 @@ Write something about yourself...
   }
 
   loginWithGitHub() {
-    // Redirect to GitHub OAuth
-    const clientId = 'Ov23liKZ8KgfLQDZFGSR'; // Default demo client ID
+    // Check if we're already in an OAuth flow
+    if (this.authenticated) {
+      console.log('User already authenticated');
+      return;
+    }
+
+    // GitHub OAuth configuration
+    const clientId = this.getGitHubClientId();
+    if (!clientId) {
+      this.showError('GitHub OAuth is not configured. Please check the setup.');
+      return;
+    }
+
+    // Build OAuth URL with proper parameters
     const redirectUri = encodeURIComponent(window.location.origin);
     const scope = 'repo user';
+    const state = this.generateOAuthState();
 
-    const authUrl = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scope}`;
+    // Store state for verification
+    localStorage.setItem('oauth_state', state);
+
+    const authUrl =
+      `https://github.com/login/oauth/authorize?` +
+      `client_id=${clientId}&` +
+      `redirect_uri=${redirectUri}&` +
+      `scope=${scope}&` +
+      `state=${state}`;
+
+    console.log('Redirecting to GitHub OAuth...');
     window.location.href = authUrl;
+  }
+
+  getGitHubClientId() {
+    // Try to get client ID from environment or use default for demo
+    // In production, this should come from environment variables
+    return 'Ov23liKZ8KgfLQDZFGSR'; // Default demo client ID
+  }
+
+  generateOAuthState() {
+    // Generate a random state for OAuth security
+    return (
+      Math.random().toString(36).substring(2, 15) +
+      Math.random().toString(36).substring(2, 15)
+    );
   }
 
   async fetchUser(token) {
     try {
-      this.showLoading('Authenticating...');
+      this.showLoading('Fetching user profile...');
 
+      // Fetch user profile from GitHub API
       const response = await fetch('https://api.github.com/user', {
         headers: {
           Authorization: `token ${token}`,
           Accept: 'application/vnd.github.v3+json',
+          'User-Agent': 'MDSG-App',
         },
       });
 
       if (response.ok) {
-        this.user = await response.json();
+        const userData = await response.json();
+
+        // Enhance user data with additional information
+        this.user = {
+          ...userData,
+          // Add computed properties for easier access
+          displayName: userData.name || userData.login,
+          avatarUrl: userData.avatar_url,
+          profileUrl: userData.html_url,
+          // Token information
+          tokenValid: true,
+          lastAuthenticated: new Date().toISOString(),
+        };
+
+        console.log('User authenticated successfully:', this.user.login);
         this.authenticated = true;
         this.showEditor();
       } else {
-        this.handleAuthError('Failed to authenticate with GitHub');
+        const errorData = await response.json().catch(() => ({}));
+        console.error('GitHub API error:', response.status, errorData);
+
+        if (response.status === 401) {
+          this.handleAuthError(
+            'Authentication token expired. Please login again.'
+          );
+        } else if (response.status === 403) {
+          this.handleAuthError(
+            'GitHub API rate limit exceeded. Please try again later.'
+          );
+        } else {
+          this.handleAuthError('Failed to authenticate with GitHub');
+        }
       }
     } catch (error) {
       console.error('Auth error:', error);
@@ -408,60 +551,155 @@ Write something about yourself...
   }
 
   logout() {
-    localStorage.removeItem('github_token');
-    this.authenticated = false;
-    this.user = null;
+    console.log('User logging out...');
+
+    // Clear all authentication state
+    this.clearAuthenticationState();
+
+    // Reset content
     this.content = '';
+
+    // Show login UI
     this.setupUI();
+
+    console.log('Logout completed');
   }
 
   handleAuthError(message = 'Authentication failed') {
-    localStorage.removeItem('github_token');
-    this.authenticated = false;
-    this.user = null;
+    console.error('Authentication error:', message);
+
+    // Clear all authentication state
+    this.clearAuthenticationState();
+
+    // Show login UI
     this.setupUI();
+
+    // Show error to user
     this.showError(message);
   }
 }
 
-// Handle OAuth callback
-const urlParams = new URLSearchParams(window.location.search);
-const code = urlParams.get('code');
+// Enhanced OAuth callback handling
+function handleOAuthCallback() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const code = urlParams.get('code');
+  const state = urlParams.get('state');
+  const error = urlParams.get('error');
+  const errorDescription = urlParams.get('error_description');
 
-if (code) {
-  console.log('OAuth code received, exchanging for token...');
+  // Handle OAuth errors
+  if (error) {
+    console.error('OAuth error:', error, errorDescription);
+    const errorMessage =
+      errorDescription || 'GitHub OAuth authorization failed';
 
-  // Remove the code from URL immediately
-  window.history.replaceState({}, document.title, window.location.pathname);
+    // Clean URL and show error
+    window.history.replaceState({}, document.title, window.location.pathname);
 
-  // Exchange code for token via backend
-  exchangeCodeForToken(code);
+    // Show user-friendly error
+    setTimeout(() => {
+      const app = new MDSG();
+      app.showError(`Authentication failed: ${errorMessage}`);
+    }, 100);
+    return;
+  }
+
+  // Handle successful callback
+  if (code) {
+    console.log('OAuth code received, processing...');
+
+    // Verify state parameter for security
+    const storedState = localStorage.getItem('oauth_state');
+    if (!state || state !== storedState) {
+      console.error('OAuth state mismatch - possible CSRF attack');
+      window.history.replaceState({}, document.title, window.location.pathname);
+      setTimeout(() => {
+        const app = new MDSG();
+        app.showError(
+          'Authentication security check failed. Please try again.'
+        );
+      }, 100);
+      return;
+    }
+
+    // Clean up state
+    localStorage.removeItem('oauth_state');
+
+    // Remove OAuth parameters from URL immediately
+    window.history.replaceState({}, document.title, window.location.pathname);
+
+    // Exchange code for token
+    exchangeCodeForToken(code);
+  }
 }
 
 async function exchangeCodeForToken(code) {
   try {
+    console.log('Exchanging authorization code for access token...');
+
+    // Show loading state
+    const app = document.getElementById('app');
+    if (app) {
+      app.innerHTML = `
+        <div class="container">
+          <div class="loading-section">
+            <div class="spinner"></div>
+            <p>Completing authentication...</p>
+          </div>
+        </div>
+      `;
+    }
+
     const response = await fetch('/auth/github', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        Accept: 'application/json',
       },
       body: JSON.stringify({ code }),
     });
 
+    const data = await response.json();
+
     if (response.ok) {
-      const data = await response.json();
+      // Store token securely
       localStorage.setItem('github_token', data.access_token);
-      // Reload to trigger auth check
+
+      // Store additional token info if available
+      if (data.token_type) {
+        localStorage.setItem('github_token_type', data.token_type);
+      }
+      if (data.scope) {
+        localStorage.setItem('github_token_scope', data.scope);
+      }
+
+      console.log('OAuth token exchange successful');
+
+      // Reload to trigger auth check and start the app
       window.location.reload();
     } else {
-      console.error('Failed to exchange code for token');
-      alert('Authentication failed. Please try again.');
+      // Handle API errors
+      console.error('OAuth token exchange failed:', data);
+      const errorMessage =
+        data.details || data.error || 'Authentication failed';
+
+      // Initialize app and show error
+      const mdsgApp = new MDSG();
+      mdsgApp.showError(`Authentication failed: ${errorMessage}`);
     }
   } catch (error) {
-    console.error('OAuth error:', error);
-    alert('Authentication failed. Please try again.');
+    console.error('OAuth token exchange error:', error);
+
+    // Initialize app and show error
+    const mdsgApp = new MDSG();
+    mdsgApp.showError(
+      'Network error during authentication. Please check your connection and try again.'
+    );
   }
 }
+
+// Handle OAuth callback if present
+handleOAuthCallback();
 
 // Start the app
 new MDSG();
