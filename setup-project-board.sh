@@ -65,7 +65,7 @@ create_project_board() {
         print_status "Creating project board 'MDSG Development'..."
 
         # Create the project
-        project_output=$(gh project create --title "MDSG Development" --body "Kanban board for MDSG (Markdown Site Generator) development")
+        project_output=$(gh project create --title "MDSG Development" --owner @me)
         project_url=$(echo "$project_output" | grep -o 'https://github.com/users/[^/]*/projects/[0-9]*')
         project_id=$(echo "$project_url" | grep -o '[0-9]*$')
 
