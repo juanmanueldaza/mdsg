@@ -53,10 +53,20 @@ class MDSG {
             </div>
           </div>
 
-          <button id="login-btn" class="primary-btn login-button">
-            <span class="github-icon">📱</span>
-            Continue with GitHub
-          </button>
+          <div class="login-options">
+            <button id="login-btn" class="primary-btn login-button">
+              <span class="github-icon">📱</span>
+              Continue with GitHub
+            </button>
+
+            <div class="demo-option">
+              <p>Want to try it first?</p>
+              <button id="demo-btn" class="secondary-btn demo-button">
+                <span>🎮</span>
+                Try Demo Mode
+              </button>
+            </div>
+          </div>
 
           <p class="login-description">
             Sign in to create your markdown site in minutes
@@ -199,45 +209,264 @@ Write something interesting about yourself here...
     document.getElementById('login-btn')?.addEventListener('click', () => {
       this.loginWithGitHub();
     });
+
+    document.getElementById('demo-btn')?.addEventListener('click', () => {
+      this.startDemoMode();
+    });
   }
 
-  loginWithGitHub() {
+  async loginWithGitHub() {
     // Check if we're already in an OAuth flow
     if (this.authenticated) {
       console.log('User already authenticated');
       return;
     }
 
-    // GitHub OAuth configuration
-    const clientId = this.getGitHubClientId();
-    if (!clientId) {
-      this.showError('GitHub OAuth is not configured. Please check the setup.');
-      return;
-    }
-
-    // Build OAuth URL with proper parameters
-    const redirectUri = encodeURIComponent(window.location.origin);
-    const scope = 'repo user';
-    const state = this.generateOAuthState();
-
-    // Store state for verification
-    localStorage.setItem('oauth_state', state);
-
-    const authUrl =
-      `https://github.com/login/oauth/authorize?` +
-      `client_id=${clientId}&` +
-      `redirect_uri=${redirectUri}&` +
-      `scope=${scope}&` +
-      `state=${state}`;
-
-    console.log('Redirecting to GitHub OAuth...');
-    window.location.href = authUrl;
+    console.log('Starting GitHub Device Flow authentication...');
+    await this.startDeviceFlow();
   }
 
   getGitHubClientId() {
-    // Try to get client ID from environment or use default for demo
-    // In production, this should come from environment variables
-    return 'Ov23liKZ8KgfLQDZFGSR'; // Default demo client ID
+    // GitHub Device Flow requires a GitHub App with device flow enabled
+    // This is a demo client ID - replace with your own for production
+    return 'Ov23li8QZvXs9yZ2xKpd';
+  }
+
+  async startDeviceFlow() {
+    try {
+      this.showLoading('Starting authentication...');
+
+      // Step 1: Request device code from GitHub
+      const deviceData = await this.requestDeviceCode();
+
+      // Step 2: Show user the verification code and URL
+      this.showDeviceVerification(deviceData);
+
+      // Step 3: Poll for user authorization
+      const tokenData = await this.pollForToken(deviceData);
+
+      // Step 4: Store token and complete authentication
+      await this.completeAuthentication(tokenData);
+    } catch (error) {
+      console.error('Device flow error:', error);
+      this.showError(`Authentication failed: ${error.message}`);
+    }
+  }
+
+  async requestDeviceCode() {
+    const clientId = this.getGitHubClientId();
+
+    const response = await fetch('https://github.com/login/device/code', {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: `client_id=${clientId}&scope=repo user`,
+    });
+
+    if (!response.ok) {
+      throw new Error(`GitHub API error: ${response.status}`);
+    }
+
+    return await response.json();
+  }
+
+  showDeviceVerification(deviceData) {
+    const mainContent = document.getElementById('main-content');
+    mainContent.innerHTML = `
+      <div class="device-flow-section">
+        <div class="verification-header">
+          <h2>🔐 Authenticate with GitHub</h2>
+          <p>To continue, please verify your device with GitHub</p>
+        </div>
+
+        <div class="verification-steps">
+          <div class="step">
+            <h3>Step 1: Copy this code</h3>
+            <div class="verification-code">
+              <code id="user-code">${deviceData.user_code}</code>
+              <button id="copy-code" class="secondary-btn">📋 Copy</button>
+            </div>
+          </div>
+
+          <div class="step">
+            <h3>Step 2: Open GitHub verification page</h3>
+            <a href="${deviceData.verification_uri}" target="_blank" class="primary-btn">
+              🌐 Open GitHub Verification
+            </a>
+          </div>
+
+          <div class="step">
+            <h3>Step 3: Enter the code and authorize</h3>
+            <p>Paste the code on GitHub and authorize MDSG to access your account</p>
+          </div>
+        </div>
+
+        <div class="verification-status">
+          <div class="spinner"></div>
+          <p id="status-message">Waiting for authorization...</p>
+          <p><small>This page will automatically continue once you authorize on GitHub</small></p>
+        </div>
+
+        <div class="verification-actions">
+          <button id="cancel-auth" class="secondary-btn">❌ Cancel</button>
+        </div>
+      </div>
+    `;
+
+    // Setup event handlers
+    document.getElementById('copy-code')?.addEventListener('click', () => {
+      navigator.clipboard.writeText(deviceData.user_code);
+      document.getElementById('copy-code').textContent = '✅ Copied!';
+      setTimeout(() => {
+        document.getElementById('copy-code').textContent = '📋 Copy';
+      }, 2000);
+    });
+
+    document.getElementById('cancel-auth')?.addEventListener('click', () => {
+      this.cancelAuthentication();
+    });
+  }
+
+  async pollForToken(deviceData) {
+    const clientId = this.getGitHubClientId();
+    const pollInterval = (deviceData.interval || 5) * 1000; // Convert to milliseconds
+    const expiresAt = Date.now() + deviceData.expires_in * 1000;
+
+    return new Promise((resolve, reject) => {
+      const poll = async () => {
+        if (Date.now() > expiresAt) {
+          reject(new Error('Authentication timeout. Please try again.'));
+          return;
+        }
+
+        try {
+          const response = await fetch(
+            'https://github.com/login/oauth/access_token',
+            {
+              method: 'POST',
+              headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/x-www-form-urlencoded',
+              },
+              body: `client_id=${clientId}&device_code=${deviceData.device_code}&grant_type=urn:ietf:params:oauth:grant-type:device_code`,
+            }
+          );
+
+          const data = await response.json();
+
+          if (data.access_token) {
+            resolve(data);
+          } else if (data.error === 'authorization_pending') {
+            // User hasn't completed authorization yet, continue polling
+            setTimeout(poll, pollInterval);
+          } else if (data.error === 'slow_down') {
+            // GitHub wants us to slow down polling
+            setTimeout(poll, pollInterval + 5000);
+          } else if (data.error === 'expired_token') {
+            reject(new Error('Verification code expired. Please try again.'));
+          } else if (data.error === 'access_denied') {
+            reject(new Error('Authorization denied by user.'));
+          } else {
+            reject(
+              new Error(
+                data.error_description || 'Unknown authentication error'
+              )
+            );
+          }
+        } catch (error) {
+          reject(new Error('Network error during authentication'));
+        }
+      };
+
+      // Start polling
+      setTimeout(poll, pollInterval);
+    });
+  }
+
+  async completeAuthentication(tokenData) {
+    // Store the access token
+    localStorage.setItem('github_token', tokenData.access_token);
+    if (tokenData.token_type) {
+      localStorage.setItem('github_token_type', tokenData.token_type);
+    }
+    if (tokenData.scope) {
+      localStorage.setItem('github_token_scope', tokenData.scope);
+    }
+
+    console.log('GitHub Device Flow authentication completed successfully');
+
+    // Fetch user data and show editor
+    await this.fetchUser(tokenData.access_token);
+  }
+
+  cancelAuthentication() {
+    console.log('Authentication cancelled by user');
+    this.setupUI();
+  }
+
+  startDemoMode() {
+    console.log('Starting demo mode...');
+
+    // Create mock user for demo
+    this.user = {
+      login: 'demo-user',
+      name: 'Demo User',
+      avatar_url: 'https://github.com/github.png',
+      html_url: 'https://github.com/demo-user',
+      email: 'demo@example.com',
+      displayName: 'Demo User',
+      avatarUrl: 'https://github.com/github.png',
+      profileUrl: 'https://github.com/demo-user',
+      tokenValid: true,
+      lastAuthenticated: new Date().toISOString(),
+      demoMode: true,
+    };
+
+    this.authenticated = true;
+
+    // Load sample content
+    this.content = `# Welcome to MDSG Demo! 🚀
+
+## What is MDSG?
+
+MDSG (Markdown Site Generator) is a simple tool that lets you create beautiful GitHub Pages sites from markdown content. No coding required!
+
+## Demo Features
+
+- **Live Preview** - See your changes instantly as you type
+- **GitHub Integration** - Deploy directly to GitHub Pages *(demo mode shows preview only)*
+- **Simple Markdown** - Easy formatting for everyone
+- *Responsive Design* - Looks great on all devices
+
+## Getting Started
+
+1. Edit the content in the left panel
+2. Watch the live preview update on the right
+3. In real mode, click deploy to create your GitHub Pages site!
+
+### Markdown Examples
+
+You can make text **bold**, *italic*, or even ~~strikethrough~~.
+
+Create lists:
+- First item
+- Second item
+- Third item
+
+Add code: \`console.log('Hello World!')\`
+
+> This is a blockquote - perfect for highlighting important information!
+
+*Happy creating with MDSG!* 🎉`;
+
+    const editor = document.getElementById('markdown-editor');
+    if (editor) {
+      editor.value = this.content;
+    }
+    this.updatePreview();
+    this.updateWordCount();
   }
 
   generateOAuthState() {
@@ -708,99 +937,153 @@ Start editing this content to create your own site. The preview updates as you t
     }
 
     const deployBtn = document.getElementById('deploy-btn');
-    deployBtn.textContent = '⏳ Creating repository...';
+    const originalText = deployBtn.textContent;
     deployBtn.disabled = true;
 
+    // Show detailed progress
+    this.showDeploymentProgress('Preparing deployment...');
+
     try {
-      // Create repository
+      // Step 1: Create repository
+      this.updateDeploymentProgress('Creating GitHub repository...', 25);
       deployBtn.textContent = '⏳ Creating repository...';
       const repo = await this.createRepository();
 
-      // Upload content
+      // Step 2: Upload content
+      this.updateDeploymentProgress('Uploading your content...', 50);
       deployBtn.textContent = '⏳ Uploading content...';
       await this.uploadContent(repo.name);
 
-      // Enable GitHub Pages
+      // Step 3: Enable GitHub Pages
+      this.updateDeploymentProgress('Enabling GitHub Pages...', 75);
       deployBtn.textContent = '⏳ Enabling GitHub Pages...';
       await this.enableGitHubPages(repo.name);
 
-      this.showSuccess(repo);
+      // Step 4: Complete
+      this.updateDeploymentProgress('Deployment complete!', 100);
+      deployBtn.textContent = '✅ Deployed!';
+
+      setTimeout(() => {
+        this.showSuccess(repo);
+      }, 1000);
     } catch (error) {
       console.error('Deployment error:', error);
-      let errorMessage = 'Deployment failed';
+      this.hideDeploymentProgress();
 
-      if (error.message.includes('name already exists')) {
-        errorMessage =
-          'Repository name already exists. Please delete the existing "mdsg-site" repository or rename it.';
+      let errorMessage = 'Deployment failed';
+      let errorDetails = error.message;
+
+      if (error.message.includes('Authentication failed')) {
+        errorMessage = 'Authentication expired';
+        errorDetails =
+          'Please log out and log in again to refresh your credentials.';
       } else if (error.message.includes('rate limit')) {
-        errorMessage =
-          'GitHub API rate limit exceeded. Please try again later.';
-      } else if (error.message.includes('permission')) {
-        errorMessage =
-          'Permission denied. Please make sure you granted repository access.';
+        errorMessage = 'GitHub API rate limit exceeded';
+        errorDetails = 'Please wait a few minutes and try again.';
+      } else if (error.message.includes('Permission denied')) {
+        errorMessage = 'Permission denied';
+        errorDetails =
+          'Please make sure you granted repository access during login.';
+      } else if (error.message.includes('repository limit')) {
+        errorMessage = 'Repository limit reached';
+        errorDetails =
+          'You may have reached your GitHub repository limit for this account.';
+      } else if (error.message.includes('Unable to create repository after')) {
+        errorMessage = 'Repository naming conflict';
+        errorDetails =
+          'Multiple repositories with similar names exist. Please delete some old MDSG repositories.';
       }
 
-      this.showError(errorMessage);
+      this.showError(`${errorMessage}: ${errorDetails}`);
     } finally {
-      deployBtn.textContent = '🚀 Deploy to GitHub Pages';
+      deployBtn.textContent = originalText;
       deployBtn.disabled = false;
     }
   }
 
   async createRepository() {
     const token = localStorage.getItem('github_token');
-    const response = await fetch('https://api.github.com/user/repos', {
-      method: 'POST',
-      headers: {
-        Authorization: `token ${token}`,
-        Accept: 'application/vnd.github.v3+json',
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        name: 'mdsg-site',
-        description: 'My markdown site created with MDSG',
-        auto_init: true,
-        public: true,
-      }),
-    });
+    let repoName = 'mdsg-site';
+    let attempt = 0;
+    const maxAttempts = 10;
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      if (errorData.errors && errorData.errors[0]?.message) {
-        throw new Error(errorData.errors[0].message);
+    while (attempt < maxAttempts) {
+      const currentRepoName =
+        attempt === 0 ? repoName : `${repoName}-${attempt}`;
+
+      console.log(`Attempting to create repository: ${currentRepoName}`);
+
+      const response = await fetch('https://api.github.com/user/repos', {
+        method: 'POST',
+        headers: {
+          Authorization: `token ${token}`,
+          Accept: 'application/vnd.github.v3+json',
+          'Content-Type': 'application/json',
+          'User-Agent': 'MDSG-App',
+        },
+        body: JSON.stringify({
+          name: currentRepoName,
+          description: `My markdown site created with MDSG ${new Date().toLocaleDateString()}`,
+          auto_init: true,
+          public: true,
+          has_issues: false,
+          has_projects: false,
+          has_wiki: false,
+        }),
+      });
+
+      if (response.ok) {
+        const repo = await response.json();
+        console.log(`Repository created successfully: ${repo.name}`);
+        return repo;
       }
-      throw new Error(`Failed to create repository: ${response.status}`);
+
+      const errorData = await response.json().catch(() => ({}));
+
+      // Handle specific error cases
+      if (response.status === 422 && errorData.errors) {
+        const nameError = errorData.errors.find(
+          err => err.resource === 'Repository' && err.field === 'name'
+        );
+
+        if (nameError && nameError.code === 'already_exists') {
+          console.log(
+            `Repository ${currentRepoName} already exists, trying next name...`
+          );
+          attempt++;
+          continue;
+        }
+      }
+
+      // Handle other errors
+      if (response.status === 401) {
+        throw new Error('Authentication failed. Please login again.');
+      } else if (response.status === 403) {
+        throw new Error(
+          'Permission denied. You may have reached your repository limit.'
+        );
+      } else if (response.status === 422) {
+        const message = errorData.message || 'Invalid repository configuration';
+        throw new Error(`Repository creation failed: ${message}`);
+      } else {
+        throw new Error(
+          `Failed to create repository: ${response.status} ${response.statusText}`
+        );
+      }
     }
 
-    return await response.json();
+    throw new Error(
+      `Unable to create repository after ${maxAttempts} attempts. Please try a different name.`
+    );
   }
 
   async uploadContent(repoName) {
     const token = localStorage.getItem('github_token');
 
-    // Create index.html with the markdown content
-    const htmlContent = `<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Site</title>
-    <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; line-height: 1.6; }
-        h1, h2, h3 { color: #333; margin-top: 2rem; margin-bottom: 1rem; }
-        h1 { border-bottom: 1px solid #eee; padding-bottom: 0.5rem; }
-        p { margin-bottom: 1rem; }
-        code { background: #f6f8fa; padding: 2px 4px; border-radius: 3px; }
-        blockquote { border-left: 4px solid #dfe2e5; margin: 0; padding-left: 1rem; color: #6a737d; }
-    </style>
-</head>
-<body>
-    ${this.markdownToHTML(this.content)}
-    <footer style="margin-top: 3rem; padding-top: 2rem; border-top: 1px solid #eee; color: #666; font-size: 0.9rem;">
-        <p>Generated with <a href="https://mdsg.daza.ar" target="_blank">MDSG</a></p>
-    </footer>
-</body>
-</html>`;
+    // Generate enhanced HTML content with better styling
+    const htmlContent = this.generateSiteHTML();
+
+    console.log(`Uploading content to repository: ${repoName}`);
 
     const response = await fetch(
       `https://api.github.com/repos/${this.user.login}/${repoName}/contents/index.html`,
@@ -810,20 +1093,159 @@ Start editing this content to create your own site. The preview updates as you t
           Authorization: `token ${token}`,
           Accept: 'application/vnd.github.v3+json',
           'Content-Type': 'application/json',
+          'User-Agent': 'MDSG-App',
         },
         body: JSON.stringify({
-          message: 'Add site content',
+          message: 'Add site content via MDSG',
           content: btoa(htmlContent),
+          committer: {
+            name: this.user.name || this.user.login,
+            email:
+              this.user.email || `${this.user.login}@users.noreply.github.com`,
+          },
         }),
       }
     );
 
     if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(
-        `Failed to upload content: ${errorData.message || response.status}`
-      );
+      const errorData = await response.json().catch(() => ({}));
+
+      if (response.status === 401) {
+        throw new Error('Authentication failed. Please login again.');
+      } else if (response.status === 403) {
+        throw new Error(
+          'Permission denied. You may not have write access to this repository.'
+        );
+      } else if (response.status === 404) {
+        throw new Error('Repository not found. It may have been deleted.');
+      } else if (response.status === 409) {
+        throw new Error('File already exists. Please try again.');
+      } else {
+        const message = errorData.message || 'Unknown error occurred';
+        throw new Error(`Failed to upload content: ${message}`);
+      }
     }
+
+    const result = await response.json();
+    console.log('Content uploaded successfully');
+    return result;
+  }
+
+  generateSiteHTML() {
+    // Extract title from content
+    const titleMatch = this.content.match(/^#\s+(.+)$/m);
+    const siteTitle = titleMatch ? titleMatch[1] : 'My Site';
+
+    return `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${this.escapeHtml(siteTitle)}</title>
+    <meta name="description" content="A beautiful site created with MDSG">
+    <meta name="generator" content="MDSG - Markdown Site Generator">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.2.0/github-markdown-light.min.css">
+    <style>
+        body {
+            box-sizing: border-box;
+            min-width: 200px;
+            max-width: 980px;
+            margin: 0 auto;
+            padding: 45px;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+            color: #24292f;
+            background-color: #ffffff;
+        }
+
+        @media (max-width: 767px) {
+            body {
+                padding: 15px;
+            }
+        }
+
+        .markdown-body {
+            box-sizing: border-box;
+            min-width: 200px;
+        }
+
+        .site-header {
+            text-align: center;
+            border-bottom: 1px solid #d0d7de;
+            padding-bottom: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .site-footer {
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 1px solid #d0d7de;
+            text-align: center;
+            color: #656d76;
+            font-size: 0.9rem;
+        }
+
+        .site-footer a {
+            color: #0969da;
+            text-decoration: none;
+        }
+
+        .site-footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* Enhanced styling for better visual appeal */
+        .markdown-body h1, .markdown-body h2, .markdown-body h3 {
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .markdown-body h1:first-child {
+            margin-top: 0;
+        }
+
+        .markdown-body blockquote {
+            background: #f6f8fa;
+            border-radius: 6px;
+            padding: 1rem;
+        }
+
+        .markdown-body pre {
+            background: #f6f8fa !important;
+            border-radius: 6px;
+        }
+
+        .markdown-body img {
+            border-radius: 6px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="site-header">
+        <h1>${this.escapeHtml(siteTitle)}</h1>
+        <p>Created with ❤️ using MDSG</p>
+    </div>
+
+    <article class="markdown-body">
+        ${this.markdownToHTML(this.content)}
+    </article>
+
+    <footer class="site-footer">
+        <p>
+            Generated with <a href="https://mdsg.daza.ar" target="_blank" rel="noopener">MDSG</a> •
+            <a href="https://github.com/${this.user.login}" target="_blank" rel="noopener">@${this.user.login}</a> •
+            ${new Date().toLocaleDateString()}
+        </p>
+    </footer>
+</body>
+</html>`;
+  }
+
+  escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
   }
 
   async enableGitHubPages(repoName) {
@@ -855,22 +1277,120 @@ Start editing this content to create your own site. The preview updates as you t
     }
   }
 
+  showDeploymentProgress(message) {
+    const mainContent = document.getElementById('main-content');
+    mainContent.innerHTML = `
+      <div class="deployment-progress">
+        <div class="progress-header">
+          <h2>🚀 Deploying Your Site</h2>
+          <p id="progress-message">${message}</p>
+        </div>
+        <div class="progress-container">
+          <div class="progress-bar">
+            <div class="progress-fill" id="progress-fill" style="width: 0%"></div>
+          </div>
+          <div class="progress-percentage" id="progress-percentage">0%</div>
+        </div>
+        <div class="progress-steps">
+          <div class="step" id="step-1">
+            <span class="step-icon">📁</span>
+            <span>Create Repository</span>
+          </div>
+          <div class="step" id="step-2">
+            <span class="step-icon">📤</span>
+            <span>Upload Content</span>
+          </div>
+          <div class="step" id="step-3">
+            <span class="step-icon">🌐</span>
+            <span>Enable Pages</span>
+          </div>
+          <div class="step" id="step-4">
+            <span class="step-icon">✅</span>
+            <span>Complete</span>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  updateDeploymentProgress(message, percentage) {
+    const progressMessage = document.getElementById('progress-message');
+    const progressFill = document.getElementById('progress-fill');
+    const progressPercentage = document.getElementById('progress-percentage');
+
+    if (progressMessage) progressMessage.textContent = message;
+    if (progressFill) progressFill.style.width = `${percentage}%`;
+    if (progressPercentage) progressPercentage.textContent = `${percentage}%`;
+
+    // Update step indicators
+    const stepNumber = Math.ceil(percentage / 25);
+    for (let i = 1; i <= stepNumber && i <= 4; i++) {
+      const step = document.getElementById(`step-${i}`);
+      if (step) step.classList.add('completed');
+    }
+  }
+
+  hideDeploymentProgress() {
+    // Progress will be hidden when error is shown or success is displayed
+  }
+
   showSuccess(repo) {
     const mainContent = document.getElementById('main-content');
     mainContent.innerHTML = `
       <div class="success-section">
-        <h2>🎉 Site Deployed Successfully!</h2>
-        <p>Your site is now live at:</p>
-        <a href="https://${this.user.login}.github.io/${repo.name}" target="_blank" class="site-link">
-          https://${this.user.login}.github.io/${repo.name}
-        </a>
-        <p><small>Note: It may take a few minutes for your site to be available.</small></p>
+        <div class="success-header">
+          <h2>🎉 Site Deployed Successfully!</h2>
+          <p>Your markdown site is now live on GitHub Pages!</p>
+        </div>
+
+        <div class="site-info">
+          <div class="site-url">
+            <label>🌐 Live Site URL:</label>
+            <a href="https://${this.user.login}.github.io/${repo.name}" target="_blank" class="site-link">
+              https://${this.user.login}.github.io/${repo.name}
+            </a>
+          </div>
+
+          <div class="repo-info">
+            <label>📁 Repository:</label>
+            <a href="https://github.com/${this.user.login}/${repo.name}" target="_blank" class="repo-link">
+              github.com/${this.user.login}/${repo.name}
+            </a>
+          </div>
+        </div>
+
+        <div class="deployment-stats">
+          <div class="stat">
+            <span class="stat-label">Repository Created:</span>
+            <span class="stat-value">✅ ${repo.name}</span>
+          </div>
+          <div class="stat">
+            <span class="stat-label">Content Uploaded:</span>
+            <span class="stat-value">✅ index.html</span>
+          </div>
+          <div class="stat">
+            <span class="stat-label">GitHub Pages:</span>
+            <span class="stat-value">✅ Enabled</span>
+          </div>
+          <div class="stat">
+            <span class="stat-label">Deployment Time:</span>
+            <span class="stat-value">🚀 ${new Date().toLocaleTimeString()}</span>
+          </div>
+        </div>
+
+        <div class="success-note">
+          <p><strong>⏰ Please note:</strong> It may take 1-2 minutes for your site to be fully available.</p>
+          <p>GitHub Pages needs time to build and deploy your site.</p>
+        </div>
 
         <div class="success-actions">
+          <a href="https://${this.user.login}.github.io/${repo.name}" target="_blank" class="primary-btn">
+            🌐 View Live Site
+          </a>
           <a href="https://github.com/${this.user.login}/${repo.name}" target="_blank" class="secondary-btn">
             📁 View Repository
           </a>
-          <button id="create-another" class="primary-btn">Create Another Site</button>
+          <button id="create-another" class="secondary-btn">✨ Create Another Site</button>
         </div>
       </div>
     `;
@@ -881,18 +1401,23 @@ Start editing this content to create your own site. The preview updates as you t
     });
   }
 
-  showError(message) {
+  showError(message, type = 'error') {
     const mainContent = document.getElementById('main-content');
-    const existingError = document.querySelector('.error-banner');
+    const existingError = document.querySelector(
+      '.error-banner, .success-banner'
+    );
 
     if (existingError) {
       existingError.remove();
     }
 
+    const bannerClass = type === 'success' ? 'success-banner' : 'error-banner';
+    const icon = type === 'success' ? '✅' : '⚠️';
+
     const errorBanner = document.createElement('div');
-    errorBanner.className = 'error-banner';
+    errorBanner.className = bannerClass;
     errorBanner.innerHTML = `
-      <span>⚠️ ${message}</span>
+      <span>${icon} ${message}</span>
       <button onclick="this.parentElement.remove()">×</button>
     `;
 
@@ -945,127 +1470,7 @@ Start editing this content to create your own site. The preview updates as you t
   }
 }
 
-// Enhanced OAuth callback handling
-function handleOAuthCallback() {
-  const urlParams = new URLSearchParams(window.location.search);
-  const code = urlParams.get('code');
-  const state = urlParams.get('state');
-  const error = urlParams.get('error');
-  const errorDescription = urlParams.get('error_description');
+// No OAuth callback handling needed with device flow
 
-  // Handle OAuth errors
-  if (error) {
-    console.error('OAuth error:', error, errorDescription);
-    const errorMessage =
-      errorDescription || 'GitHub OAuth authorization failed';
-
-    // Clean URL and show error
-    window.history.replaceState({}, document.title, window.location.pathname);
-
-    // Show user-friendly error
-    setTimeout(() => {
-      const app = new MDSG();
-      app.showError(`Authentication failed: ${errorMessage}`);
-    }, 100);
-    return;
-  }
-
-  // Handle successful callback
-  if (code) {
-    console.log('OAuth code received, processing...');
-
-    // Verify state parameter for security
-    const storedState = localStorage.getItem('oauth_state');
-    if (!state || state !== storedState) {
-      console.error('OAuth state mismatch - possible CSRF attack');
-      window.history.replaceState({}, document.title, window.location.pathname);
-      setTimeout(() => {
-        const app = new MDSG();
-        app.showError(
-          'Authentication security check failed. Please try again.'
-        );
-      }, 100);
-      return;
-    }
-
-    // Clean up state
-    localStorage.removeItem('oauth_state');
-
-    // Remove OAuth parameters from URL immediately
-    window.history.replaceState({}, document.title, window.location.pathname);
-
-    // Exchange code for token
-    exchangeCodeForToken(code);
-  }
-}
-
-async function exchangeCodeForToken(code) {
-  try {
-    console.log('Exchanging authorization code for access token...');
-
-    // Show loading state
-    const app = document.getElementById('app');
-    if (app) {
-      app.innerHTML = `
-        <div class="container">
-          <div class="loading-section">
-            <div class="spinner"></div>
-            <p>Completing authentication...</p>
-          </div>
-        </div>
-      `;
-    }
-
-    const response = await fetch('/auth/github', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Accept: 'application/json',
-      },
-      body: JSON.stringify({ code }),
-    });
-
-    const data = await response.json();
-
-    if (response.ok) {
-      // Store token securely
-      localStorage.setItem('github_token', data.access_token);
-
-      // Store additional token info if available
-      if (data.token_type) {
-        localStorage.setItem('github_token_type', data.token_type);
-      }
-      if (data.scope) {
-        localStorage.setItem('github_token_scope', data.scope);
-      }
-
-      console.log('OAuth token exchange successful');
-
-      // Reload to trigger auth check and start the app
-      window.location.reload();
-    } else {
-      // Handle API errors
-      console.error('OAuth token exchange failed:', data);
-      const errorMessage =
-        data.details || data.error || 'Authentication failed';
-
-      // Initialize app and show error
-      const mdsgApp = new MDSG();
-      mdsgApp.showError(`Authentication failed: ${errorMessage}`);
-    }
-  } catch (error) {
-    console.error('OAuth token exchange error:', error);
-
-    // Initialize app and show error
-    const mdsgApp = new MDSG();
-    mdsgApp.showError(
-      'Network error during authentication. Please check your connection and try again.'
-    );
-  }
-}
-
-// Handle OAuth callback if present
-handleOAuthCallback();
-
-// Start the app
+// Start the app (no OAuth callback needed with device flow)
 new MDSG();

@@ -11,42 +11,19 @@ A simple tool to create GitHub Pages sites from markdown content. Following KISS
 
 ## Quick Start
 
-### Automated Setup (Recommended)
-
 ```bash
-# Clone this repository
+# Clone and setup
 git clone https://github.com/YOUR_USERNAME/mdsg.git
 cd mdsg
 
-# Run the complete setup
-chmod +x setup-repository.sh
-./setup-repository.sh
-
-# Optional: Setup project board
-chmod +x setup-project-board.sh
-./setup-project-board.sh
-
-# Validate everything is working
-chmod +x validate-setup.sh
-./validate-setup.sh
-```
-
-### Manual Development Setup
-
-```bash
 # Install dependencies
 npm install
 
-# Setup GitHub OAuth (see SETUP_GUIDE.md)
-cp .env.example .env
-# Edit .env with your GitHub OAuth credentials
-
-# Start development servers
-npm run server    # Backend (Terminal 1)
-npm run dev       # Frontend (Terminal 2)
+# Start development server
+npm run dev
 ```
 
-Visit `http://localhost:3000` to use the app.
+Visit `http://localhost:3000` and start creating! No additional setup required.
 
 ## Features
 
@@ -60,12 +37,12 @@ Visit `http://localhost:3000` to use the app.
 
 ## How it Works
 
-1. User authenticates with GitHub OAuth
-2. User writes markdown content in the live editor
-3. App creates a new GitHub repository (`username/mdsg-site`)
-4. App uploads generated HTML with converted markdown
-5. App enables GitHub Pages for the repository
-6. User gets a live site at `https://username.github.io/mdsg-site`
+1. **Frontend-Only**: Pure client-side app using GitHub Device Flow
+2. **No Backend**: Works entirely in the browser, no server required
+3. **GitHub Authentication**: Secure device flow authentication
+4. **Live Editor**: Real-time markdown editing with preview
+5. **One-Click Deploy**: Creates repository and enables GitHub Pages
+6. **Instant Sites**: Live at `https://username.github.io/mdsg-site`
 
 ## Project Structure
 
@@ -145,37 +122,38 @@ This project demonstrates how to avoid over-engineering:
 
 ## Tech Stack
 
-**Frontend:**
+**Frontend-Only Architecture:**
 - Vanilla JavaScript (ES6+)
-- CSS Grid/Flexbox
+- CSS Grid/Flexbox for responsive design
 - Vite for development and building
-
-**Backend:**
-- Express.js (minimal OAuth server)
-- CORS for cross-origin requests
-
-**Services:**
-- GitHub OAuth for authentication
+- GitHub Device Flow for authentication
 - GitHub API for repository operations
-- GitHub Pages for hosting
-- Vite dev server for development
+- GitHub Pages for site hosting
 
-**Total Dependencies:** 4 packages (express, cors, vite, nodemon)
+**Zero Backend Required:**
+- No server setup or maintenance
+- No environment variables for users
+- Deploy anywhere as static site
+- Works entirely in the browser
+
+**Total Dependencies:** 1 package (vite)
 
 ## Environment Setup
 
-1. **GitHub OAuth App** - Required for authentication
-2. **Node.js v16+** - For development and building
-3. **GitHub CLI** - For repository and issue management
+**For Users:**
+- Nothing! Just visit the deployed app and start creating
 
-See `SETUP_GUIDE.md` for detailed instructions.
+**For Developers:**
+- Node.js v16+ for development
+- GitHub account for authentication testing
+
+No OAuth apps, environment variables, or server setup required!
 
 ## Deployment
 
 ### Development
 ```bash
-npm run dev     # Frontend dev server
-npm run server  # OAuth backend
+npm run dev     # Start development server
 ```
 
 ### Production
@@ -183,7 +161,14 @@ npm run server  # OAuth backend
 npm run build   # Build for production
 ```
 
-Deploy the built `dist/` folder to any static hosting service. The OAuth backend needs to be deployed separately to a service like Railway, Heroku, or Vercel.
+Deploy the built `dist/` folder to any static hosting service:
+- **GitHub Pages** (recommended)
+- **Netlify**
+- **Vercel** 
+- **Surge.sh**
+- Any CDN or static host
+
+No backend deployment required!
 
 ## Contributing
 
@@ -212,10 +197,11 @@ See individual issues for detailed requirements and acceptance criteria.
 - 🧪 **Simple to test** and validate changes
 
 ### Technical Quality
-- 📦 **< 50KB** total bundle size
-- ⚡ **< 2 seconds** initial load time
-- 📝 **< 500 lines** of core application code
-- 🎯 **Zero external runtime dependencies**
+- 📦 **< 30KB** total bundle size (no backend!)
+- ⚡ **< 1 second** initial load time
+- 📝 **< 400 lines** of core application code
+- 🎯 **Zero backend dependencies**
+- 🚀 **Deploy anywhere** as static site
 
 ## Roadmap
 
@@ -231,13 +217,13 @@ See GitHub Issues and Milestones for the complete development plan. Key upcoming
 
 This project demonstrates that **simple solutions** often work better than complex ones:
 
-- **Start with the simplest thing that works**
-- **Add complexity only when necessary**
-- **Focus on user value over technical elegance**
-- **Prefer readable code over clever code**
-- **Ship working software early and often**
+- **Frontend-only architecture** eliminates server complexity
+- **GitHub Device Flow** removes OAuth backend requirements  
+- **Static deployment** works everywhere without configuration
+- **Zero setup** for users - just visit and start creating
+- **KISS principles** applied throughout the codebase
 
-The entire application fits in under 500 lines of code, has minimal dependencies, and actually solves a real problem for users.
+The entire application is frontend-only, requires no backend, and solves real problems with maximum simplicity.
 
 ## License
 
