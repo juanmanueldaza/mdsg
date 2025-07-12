@@ -37,9 +37,9 @@ Visit `http://localhost:3000` and start creating! No additional setup required.
 
 ## How it Works
 
-1. **Frontend-Only**: Pure client-side app using GitHub Device Flow
+1. **Frontend-Only**: Pure client-side app using GitHub Personal Access Tokens
 2. **No Backend**: Works entirely in the browser, no server required
-3. **GitHub Authentication**: Secure device flow authentication
+3. **GitHub Authentication**: Secure token-based authentication
 4. **Live Editor**: Real-time markdown editing with preview
 5. **One-Click Deploy**: Creates repository and enables GitHub Pages
 6. **Instant Sites**: Live at `https://username.github.io/mdsg-site`
@@ -126,7 +126,7 @@ This project demonstrates how to avoid over-engineering:
 - Vanilla JavaScript (ES6+)
 - CSS Grid/Flexbox for responsive design
 - Vite for development and building
-- GitHub Device Flow for authentication
+- GitHub Personal Access Tokens for authentication
 - GitHub API for repository operations
 - GitHub Pages for site hosting
 
@@ -141,13 +141,36 @@ This project demonstrates how to avoid over-engineering:
 ## Environment Setup
 
 **For Users:**
-- Nothing! Just visit the deployed app and start creating
+- GitHub account
+- 2 minutes to create a Personal Access Token (guided process)
 
 **For Developers:**
 - Node.js v16+ for development
-- GitHub account for authentication testing
+- GitHub account for testing
 
 No OAuth apps, environment variables, or server setup required!
+
+## Authentication
+
+MDSG uses GitHub Personal Access Tokens for secure authentication:
+
+1. **Why Personal Access Tokens?**
+   - ✅ No OAuth app setup required
+   - ✅ Works immediately for any user
+   - ✅ Full control over permissions
+   - ✅ More secure than username/password
+
+2. **User-Friendly Process:**
+   - Click "Login with GitHub"
+   - Follow guided steps to create token
+   - Token is stored securely in browser
+   - Start creating sites immediately
+
+3. **Security Features:**
+   - Tokens stored locally only
+   - Required scopes: `repo` and `user`
+   - Users control token expiration
+   - No server-side token storage
 
 ## Deployment
 

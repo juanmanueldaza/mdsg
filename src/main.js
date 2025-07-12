@@ -55,8 +55,8 @@ class MDSG {
 
           <div class="login-options">
             <button id="login-btn" class="primary-btn login-button">
-              <span class="github-icon">📱</span>
-              Continue with GitHub
+              <span class="github-icon">🔑</span>
+              Login with GitHub
             </button>
 
             <div class="demo-option">
@@ -215,190 +215,138 @@ Write something interesting about yourself here...
     });
   }
 
-  async loginWithGitHub() {
-    // Check if we're already in an OAuth flow
+  loginWithGitHub() {
+    // Check if we're already authenticated
     if (this.authenticated) {
       console.log('User already authenticated');
       return;
     }
 
-    console.log('Starting GitHub Device Flow authentication...');
-    await this.startDeviceFlow();
+    console.log('Starting GitHub Personal Access Token authentication...');
+    this.showTokenInput();
   }
 
-  getGitHubClientId() {
-    // GitHub Device Flow requires a GitHub App with device flow enabled
-    // This is a demo client ID - replace with your own for production
-    return 'Ov23li8QZvXs9yZ2xKpd';
-  }
-
-  async startDeviceFlow() {
-    try {
-      this.showLoading('Starting authentication...');
-
-      // Step 1: Request device code from GitHub
-      const deviceData = await this.requestDeviceCode();
-
-      // Step 2: Show user the verification code and URL
-      this.showDeviceVerification(deviceData);
-
-      // Step 3: Poll for user authorization
-      const tokenData = await this.pollForToken(deviceData);
-
-      // Step 4: Store token and complete authentication
-      await this.completeAuthentication(tokenData);
-    } catch (error) {
-      console.error('Device flow error:', error);
-      this.showError(`Authentication failed: ${error.message}`);
-    }
-  }
-
-  async requestDeviceCode() {
-    const clientId = this.getGitHubClientId();
-
-    const response = await fetch('https://github.com/login/device/code', {
-      method: 'POST',
-      headers: {
-        Accept: 'application/json',
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: `client_id=${clientId}&scope=repo user`,
-    });
-
-    if (!response.ok) {
-      throw new Error(`GitHub API error: ${response.status}`);
-    }
-
-    return await response.json();
-  }
-
-  showDeviceVerification(deviceData) {
+  showTokenInput() {
     const mainContent = document.getElementById('main-content');
     mainContent.innerHTML = `
-      <div class="device-flow-section">
-        <div class="verification-header">
-          <h2>🔐 Authenticate with GitHub</h2>
-          <p>To continue, please verify your device with GitHub</p>
+      <div class="token-input-section">
+        <div class="token-header">
+          <h2>🔐 Sign in to GitHub</h2>
+          <p>Authenticate securely with your GitHub account</p>
         </div>
 
-        <div class="verification-steps">
-          <div class="step">
-            <h3>Step 1: Copy this code</h3>
-            <div class="verification-code">
-              <code id="user-code">${deviceData.user_code}</code>
-              <button id="copy-code" class="secondary-btn">📋 Copy</button>
+        <div class="auth-explanation">
+          <div class="why-token">
+            <h3>🔒 Secure Authentication</h3>
+            <p>For your security, GitHub requires a Personal Access Token instead of passwords for applications like MDSG.</p>
+            <p><strong>Don't worry - it's quick and easy!</strong></p>
+          </div>
+        </div>
+
+        <div class="token-instructions">
+          <div class="step step-1">
+            <div class="step-number">1</div>
+            <div class="step-content">
+              <h3>Create your access token</h3>
+              <p>Click the button below to open GitHub's token creation page (opens in new tab)</p>
+              <a href="https://github.com/settings/tokens/new?scopes=repo,user&description=MDSG%20-%20Markdown%20Site%20Generator" target="_blank" class="primary-btn token-create-btn">
+                🔗 Create Token on GitHub
+              </a>
             </div>
           </div>
 
-          <div class="step">
-            <h3>Step 2: Open GitHub verification page</h3>
-            <a href="${deviceData.verification_uri}" target="_blank" class="primary-btn">
-              🌐 Open GitHub Verification
-            </a>
+          <div class="step step-2">
+            <div class="step-number">2</div>
+            <div class="step-content">
+              <h3>Configure the token</h3>
+              <p>On the GitHub page:</p>
+              <ul>
+                <li>✅ Ensure <strong>repo</strong> and <strong>user</strong> scopes are selected</li>
+                <li>📅 Set expiration (recommend 90 days)</li>
+                <li>💾 Click "Generate token"</li>
+              </ul>
+            </div>
           </div>
 
-          <div class="step">
-            <h3>Step 3: Enter the code and authorize</h3>
-            <p>Paste the code on GitHub and authorize MDSG to access your account</p>
+          <div class="step step-3">
+            <div class="step-number">3</div>
+            <div class="step-content">
+              <h3>Enter your token</h3>
+              <p>Copy the token from GitHub and paste it below:</p>
+              <div class="token-input">
+                <input type="password" id="token-input" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" />
+                <button id="save-token" class="primary-btn">🚀 Continue</button>
+              </div>
+              <p class="security-note">🔒 Your token is stored locally in your browser only</p>
+            </div>
           </div>
         </div>
 
-        <div class="verification-status">
-          <div class="spinner"></div>
-          <p id="status-message">Waiting for authorization...</p>
-          <p><small>This page will automatically continue once you authorize on GitHub</small></p>
+        <div class="auth-benefits">
+          <h4>✨ What you can do once signed in:</h4>
+          <div class="benefits-grid">
+            <div class="benefit">📝 Create markdown sites</div>
+            <div class="benefit">🚀 Deploy to GitHub Pages</div>
+            <div class="benefit">🔧 Manage your repositories</div>
+            <div class="benefit">👀 Live preview editing</div>
+          </div>
         </div>
 
-        <div class="verification-actions">
-          <button id="cancel-auth" class="secondary-btn">❌ Cancel</button>
+        <div class="token-actions">
+          <button id="cancel-token" class="secondary-btn">← Back to Home</button>
         </div>
       </div>
     `;
 
     // Setup event handlers
-    document.getElementById('copy-code')?.addEventListener('click', () => {
-      navigator.clipboard.writeText(deviceData.user_code);
-      document.getElementById('copy-code').textContent = '✅ Copied!';
-      setTimeout(() => {
-        document.getElementById('copy-code').textContent = '📋 Copy';
-      }, 2000);
+    document.getElementById('save-token')?.addEventListener('click', () => {
+      this.savePersonalToken();
     });
 
-    document.getElementById('cancel-auth')?.addEventListener('click', () => {
+    document.getElementById('cancel-token')?.addEventListener('click', () => {
       this.cancelAuthentication();
     });
-  }
 
-  async pollForToken(deviceData) {
-    const clientId = this.getGitHubClientId();
-    const pollInterval = (deviceData.interval || 5) * 1000; // Convert to milliseconds
-    const expiresAt = Date.now() + deviceData.expires_in * 1000;
-
-    return new Promise((resolve, reject) => {
-      const poll = async () => {
-        if (Date.now() > expiresAt) {
-          reject(new Error('Authentication timeout. Please try again.'));
-          return;
-        }
-
-        try {
-          const response = await fetch(
-            'https://github.com/login/oauth/access_token',
-            {
-              method: 'POST',
-              headers: {
-                Accept: 'application/json',
-                'Content-Type': 'application/x-www-form-urlencoded',
-              },
-              body: `client_id=${clientId}&device_code=${deviceData.device_code}&grant_type=urn:ietf:params:oauth:grant-type:device_code`,
-            }
-          );
-
-          const data = await response.json();
-
-          if (data.access_token) {
-            resolve(data);
-          } else if (data.error === 'authorization_pending') {
-            // User hasn't completed authorization yet, continue polling
-            setTimeout(poll, pollInterval);
-          } else if (data.error === 'slow_down') {
-            // GitHub wants us to slow down polling
-            setTimeout(poll, pollInterval + 5000);
-          } else if (data.error === 'expired_token') {
-            reject(new Error('Verification code expired. Please try again.'));
-          } else if (data.error === 'access_denied') {
-            reject(new Error('Authorization denied by user.'));
-          } else {
-            reject(
-              new Error(
-                data.error_description || 'Unknown authentication error'
-              )
-            );
-          }
-        } catch (error) {
-          reject(new Error('Network error during authentication'));
-        }
-      };
-
-      // Start polling
-      setTimeout(poll, pollInterval);
+    // Enter key to save
+    document.getElementById('token-input')?.addEventListener('keypress', e => {
+      if (e.key === 'Enter') {
+        this.savePersonalToken();
+      }
     });
   }
 
-  async completeAuthentication(tokenData) {
-    // Store the access token
-    localStorage.setItem('github_token', tokenData.access_token);
-    if (tokenData.token_type) {
-      localStorage.setItem('github_token_type', tokenData.token_type);
-    }
-    if (tokenData.scope) {
-      localStorage.setItem('github_token_scope', tokenData.scope);
+  async savePersonalToken() {
+    const tokenInput = document.getElementById('token-input');
+    const token = tokenInput?.value.trim();
+
+    if (!token) {
+      this.showError('Please enter a valid GitHub token');
+      return;
     }
 
-    console.log('GitHub Device Flow authentication completed successfully');
+    if (
+      !token.startsWith('ghp_') &&
+      !token.startsWith('github_pat_') &&
+      !token.startsWith('gho_')
+    ) {
+      this.showError(
+        'Invalid token format. Please copy the complete token from GitHub (starts with "ghp_", "github_pat_", or "gho_")'
+      );
+      return;
+    }
 
-    // Fetch user data and show editor
-    await this.fetchUser(tokenData.access_token);
+    try {
+      // Test the token by fetching user data
+      this.showLoading('Signing you in...');
+
+      localStorage.setItem('github_token', token);
+      await this.fetchUser(token);
+    } catch (error) {
+      localStorage.removeItem('github_token');
+      this.showError(
+        'Unable to sign in. Please check that your token is valid and has "repo" and "user" permissions.'
+      );
+    }
   }
 
   cancelAuthentication() {
@@ -467,14 +415,6 @@ Add code: \`console.log('Hello World!')\`
     }
     this.updatePreview();
     this.updateWordCount();
-  }
-
-  generateOAuthState() {
-    // Generate a random state for OAuth security
-    return (
-      Math.random().toString(36).substring(2, 15) +
-      Math.random().toString(36).substring(2, 15)
-    );
   }
 
   async fetchUser(token) {
@@ -1097,7 +1037,7 @@ Start editing this content to create your own site. The preview updates as you t
         },
         body: JSON.stringify({
           message: 'Add site content via MDSG',
-          content: btoa(htmlContent),
+          content: this.encodeBase64Unicode(htmlContent),
           committer: {
             name: this.user.name || this.user.login,
             email:
@@ -1246,6 +1186,18 @@ Start editing this content to create your own site. The preview updates as you t
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
+  }
+
+  encodeBase64Unicode(str) {
+    // Handle Unicode characters by converting to UTF-8 bytes first
+    return btoa(
+      encodeURIComponent(str).replace(
+        /%([0-9A-F]{2})/g,
+        function toSolidBytes(match, p1) {
+          return String.fromCharCode('0x' + p1);
+        }
+      )
+    );
   }
 
   async enableGitHubPages(repoName) {
@@ -1470,7 +1422,5 @@ Start editing this content to create your own site. The preview updates as you t
   }
 }
 
-// No OAuth callback handling needed with device flow
-
-// Start the app (no OAuth callback needed with device flow)
+// Start the app (no OAuth callback needed with PAT flow)
 new MDSG();
