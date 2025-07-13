@@ -1,16 +1,18 @@
 # daza.ar Environment Setup
+
 <!-- SITES_TABLE_START -->
-| Site | Port | URL |
-|------|------|-----|
-| cv | 3001 | http://cv.local:3001 |
-| onepager | 3002 | http://onepager.local:3002 |
-| start | 3003 | http://start.local:3003 |
-| navbar | 3004 | http://navbar.local:3004 |
-| mdsite | 3005 | http://mdsite.local:3005 |
-| data | 3006 | http://data.local:3006 |
-| wallpapers | 3007 | http://wallpapers.local:3007 |
+
+| Site                              | Port | URL                                                 |
+| --------------------------------- | ---- | --------------------------------------------------- |
+| cv                                | 3001 | http://cv.local:3001                                |
+| onepager                          | 3002 | http://onepager.local:3002                          |
+| start                             | 3003 | http://start.local:3003                             |
+| navbar                            | 3004 | http://navbar.local:3004                            |
+| mdsite                            | 3005 | http://mdsite.local:3005                            |
+| data                              | 3006 | http://data.local:3006                              |
+| wallpapers                        | 3007 | http://wallpapers.local:3007                        |
 | laboratoriodeprogramacioncreativa | 3008 | http://laboratoriodeprogramacioncreativa.local:3008 |
-| spanishlessons | 3009 | http://spanishlessons.local:3009 |
+| spanishlessons                    | 3009 | http://spanishlessons.local:3009                    |
 
 <!-- SITES_TABLE_END -->
 
@@ -29,7 +31,7 @@ This repository provides tools to quickly set up and develop the daza.ar ecosyst
 Each site in the ecosystem is deployed to its own GitHub Pages repository with custom subdomain routing:
 
 - **cv**: https://cv.daza.ar
-- **onepager**: https://onepager.daza.ar  
+- **onepager**: https://onepager.daza.ar
 - **start**: https://start.daza.ar
 - **navbar**: https://navbar.daza.ar (shared navigation component)
 - **mdsite**: https://mdsite.daza.ar (shared markdown processing module)
@@ -109,18 +111,20 @@ gh auth login
 ```
 
 # Git, GitHub CLI, and Workflow Documentation
+
 <!-- SITES_TABLE_START -->
-| Site | Port | URL |
-|------|------|-----|
-| cv | 3001 | http://cv.local:3001 |
-| onepager | 3002 | http://onepager.local:3002 |
-| start | 3003 | http://start.local:3003 |
-| navbar | 3004 | http://navbar.local:3004 |
-| mdsite | 3005 | http://mdsite.local:3005 |
-| data | 3006 | http://data.local:3006 |
-| wallpapers | 3007 | http://wallpapers.local:3007 |
+
+| Site                              | Port | URL                                                 |
+| --------------------------------- | ---- | --------------------------------------------------- |
+| cv                                | 3001 | http://cv.local:3001                                |
+| onepager                          | 3002 | http://onepager.local:3002                          |
+| start                             | 3003 | http://start.local:3003                             |
+| navbar                            | 3004 | http://navbar.local:3004                            |
+| mdsite                            | 3005 | http://mdsite.local:3005                            |
+| data                              | 3006 | http://data.local:3006                              |
+| wallpapers                        | 3007 | http://wallpapers.local:3007                        |
 | laboratoriodeprogramacioncreativa | 3008 | http://laboratoriodeprogramacioncreativa.local:3008 |
-| spanishlessons | 3009 | http://spanishlessons.local:3009 |
+| spanishlessons                    | 3009 | http://spanishlessons.local:3009                    |
 
 <!-- SITES_TABLE_END -->
 
@@ -239,6 +243,7 @@ daza.ar-env/
 ## Development Workflow
 
 ### Local Development
+
 - Run `./dev.sh` to start all Vite dev servers in the background. Each site will open in your browser with its custom .local domain:
   - CV: http://cv.localhost:3001
   - Onepager: http://onepager.localhost:3002
@@ -250,6 +255,7 @@ daza.ar-env/
 - The `sites/` directory is ignored by git; you can safely re-run `setup.sh` to update or re-clone projects.
 
 ### Production Deployment
+
 Each site is deployed independently to GitHub Pages using the `gh-pages` package:
 
 ```bash
@@ -259,6 +265,7 @@ npm run deploy   # Deploy to GitHub Pages
 ```
 
 **Shared Module Architecture**: Sites import shared functionality from production URLs during both development and production:
+
 - `https://mdsite.daza.ar/mdsite.js` - Unified markdown rendering and accessibility
 - `https://navbar.daza.ar/utils/downloadPdf.js` - PDF export utilities
 - `https://data.daza.ar/md/` - Markdown content sources
@@ -375,17 +382,20 @@ Both configurations follow the project's KISS principle with sensible defaults t
 ## Scripts
 
 ### Development Scripts
+
 - `npm run dev`: Starts all development servers using `./dev.sh`.
 - `npm run build`: (Placeholder) Use site-specific build scripts or Vite as needed.
 - `npm run clean`: Removes `sites/` and `node_modules/` for a fresh start.
 
 ### Code Quality Scripts
+
 - `npm run lint`: Lints all JavaScript files in root and sites directories.
 - `npm run lint:fix`: Automatically fixes linting issues where possible.
 - `npm run format`: Formats all code files using Prettier.
 - `npm run format:check`: Checks if all files are properly formatted.
 
 ### Multi-Repository Management Scripts
+
 - `./mr.sh <command>`: Enhanced multi-repository management tool
 - `./update-branches.sh`: Ensure all repositories use 'main' branch
 - `./setup.sh`: Initial environment setup and repository cloning
@@ -457,6 +467,7 @@ All repositories in the daza.ar ecosystem use 'main' as the default branch:
 ```
 
 The script automatically:
+
 - Renames 'master' to 'main' in repositories that need it
 - Updates default branch settings on GitHub
 - Updates GitHub Pages source branch if needed
@@ -481,6 +492,7 @@ juanmanueldaza/wallpapers → https://wallpapers.daza.ar
 ### Custom Domain Setup
 
 DNS configuration routes each subdomain to its respective GitHub Pages deployment:
+
 - CNAME records point subdomains to `<username>.github.io`
 - Each repository has a custom domain configured in Pages settings
 - SSL certificates are automatically provided by GitHub Pages
@@ -491,13 +503,14 @@ Sites share functionality through ES module imports from production URLs:
 
 ```javascript
 // Remote module imports used in production and development
-import { fetchAndRenderMarkdown } from "https://mdsite.daza.ar/mdsite.js";
-import { DownloadPdfUtil } from "https://navbar.daza.ar/utils/downloadPdf.js";
+import { fetchAndRenderMarkdown } from 'https://mdsite.daza.ar/mdsite.js';
+import { DownloadPdfUtil } from 'https://navbar.daza.ar/utils/downloadPdf.js';
 ```
 
 This architecture provides:
+
 - **Independent deployment** - Update one site without affecting others
-- **Shared functionality** - Common code hosted centrally and imported remotely  
+- **Shared functionality** - Common code hosted centrally and imported remotely
 - **Version consistency** - All sites use the same version of shared modules
 - **Development parity** - Local development uses same remote dependencies as production
 - **Modern branching** - All repositories use 'main' as the default branch
@@ -511,12 +524,14 @@ This project provides an automated workflow script (`workflow.sh`) that uses the
 ```bash
 ./workflow.sh <issue_number> <commit_message> <pr_title> <pr_body>
 ```
+
 - Detects the default branch (develop or main) using `gh`.
 - Creates a feature branch, commits only if there are changes, and pushes to origin.
 - Uses `gh` to create and merge PRs, and close issues.
 - Exits gracefully if there are no changes to commit.
 
 ### Principles
+
 - **KISS**: Simple, robust, and minimal logic.
 - **Minimal dependencies**: Only Vite as an npm dependency; all repo management via GitHub CLI.
 - **gh-first**: Prefer `gh` for all automation; use git only for local diff/staging.
