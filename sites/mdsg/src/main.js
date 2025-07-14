@@ -6,16 +6,16 @@ class MDSG {
     this.authenticated = false;
     this.user = null;
     this.content = '';
-    this.init();
+    this.init(,);
   }
 
   init() {
-    this.setupUI();
-    this.checkAuth();
+    this.setupUI(,);
+    this.checkAuth(,);
   }
 
   setupUI() {
-    const app = document.getElementById('app');
+    const app = document.getElementById('app',);
     app.innerHTML = `
       <div class="container">
         <header>
@@ -160,18 +160,18 @@ Write something interesting about yourself here...
 
   checkAuth() {
     // Enhanced authentication check
-    const token = localStorage.getItem('github_token');
+    const token = localStorage.getItem('github_token',);
     // Token type and scope are stored but not currently used
-    // const tokenType = localStorage.getItem('github_token_type');
-    // const tokenScope = localStorage.getItem('github_token_scope');
+    // const tokenType = localStorage.getItem('github_token_type',);
+    // const tokenScope = localStorage.getItem('github_token_scope',);
 
     if (token && this.isValidToken(token)) {
-      console.log('Valid authentication token found');
-      this.fetchUser(token);
+      console.log('Valid authentication token found',);
+      this.fetchUser(token,);
     } else {
-      console.log('No valid authentication found');
-      this.clearAuthenticationState();
-      this.setupLoginHandler();
+      console.log('No valid authentication found',);
+      this.clearAuthenticationState(,);
+      this.setupLoginHandler(,);
     }
   }
 
@@ -196,10 +196,10 @@ Write something interesting about yourself here...
 
   clearAuthenticationState() {
     // Clear all authentication-related data
-    localStorage.removeItem('github_token');
-    localStorage.removeItem('github_token_type');
-    localStorage.removeItem('github_token_scope');
-    localStorage.removeItem('oauth_state');
+    localStorage.removeItem('github_token',);
+    localStorage.removeItem('github_token_type',);
+    localStorage.removeItem('github_token_scope',);
+    localStorage.removeItem('oauth_state',);
 
     // Reset internal state
     this.authenticated = false;
@@ -208,27 +208,27 @@ Write something interesting about yourself here...
 
   setupLoginHandler() {
     document.getElementById('login-btn')?.addEventListener('click', () => {
-      this.loginWithGitHub();
-    });
+      this.loginWithGitHub(,);
+    },);
 
     document.getElementById('demo-btn')?.addEventListener('click', () => {
-      this.startDemoMode();
-    });
+      this.startDemoMode(,);
+    },);
   }
 
   loginWithGitHub() {
     // Check if we're already authenticated
     if (this.authenticated) {
-      console.log('User already authenticated');
+      console.log('User already authenticated',);
       return;
     }
 
-    console.log('Starting GitHub Personal Access Token authentication...');
-    this.showTokenInput();
+    console.log('Starting GitHub Personal Access Token authentication...',);
+    this.showTokenInput(,);
   }
 
   showTokenInput() {
-    const mainContent = document.getElementById('main-content');
+    const mainContent = document.getElementById('main-content',);
     mainContent.innerHTML = `
       <div class="token-input-section">
         <div class="token-header">
@@ -301,38 +301,38 @@ Write something interesting about yourself here...
 
     // Setup event handlers
     document.getElementById('save-token')?.addEventListener('click', () => {
-      this.savePersonalToken();
-    });
+      this.savePersonalToken(,);
+    },);
 
     document.getElementById('cancel-token')?.addEventListener('click', () => {
-      this.cancelAuthentication();
-    });
+      this.cancelAuthentication(,);
+    },);
 
     // Enter key to save
     document.getElementById('token-input')?.addEventListener('keypress', e => {
       if (e.key === 'Enter') {
-        this.savePersonalToken();
+        this.savePersonalToken(,);
       }
-    });
+    },);
   }
 
   async savePersonalToken() {
-    const tokenInput = document.getElementById('token-input');
-    const saveButton = document.getElementById('save-token');
-    const token = tokenInput?.value.trim();
+    const tokenInput = document.getElementById('token-input',);
+    const saveButton = document.getElementById('save-token',);
+    const token = tokenInput?.value.trim(,);
 
     // Enhanced form validation
     if (!token) {
-      this.showError('Please enter a valid GitHub token');
-      tokenInput?.focus();
+      this.showError('Please enter a valid GitHub token',);
+      tokenInput?.focus(,);
       return;
     }
 
     if (token.length < 20) {
       this.showError(
         'GitHub tokens are typically longer than 20 characters. Please check your token.'
-      );
-      tokenInput?.focus();
+      ,);
+      tokenInput?.focus(,);
       return;
     }
 
@@ -343,8 +343,8 @@ Write something interesting about yourself here...
     ) {
       this.showError(
         'Invalid token format. Please copy the complete token from GitHub (starts with "ghp_", "github_pat_", or "gho_")'
-      );
-      tokenInput?.focus();
+      ,);
+      tokenInput?.focus(,);
       return;
     }
 
@@ -356,18 +356,18 @@ Write something interesting about yourself here...
 
     try {
       // Test the token by fetching user data
-      this.showLoading('Signing you in...');
+      this.showLoading('Signing you in...',);
 
-      localStorage.setItem('github_token', token);
-      await this.fetchUser(token);
+      localStorage.setItem('github_token', token,);
+      await this.fetchUser(token,);
     } catch (error) {
-      localStorage.removeItem('github_token');
+      localStorage.removeItem('github_token',);
 
       // Enhanced error handling with retry option
-      const errorMsg = this.getTokenErrorMessage(error);
+      const errorMsg = this.getTokenErrorMessage(error,);
       this.showErrorWithRetry(errorMsg, () => {
-        this.showTokenInput();
-      });
+        this.showTokenInput(,);
+      },);
     } finally {
       // Re-enable button
       if (saveButton) {
@@ -390,12 +390,12 @@ Write something interesting about yourself here...
   }
 
   cancelAuthentication() {
-    console.log('Authentication cancelled by user');
-    this.setupUI();
+    console.log('Authentication cancelled by user',);
+    this.setupUI(,);
   }
 
   startDemoMode() {
-    console.log('Starting demo mode...');
+    console.log('Starting demo mode...',);
 
     // Create mock user for demo
     this.user = {
@@ -449,17 +449,17 @@ Add code: \`console.log('Hello World!')\`
 
 *Happy creating with MDSG!* 🎉`;
 
-    const editor = document.getElementById('markdown-editor');
+    const editor = document.getElementById('markdown-editor',);
     if (editor) {
       editor.value = this.content;
     }
-    this.updatePreview();
-    this.updateWordCount();
+    this.updatePreview(,);
+    this.updateWordCount(,);
   }
 
   async fetchUser(token) {
     try {
-      this.showLoading('Fetching user profile...');
+      this.showLoading('Fetching user profile...',);
 
       // Fetch user profile from GitHub API
       const response = await fetch('https://api.github.com/user', {
@@ -468,10 +468,10 @@ Add code: \`console.log('Hello World!')\`
           Accept: 'application/vnd.github.v3+json',
           'User-Agent': 'MDSG-App',
         },
-      });
+      },);
 
       if (response.ok) {
-        const userData = await response.json();
+        const userData = await response.json(,);
 
         // Enhance user data with additional information
         this.user = {
@@ -485,100 +485,100 @@ Add code: \`console.log('Hello World!')\`
           lastAuthenticated: new Date().toISOString(),
         };
 
-        console.log('User authenticated successfully:', this.user.login);
+        console.log('User authenticated successfully:', this.user.login,);
         this.authenticated = true;
-        this.showEditor();
+        this.showEditor(,);
       } else {
-        const errorData = await response.json().catch(() => ({}));
-        console.error('GitHub API error:', response.status, errorData);
+        const errorData = await response.json().catch(() => ({}),);
+        console.error('GitHub API error:', response.status, errorData,);
 
         if (response.status === 401) {
           this.handleAuthError(
             'Authentication token expired. Please login again.'
-          );
+          ,);
         } else if (response.status === 403) {
           this.handleAuthError(
             'GitHub API rate limit exceeded. Please try again later.'
-          );
+          ,);
         } else {
-          this.handleAuthError('Failed to authenticate with GitHub');
+          this.handleAuthError('Failed to authenticate with GitHub',);
         }
       }
     } catch (error) {
-      console.error('Auth error:', error);
-      this.handleAuthError('Network error during authentication');
+      console.error('Auth error:', error,);
+      this.handleAuthError('Network error during authentication',);
     }
   }
 
   showEditor() {
-    document.getElementById('main-content').innerHTML = this.getEditorUI();
-    this.setupEditorHandlers();
-    this.updatePreview();
+    document.getElementById('main-content').innerHTML = this.getEditorUI(,);
+    this.setupEditorHandlers(,);
+    this.updatePreview(,);
   }
 
   setupEditorHandlers() {
-    const editor = document.getElementById('markdown-editor');
-    const deployBtn = document.getElementById('deploy-btn');
-    const logoutBtn = document.getElementById('logout-btn');
-    const clearBtn = document.getElementById('clear-btn');
-    const sampleBtn = document.getElementById('sample-btn');
-    const previewMode = document.getElementById('preview-mode');
-    const fullscreenPreview = document.getElementById('fullscreen-preview');
+    const editor = document.getElementById('markdown-editor',);
+    const deployBtn = document.getElementById('deploy-btn',);
+    const logoutBtn = document.getElementById('logout-btn',);
+    const clearBtn = document.getElementById('clear-btn',);
+    const sampleBtn = document.getElementById('sample-btn',);
+    const previewMode = document.getElementById('preview-mode',);
+    const fullscreenPreview = document.getElementById('fullscreen-preview',);
 
     // Main editor input handler with debouncing and validation
     let inputTimer;
     let validationTimer;
     editor?.addEventListener('input', e => {
       this.content = e.target.value;
-      this.updateWordCount();
-      this.updatePreview();
+      this.updateWordCount(,);
+      this.updatePreview(,);
 
       // Real-time validation with debouncing
-      clearTimeout(validationTimer);
+      clearTimeout(validationTimer,);
       validationTimer = setTimeout(() => {
-        this.validateContent();
-      }, 500);
+        this.validateContent(,);
+      }, 500,);
 
       // Auto-save with debouncing
-      clearTimeout(inputTimer);
+      clearTimeout(inputTimer,);
       inputTimer = setTimeout(() => {
-        this.autoSave();
-      }, 1000);
-    });
+        this.autoSave(,);
+      }, 1000,);
+    },);
 
     // Keyboard shortcuts
     editor?.addEventListener('keydown', e => {
       if (e.ctrlKey || e.metaKey) {
         switch (e.key) {
           case 's':
-            e.preventDefault();
-            this.autoSave();
+            e.preventDefault(,);
+            this.autoSave(,);
             break;
           case 'b':
-            e.preventDefault();
-            this.insertMarkdown('**', '**', 'bold text');
+            e.preventDefault(,);
+            this.insertMarkdown('**', '**', 'bold text',);
             break;
           case 'i':
-            e.preventDefault();
-            this.insertMarkdown('*', '*', 'italic text');
+            e.preventDefault(,);
+            this.insertMarkdown('*', '*', 'italic text',);
             break;
         }
       }
 
       // Tab handling for code blocks
       if (e.key === 'Tab') {
-        e.preventDefault();
+        e.preventDefault(,);
         const start = e.target.selectionStart;
         const end = e.target.selectionEnd;
         e.target.value =
           e.target.value.substring(0, start) +
           '    ' +
-          e.target.value.substring(end);
+          e.target.value.substring(end,);
         e.target.selectionStart = e.target.selectionEnd = start + 4;
         this.content = e.target.value;
-        this.updatePreview();
+        this.updatePreview(,);
       }
-    });
+    },);
 
     // Tool buttons
     clearBtn?.addEventListener('click', () => {
@@ -592,40 +592,40 @@ Add code: \`console.log('Hello World!')\`
       if (confirm(confirmMessage)) {
         this.content = '';
         editor.value = '';
-        this.updatePreview();
-        this.updateWordCount();
+        this.updatePreview(,);
+        this.updateWordCount(,);
 
         // Show success feedback
-        this.showError('Content cleared successfully', 'success');
+        this.showError('Content cleared successfully', 'success',);
       }
-    });
+    },);
 
     sampleBtn?.addEventListener('click', () => {
-      this.loadSampleContent();
-    });
+      this.loadSampleContent(,);
+    },);
 
     previewMode?.addEventListener('click', () => {
-      this.togglePreviewMode();
-    });
+      this.togglePreviewMode(,);
+    },);
 
     fullscreenPreview?.addEventListener('click', () => {
-      this.toggleFullscreenPreview();
-    });
+      this.toggleFullscreenPreview(,);
+    },);
 
     deployBtn?.addEventListener('click', () => {
-      this.deployToGitHub();
-    });
+      this.deployToGitHub(,);
+    },);
 
     logoutBtn?.addEventListener('click', () => {
-      this.logout();
-    });
+      this.logout(,);
+    },);
 
     // Load saved content if available
-    this.loadSavedContent();
+    this.loadSavedContent(,);
   }
 
   updatePreview() {
-    const preview = document.getElementById('preview');
+    const preview = document.getElementById('preview',);
     if (preview) {
       if (this.content.trim() === '') {
         preview.innerHTML = `
@@ -641,11 +641,11 @@ Add code: \`console.log('Hello World!')\`
           </div>
         `;
       } else {
-        preview.innerHTML = this.markdownToHTML(this.content);
+        preview.innerHTML = this.markdownToHTML(this.content,);
       }
 
       // Scroll preview to match editor scroll position
-      this.syncPreviewScroll();
+      this.syncPreviewScroll(,);
     }
   }
 
@@ -656,88 +656,88 @@ Add code: \`console.log('Hello World!')\`
     let html = markdown;
 
     // Code blocks (must be processed first)
-    html = html.replace(/```([^`]*?)```/gs, '<pre><code>$1</code></pre>');
+    html = html.replace(/```([^`]*?)```/gs, '<pre><code>$1</code></pre>',);
 
     // Headers (with ID generation for links)
     html = html.replace(/^### (.*$)/gm, (match, text) => {
-      const id = text.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+      const id = text.toLowerCase().replace(/[^a-z0-9]+/g, '-',);
       return `<h3 id="${id}">${text}</h3>`;
-    });
+    },);
     html = html.replace(/^## (.*$)/gm, (match, text) => {
-      const id = text.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+      const id = text.toLowerCase().replace(/[^a-z0-9]+/g, '-',);
       return `<h2 id="${id}">${text}</h2>`;
-    });
+    },);
     html = html.replace(/^# (.*$)/gm, (match, text) => {
-      const id = text.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+      const id = text.toLowerCase().replace(/[^a-z0-9]+/g, '-',);
       return `<h1 id="${id}">${text}</h1>`;
-    });
+    },);
 
     // Horizontal rules
-    html = html.replace(/^---$/gm, '<hr>');
+    html = html.replace(/^---$/gm, '<hr>',);
 
     // Blockquotes
-    html = html.replace(/^> (.*$)/gm, '<blockquote>$1</blockquote>');
+    html = html.replace(/^> (.*$)/gm, '<blockquote>$1</blockquote>',);
 
     // Lists (improved handling)
-    html = html.replace(/^[*\-+] (.+$)/gm, '<li>$1</li>');
-    html = html.replace(/^(\d+)\. (.+$)/gm, '<oli>$2</oli>');
+    html = html.replace(/^[*\-+] (.+$)/gm, '<li>$1</li>',);
+    html = html.replace(/^(\d+)\. (.+$)/gm, '<oli>$2</oli>',);
 
     // Group consecutive list items
-    html = html.replace(/(<li>.*?<\/li>)(\n<li>.*?<\/li>)*/gs, '<ul>$&</ul>');
+    html = html.replace(/(<li>.*?<\/li>)(\n<li>.*?<\/li>)*/gs, '<ul>$&</ul>',);
     html = html.replace(
       /(<oli>.*?<\/oli>)(\n<oli>.*?<\/oli>)*/gs,
       '<ol>$&</ol>'
-    );
-    html = html.replace(/<oli>/g, '<li>').replace(/<\/oli>/g, '</li>');
+    ,);
+    html = html.replace(/<oli>/g, '<li>').replace(/<\/oli>/g, '</li>',);
 
     // Text formatting
-    html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-    html = html.replace(/(?<!\*)\*([^*]+)\*(?!\*)/g, '<em>$1</em>');
-    html = html.replace(/~~(.*?)~~/g, '<del>$1</del>');
-    html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
+    html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>',);
+    html = html.replace(/(?<!\*)\*([^*]+)\*(?!\*)/g, '<em>$1</em>',);
+    html = html.replace(/~~(.*?)~~/g, '<del>$1</del>',);
+    html = html.replace(/`([^`]+)`/g, '<code>$1</code>',);
 
     // Links and images
     html = html.replace(
       /!\[([^\]]*)\]\(([^)]+)\)/g,
       '<img src="$2" alt="$1" />'
-    );
+    ,);
     html = html.replace(
       /\[([^\]]+)\]\(([^)]+)\)/g,
       '<a href="$2" target="_blank" rel="noopener">$1</a>'
-    );
+    ,);
 
     // Email links
     html = html.replace(
       /([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/g,
       '<a href="mailto:$1">$1</a>'
-    );
+    ,);
 
     // Auto-link URLs
     html = html.replace(
       /(https?:\/\/[^\s<]+)/g,
       '<a href="$1" target="_blank" rel="noopener">$1</a>'
-    );
+    ,);
 
     // Paragraphs
-    html = html.replace(/\n\s*\n/g, '</p><p>');
-    html = html.replace(/^(.)/gm, '<p>$1');
-    html = html.replace(/(.*)$/gm, '$1</p>');
+    html = html.replace(/\n\s*\n/g, '</p><p>',);
+    html = html.replace(/^(.)/gm, '<p>$1',);
+    html = html.replace(/(.*)$/gm, '$1</p>',);
 
     // Clean up
-    html = html.replace(/<p><\/p>/g, '');
-    html = html.replace(/<p>(<h[1-6][^>]*>.*?<\/h[1-6]>)<\/p>/g, '$1');
-    html = html.replace(/<p>(<ul>.*?<\/ul>)<\/p>/gs, '$1');
-    html = html.replace(/<p>(<ol>.*?<\/ol>)<\/p>/gs, '$1');
-    html = html.replace(/<p>(<blockquote>.*?<\/blockquote>)<\/p>/g, '$1');
-    html = html.replace(/<p>(<pre>.*?<\/pre>)<\/p>/gs, '$1');
-    html = html.replace(/<p>(<hr>)<\/p>/g, '$1');
+    html = html.replace(/<p><\/p>/g, '',);
+    html = html.replace(/<p>(<h[1-6][^>]*>.*?<\/h[1-6]>)<\/p>/g, '$1',);
+    html = html.replace(/<p>(<ul>.*?<\/ul>)<\/p>/gs, '$1',);
+    html = html.replace(/<p>(<ol>.*?<\/ol>)<\/p>/gs, '$1',);
+    html = html.replace(/<p>(<blockquote>.*?<\/blockquote>)<\/p>/g, '$1',);
+    html = html.replace(/<p>(<pre>.*?<\/pre>)<\/p>/gs, '$1',);
+    html = html.replace(/<p>(<hr>)<\/p>/g, '$1',);
 
     return html;
   }
 
   updateWordCount() {
-    const wordCount = document.getElementById('word-count');
-    const charCount = document.getElementById('char-count');
+    const wordCount = document.getElementById('word-count',);
+    const charCount = document.getElementById('char-count',);
 
     if (wordCount) {
       const words = this.content
@@ -754,21 +754,21 @@ Add code: \`console.log('Hello World!')\`
 
   autoSave() {
     try {
-      localStorage.setItem('mdsg_content', this.content);
-      localStorage.setItem('mdsg_last_save', new Date().toISOString());
+      localStorage.setItem('mdsg_content', this.content,);
+      localStorage.setItem('mdsg_last_save', new Date().toISOString(),);
 
-      const status = document.getElementById('auto-save-status');
+      const status = document.getElementById('auto-save-status',);
       if (status) {
         status.textContent = 'Auto-save: Saved';
         status.style.color = '#28a745';
         setTimeout(() => {
           status.textContent = 'Auto-save: Ready';
           status.style.color = '#666';
-        }, 2000);
+        }, 2000,);
       }
     } catch (error) {
-      console.error('Auto-save failed:', error);
-      const status = document.getElementById('auto-save-status');
+      console.error('Auto-save failed:', error,);
+      const status = document.getElementById('auto-save-status',);
       if (status) {
         status.textContent = 'Auto-save: Failed';
         status.style.color = '#dc3545';
@@ -778,23 +778,23 @@ Add code: \`console.log('Hello World!')\`
 
   loadSavedContent() {
     try {
-      const savedContent = localStorage.getItem('mdsg_content');
+      const savedContent = localStorage.getItem('mdsg_content',);
       if (savedContent && savedContent !== this.content) {
         this.content = savedContent;
-        const editor = document.getElementById('markdown-editor');
+        const editor = document.getElementById('markdown-editor',);
         if (editor) {
           editor.value = this.content;
         }
-        this.updatePreview();
-        this.updateWordCount();
+        this.updatePreview(,);
+        this.updateWordCount(,);
       }
     } catch (error) {
-      console.error('Failed to load saved content:', error);
+      console.error('Failed to load saved content:', error,);
     }
   }
 
   validateContent() {
-    const statusElement = document.getElementById('auto-save-status');
+    const statusElement = document.getElementById('auto-save-status',);
     if (!statusElement) return;
 
     const contentLength = this.content.length;
@@ -805,23 +805,23 @@ Add code: \`console.log('Hello World!')\`
 
     // Content validation
     if (contentLength === 0) {
-      this.showValidationStatus('Write some content to get started', 'info');
+      this.showValidationStatus('Write some content to get started', 'info',);
     } else if (contentLength > 100000) {
-      this.showValidationStatus('Content too large (>100KB)', 'warning');
+      this.showValidationStatus('Content too large (>100KB)', 'warning',);
     } else if (wordCount < 10) {
-      this.showValidationStatus('Consider adding more content', 'info');
+      this.showValidationStatus('Consider adding more content', 'info',);
     } else if (wordCount > 10000) {
       this.showValidationStatus(
         'Very long content - may take time to deploy',
         'warning'
-      );
+      ,);
     } else {
-      this.showValidationStatus('Content looks good!', 'success');
+      this.showValidationStatus('Content looks good!', 'success',);
     }
   }
 
   showValidationStatus(message, type) {
-    const statusElement = document.getElementById('auto-save-status');
+    const statusElement = document.getElementById('auto-save-status',);
     if (!statusElement) return;
 
     statusElement.textContent = message;
@@ -831,18 +831,18 @@ Add code: \`console.log('Hello World!')\`
       'validation-info',
       'validation-warning',
       'validation-success'
-    );
+    ,);
 
     // Add appropriate class
     switch (type) {
       case 'info':
-        statusElement.classList.add('validation-info');
+        statusElement.classList.add('validation-info',);
         break;
       case 'warning':
-        statusElement.classList.add('validation-warning');
+        statusElement.classList.add('validation-warning',);
         break;
       case 'success':
-        statusElement.classList.add('validation-success');
+        statusElement.classList.add('validation-success',);
         break;
     }
 
@@ -854,9 +854,9 @@ Add code: \`console.log('Hello World!')\`
           'validation-info',
           'validation-warning',
           'validation-success'
-        );
+        ,);
       }
-    }, 3000);
+    }, 3000,);
   }
 
   loadSampleContent() {
@@ -892,7 +892,7 @@ Inline \`code\` looks like this, and code blocks:
 
 \`\`\`javascript
 function hello() {
-    console.log("Hello, world!");
+    console.log("Hello, world!",);
 }
 \`\`\`
 
@@ -923,82 +923,82 @@ Start editing this content to create your own site. The preview updates as you t
 *Happy building!* 🎉`;
 
     this.content = sampleContent;
-    const editor = document.getElementById('markdown-editor');
+    const editor = document.getElementById('markdown-editor',);
     if (editor) {
       editor.value = this.content;
     }
-    this.updatePreview();
-    this.updateWordCount();
+    this.updatePreview(,);
+    this.updateWordCount(,);
   }
 
   insertMarkdown(before, after, placeholder) {
-    const editor = document.getElementById('markdown-editor');
+    const editor = document.getElementById('markdown-editor',);
     if (!editor) return;
 
     const start = editor.selectionStart;
     const end = editor.selectionEnd;
-    const selectedText = editor.value.substring(start, end);
+    const selectedText = editor.value.substring(start, end,);
     const replacement = selectedText || placeholder;
 
     const newText = before + replacement + after;
     editor.value =
-      editor.value.substring(0, start) + newText + editor.value.substring(end);
+      editor.value.substring(0, start) + newText + editor.value.substring(end,);
 
     // Set cursor position
     const newCursorPos = start + before.length + replacement.length;
     editor.selectionStart = editor.selectionEnd = newCursorPos;
 
     this.content = editor.value;
-    this.updatePreview();
-    editor.focus();
+    this.updatePreview(,);
+    editor.focus(,);
   }
 
   syncPreviewScroll() {
-    const editor = document.getElementById('markdown-editor');
-    const preview = document.getElementById('preview');
+    const editor = document.getElementById('markdown-editor',);
+    const preview = document.getElementById('preview',);
 
     if (editor && preview) {
       const scrollPercentage =
-        editor.scrollTop / (editor.scrollHeight - editor.clientHeight);
+        editor.scrollTop / (editor.scrollHeight - editor.clientHeight,);
       preview.scrollTop =
-        scrollPercentage * (preview.scrollHeight - preview.clientHeight);
+        scrollPercentage * (preview.scrollHeight - preview.clientHeight,);
     }
   }
 
   togglePreviewMode() {
-    const editorContainer = document.querySelector('.editor-container');
-    const previewModeBtn = document.getElementById('preview-mode');
+    const editorContainer = document.querySelector('.editor-container',);
+    const previewModeBtn = document.getElementById('preview-mode',);
 
     if (editorContainer && previewModeBtn) {
-      editorContainer.classList.toggle('preview-only');
-      previewModeBtn.classList.toggle('active');
+      editorContainer.classList.toggle('preview-only',);
+      previewModeBtn.classList.toggle('active',);
     }
   }
 
   toggleFullscreenPreview() {
-    const preview = document.getElementById('preview');
+    const preview = document.getElementById('preview',);
     if (preview) {
       if (preview.requestFullscreen) {
-        preview.requestFullscreen();
+        preview.requestFullscreen(,);
       } else if (preview.webkitRequestFullscreen) {
-        preview.webkitRequestFullscreen();
+        preview.webkitRequestFullscreen(,);
       } else if (preview.msRequestFullscreen) {
-        preview.msRequestFullscreen();
+        preview.msRequestFullscreen(,);
       }
     }
   }
 
   async deployToGitHub() {
     if (!this.authenticated) {
-      this.showError('Please log in first');
+      this.showError('Please log in first',);
       return;
     }
 
     if (!this.content.trim()) {
       this.showErrorWithRetry('Please write some content first', () => {
-        const editor = document.getElementById('markdown-editor');
-        editor?.focus();
-      });
+        const editor = document.getElementById('markdown-editor',);
+        editor?.focus(,);
+      },);
       return;
     }
 
@@ -1006,18 +1006,18 @@ Start editing this content to create your own site. The preview updates as you t
     if (this.content.length > 100000) {
       this.showError(
         'Content is too large. Please reduce the content size to under 100KB.'
-      );
+      ,);
       return;
     }
 
     // Prompt for repository name if not set
     if (!this.repoName) {
-      const timestamp = Date.now().toString().slice(-6);
+      const timestamp = Date.now().toString().slice(-6,);
       const defaultName = `mdsg-site-${timestamp}`;
       const repoName = prompt(
         'Enter a name for your GitHub repository:',
         defaultName
-      );
+      ,);
 
       if (!repoName) {
         return; // User cancelled
@@ -1027,46 +1027,46 @@ Start editing this content to create your own site. The preview updates as you t
       if (!/^[a-zA-Z0-9._-]+$/.test(repoName)) {
         this.showError(
           'Repository name can only contain letters, numbers, dots, underscores, and hyphens.'
-        );
+        ,);
         return;
       }
 
-      this.repoName = repoName.trim();
+      this.repoName = repoName.trim(,);
     }
 
-    const deployBtn = document.getElementById('deploy-btn');
+    const deployBtn = document.getElementById('deploy-btn',);
     const originalText = deployBtn.textContent;
     deployBtn.disabled = true;
 
     // Show detailed progress
-    this.showDeploymentProgress('Preparing deployment...');
+    this.showDeploymentProgress('Preparing deployment...',);
 
     try {
       // Step 1: Create repository
-      this.updateDeploymentProgress('Creating GitHub repository...', 25);
+      this.updateDeploymentProgress('Creating GitHub repository...', 25,);
       deployBtn.textContent = '⏳ Creating repository...';
-      const repo = await this.createRepository();
+      const repo = await this.createRepository(,);
 
       // Step 2: Upload content
-      this.updateDeploymentProgress('Uploading your content...', 50);
+      this.updateDeploymentProgress('Uploading your content...', 50,);
       deployBtn.textContent = '⏳ Uploading content...';
-      await this.uploadContent(repo.name);
+      await this.uploadContent(repo.name,);
 
       // Step 3: Enable GitHub Pages
-      this.updateDeploymentProgress('Enabling GitHub Pages...', 75);
+      this.updateDeploymentProgress('Enabling GitHub Pages...', 75,);
       deployBtn.textContent = '⏳ Enabling GitHub Pages...';
-      await this.enableGitHubPages(repo.name);
+      await this.enableGitHubPages(repo.name,);
 
       // Step 4: Complete
-      this.updateDeploymentProgress('Deployment complete!', 100);
+      this.updateDeploymentProgress('Deployment complete!', 100,);
       deployBtn.textContent = '✅ Deployed!';
 
       setTimeout(() => {
-        this.showSuccess(repo);
-      }, 1000);
+        this.showSuccess(repo,);
+      }, 1000,);
     } catch (error) {
-      console.error('Deployment error:', error);
-      this.hideDeploymentProgress();
+      console.error('Deployment error:', error,);
+      this.hideDeploymentProgress(,);
 
       let errorMessage = 'Deployment failed';
       let errorDetails = error.message;
@@ -1092,7 +1092,7 @@ Start editing this content to create your own site. The preview updates as you t
           'Multiple repositories with similar names exist. Please delete some old MDSG repositories.';
       }
 
-      this.showError(`${errorMessage}: ${errorDetails}`);
+      this.showError(`${errorMessage}: ${errorDetails}`,);
     } finally {
       deployBtn.textContent = originalText;
       deployBtn.disabled = false;
@@ -1100,7 +1100,7 @@ Start editing this content to create your own site. The preview updates as you t
   }
 
   async createRepository() {
-    const token = localStorage.getItem('github_token');
+    const token = localStorage.getItem('github_token',);
     const baseRepoName = this.repoName || 'mdsg-site';
     let attempt = 0;
     const maxAttempts = 10;
@@ -1109,7 +1109,7 @@ Start editing this content to create your own site. The preview updates as you t
       const currentRepoName =
         attempt === 0 ? baseRepoName : `${baseRepoName}-${attempt}`;
 
-      console.log(`Attempting to create repository: ${currentRepoName}`);
+      console.log(`Attempting to create repository: ${currentRepoName}`,);
 
       const response = await fetch('https://api.github.com/user/repos', {
         method: 'POST',
@@ -1128,20 +1128,20 @@ Start editing this content to create your own site. The preview updates as you t
           has_projects: false,
           has_wiki: false,
         }),
-      });
+      },);
 
       if (response.ok) {
-        const repo = await response.json();
-        console.log(`Repository created successfully: ${repo.name}`);
+        const repo = await response.json(,);
+        console.log(`Repository created successfully: ${repo.name}`,);
         return repo;
       }
 
-      const errorData = await response.json().catch(() => ({}));
+      const errorData = await response.json().catch(() => ({}),);
       console.log('Repository creation error:', {
         status: response.status,
         statusText: response.statusText,
         errorData: errorData,
-      });
+      },);
 
       // Handle specific error cases for repository name conflicts
       if (response.status === 422) {
@@ -1149,11 +1149,11 @@ Start editing this content to create your own site. The preview updates as you t
         if (errorData.errors) {
           const nameError = errorData.errors.find(
             err => err.resource === 'Repository' && err.field === 'name'
-          );
+          ,);
           if (nameError && nameError.code === 'already_exists') {
             console.log(
               `Repository ${currentRepoName} already exists, trying next name...`
-            );
+            ,);
             attempt++;
             continue;
           }
@@ -1167,7 +1167,7 @@ Start editing this content to create your own site. The preview updates as you t
         ) {
           console.log(
             `Repository ${currentRepoName} already exists, trying next name...`
-          );
+          ,);
           attempt++;
           continue;
         }
@@ -1179,36 +1179,36 @@ Start editing this content to create your own site. The preview updates as you t
           : '';
         throw new Error(
           `Repository creation failed: ${message}${details ? '. Details: ' + details : ''}`
-        );
+        ,);
       }
 
       // Handle other errors
       if (response.status === 401) {
-        throw new Error('Authentication failed. Please login again.');
+        throw new Error('Authentication failed. Please login again.',);
       } else if (response.status === 403) {
         throw new Error(
           'Permission denied. You may have reached your repository limit.'
-        );
+        ,);
       } else {
         const message = errorData.message || response.statusText;
         throw new Error(
           `Failed to create repository (${response.status}): ${message}`
-        );
+        ,);
       }
     }
 
     throw new Error(
       `Unable to create repository after ${maxAttempts} attempts. Please try a different name.`
-    );
+    ,);
   }
 
   async uploadContent(repoName) {
-    const token = localStorage.getItem('github_token');
+    const token = localStorage.getItem('github_token',);
 
     // Generate enhanced HTML content with better styling
-    const htmlContent = this.generateSiteHTML();
+    const htmlContent = this.generateSiteHTML(,);
 
-    console.log(`Uploading content to repository: ${repoName}`);
+    console.log(`Uploading content to repository: ${repoName}`,);
 
     const response = await fetch(
       `https://api.github.com/repos/${this.user.login}/${repoName}/contents/index.html`,
@@ -1230,35 +1230,35 @@ Start editing this content to create your own site. The preview updates as you t
           },
         }),
       }
-    );
+    ,);
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
+      const errorData = await response.json().catch(() => ({}),);
 
       if (response.status === 401) {
-        throw new Error('Authentication failed. Please login again.');
+        throw new Error('Authentication failed. Please login again.',);
       } else if (response.status === 403) {
         throw new Error(
           'Permission denied. You may not have write access to this repository.'
-        );
+        ,);
       } else if (response.status === 404) {
-        throw new Error('Repository not found. It may have been deleted.');
+        throw new Error('Repository not found. It may have been deleted.',);
       } else if (response.status === 409) {
-        throw new Error('File already exists. Please try again.');
+        throw new Error('File already exists. Please try again.',);
       } else {
         const message = errorData.message || 'Unknown error occurred';
-        throw new Error(`Failed to upload content: ${message}`);
+        throw new Error(`Failed to upload content: ${message}`,);
       }
     }
 
-    const result = await response.json();
-    console.log('Content uploaded successfully');
+    const result = await response.json(,);
+    console.log('Content uploaded successfully',);
     return result;
   }
 
   generateSiteHTML() {
     // Extract title from content
-    const titleMatch = this.content.match(/^#\s+(.+)$/m);
+    const titleMatch = this.content.match(/^#\s+(.+)$/m,);
     const siteTitle = titleMatch ? titleMatch[1] : 'My Site';
 
     return `<!DOCTYPE html>
@@ -1342,7 +1342,7 @@ Start editing this content to create your own site. The preview updates as you t
 
         .markdown-body img {
             border-radius: 6px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1,);
         }
     </style>
 </head>
@@ -1368,7 +1368,7 @@ Start editing this content to create your own site. The preview updates as you t
   }
 
   escapeHtml(text) {
-    const div = document.createElement('div');
+    const div = document.createElement('div',);
     div.textContent = text;
     return div.innerHTML;
   }
@@ -1379,14 +1379,14 @@ Start editing this content to create your own site. The preview updates as you t
       encodeURIComponent(str).replace(
         /%([0-9A-F]{2})/g,
         function toSolidBytes(match, p1) {
-          return String.fromCharCode('0x' + p1);
+          return String.fromCharCode('0x' + p1,);
         }
       )
-    );
+    ,);
   }
 
   async enableGitHubPages(repoName) {
-    const token = localStorage.getItem('github_token');
+    const token = localStorage.getItem('github_token',);
     const response = await fetch(
       `https://api.github.com/repos/${this.user.login}/${repoName}/pages`,
       {
@@ -1403,19 +1403,19 @@ Start editing this content to create your own site. The preview updates as you t
           },
         }),
       }
-    );
+    ,);
 
     if (!response.ok && response.status !== 409) {
       // 409 means already enabled
-      const errorData = await response.json();
+      const errorData = await response.json(,);
       throw new Error(
         `Failed to enable GitHub Pages: ${errorData.message || response.status}`
-      );
+      ,);
     }
   }
 
   showDeploymentProgress(message) {
-    const mainContent = document.getElementById('main-content');
+    const mainContent = document.getElementById('main-content',);
     mainContent.innerHTML = `
       <div class="deployment-progress">
         <div class="progress-header">
@@ -1451,19 +1451,19 @@ Start editing this content to create your own site. The preview updates as you t
   }
 
   updateDeploymentProgress(message, percentage) {
-    const progressMessage = document.getElementById('progress-message');
-    const progressFill = document.getElementById('progress-fill');
-    const progressPercentage = document.getElementById('progress-percentage');
+    const progressMessage = document.getElementById('progress-message',);
+    const progressFill = document.getElementById('progress-fill',);
+    const progressPercentage = document.getElementById('progress-percentage',);
 
     if (progressMessage) progressMessage.textContent = message;
     if (progressFill) progressFill.style.width = `${percentage}%`;
     if (progressPercentage) progressPercentage.textContent = `${percentage}%`;
 
     // Update step indicators
-    const stepNumber = Math.ceil(percentage / 25);
+    const stepNumber = Math.ceil(percentage / 25,);
     for (let i = 1; i <= stepNumber && i <= 4; i++) {
-      const step = document.getElementById(`step-${i}`);
-      if (step) step.classList.add('completed');
+      const step = document.getElementById(`step-${i}`,);
+      if (step) step.classList.add('completed',);
     }
   }
 
@@ -1472,7 +1472,7 @@ Start editing this content to create your own site. The preview updates as you t
   }
 
   showSuccess(repo) {
-    const mainContent = document.getElementById('main-content');
+    const mainContent = document.getElementById('main-content',);
     mainContent.innerHTML = `
       <div class="success-section">
         <div class="success-header">
@@ -1534,51 +1534,51 @@ Start editing this content to create your own site. The preview updates as you t
 
     document.getElementById('create-another')?.addEventListener('click', () => {
       this.content = '';
-      this.showEditor();
-    });
+      this.showEditor(,);
+    },);
   }
 
   showError(message, type = 'error') {
-    const mainContent = document.getElementById('main-content');
+    const mainContent = document.getElementById('main-content',);
     const existingError = document.querySelector(
       '.error-banner, .success-banner'
-    );
+    ,);
 
     if (existingError) {
-      existingError.remove();
+      existingError.remove(,);
     }
 
     const bannerClass = type === 'success' ? 'success-banner' : 'error-banner';
     const icon = type === 'success' ? '✅' : '⚠️';
 
-    const errorBanner = document.createElement('div');
+    const errorBanner = document.createElement('div',);
     errorBanner.className = bannerClass;
     errorBanner.innerHTML = `
       <span>${icon} ${message}</span>
       <button onclick="this.parentElement.remove()">×</button>
     `;
 
-    mainContent.insertBefore(errorBanner, mainContent.firstChild);
+    mainContent.insertBefore(errorBanner, mainContent.firstChild,);
 
     // Auto-remove after 10 seconds
     setTimeout(() => {
       if (errorBanner.parentElement) {
-        errorBanner.remove();
+        errorBanner.remove(,);
       }
-    }, 10000);
+    }, 10000,);
   }
 
   showErrorWithRetry(message, retryCallback) {
-    const mainContent = document.getElementById('main-content');
+    const mainContent = document.getElementById('main-content',);
     const existingError = document.querySelector(
       '.error-banner, .success-banner'
-    );
+    ,);
 
     if (existingError) {
-      existingError.remove();
+      existingError.remove(,);
     }
 
-    const errorBanner = document.createElement('div');
+    const errorBanner = document.createElement('div',);
     errorBanner.className = 'error-banner';
     errorBanner.innerHTML = `
       <div class="error-content">
@@ -1590,27 +1590,27 @@ Start editing this content to create your own site. The preview updates as you t
       </div>
     `;
 
-    mainContent.insertBefore(errorBanner, mainContent.firstChild);
+    mainContent.insertBefore(errorBanner, mainContent.firstChild,);
 
     // Add retry functionality
-    const retryBtn = errorBanner.querySelector('.retry-btn');
+    const retryBtn = errorBanner.querySelector('.retry-btn',);
     if (retryBtn && retryCallback) {
       retryBtn.addEventListener('click', () => {
-        errorBanner.remove();
-        retryCallback();
-      });
+        errorBanner.remove(,);
+        retryCallback(,);
+      },);
     }
 
     // Auto-remove after 15 seconds (longer for retry messages)
     setTimeout(() => {
       if (errorBanner.parentElement) {
-        errorBanner.remove();
+        errorBanner.remove(,);
       }
-    }, 15000);
+    }, 15000,);
   }
 
   showLoading(message) {
-    const mainContent = document.getElementById('main-content');
+    const mainContent = document.getElementById('main-content',);
     mainContent.innerHTML = `
       <div class="loading-section">
         <div class="spinner"></div>
@@ -1626,64 +1626,64 @@ Start editing this content to create your own site. The preview updates as you t
     `;
 
     // Animate progress dots
-    this.animateLoadingDots();
+    this.animateLoadingDots(,);
   }
 
   animateLoadingDots() {
-    const dots = document.querySelectorAll('.progress-dots .dot');
+    const dots = document.querySelectorAll('.progress-dots .dot',);
     let currentDot = 0;
 
     const interval = setInterval(() => {
       // Remove active class from all dots
-      dots.forEach(dot => dot.classList.remove('active'));
+      dots.forEach(dot => dot.classList.remove('active'),);
 
       // Add active class to current dot
       if (dots[currentDot]) {
-        dots[currentDot].classList.add('active');
+        dots[currentDot].classList.add('active',);
       }
 
       currentDot = (currentDot + 1) % dots.length;
 
       // Stop animation if loading section is removed
       if (!document.querySelector('.loading-section')) {
-        clearInterval(interval);
+        clearInterval(interval,);
       }
-    }, 500);
+    }, 500,);
   }
 
   logout() {
-    console.log('User logging out...');
+    console.log('User logging out...',);
 
     // Clear all authentication state
-    this.clearAuthenticationState();
+    this.clearAuthenticationState(,);
 
     // Reset content
     this.content = '';
 
     // Show login UI
-    this.setupUI();
+    this.setupUI(,);
 
-    console.log('Logout completed');
+    console.log('Logout completed',);
   }
 
   handleAuthError(message = 'Authentication failed') {
-    console.error('Authentication error:', message);
+    console.error('Authentication error:', message,);
 
     // Clear all authentication state
-    this.clearAuthenticationState();
+    this.clearAuthenticationState(,);
 
     // Show login UI
-    this.setupUI();
+    this.setupUI(,);
 
     // Show error to user
-    this.showError(message);
+    this.showError(message,);
   }
 }
 
 // Start the app (no OAuth callback needed with PAT flow)
 // Only start if not in test environment
 if (typeof process === 'undefined' || process.env.NODE_ENV !== 'test') {
-  new MDSG();
+  new MDSG(,);
 }
 
 // Export MDSG class for testing
