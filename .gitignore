@@ -1,0 +1,29 @@
+node_modules/
+dist/
+.env
+.env.local
+.env.*.local
+.vscode/
+.DS_Store
+*.log
+
+# Development files
+*.tmp
+*.temp
+.cache/
+
+# Editor files
+.idea/
+*.swp
+*.swo
+
+# OS files
+Thumbs.db
+.DS_Store?
+
+# Coverage and testing
+coverage/
+.nyc_output/
+
+# Deployment
+deploy.log

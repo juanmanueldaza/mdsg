@@ -1,0 +1,41 @@
+{
+  "name": "mdsg",
+  "version": "1.0.0",
+  "description": "Simple markdown site generator for GitHub Pages",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "server": "node server.js",
+    "dev:server": "nodemon server.js",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:run": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "lint": "eslint src --ext .js",
+    "lint:fix": "eslint src --ext .js --fix",
+    "format": "prettier --write src/**/*.js *.js *.json *.md",
+    "format:check": "prettier --check src/**/*.js *.js *.json *.md",
+    "analyze": "vite build --mode analyze",
+    "size": "npm run build && node -e \"const fs=require('fs');const path=require('path');const gzip=require('zlib').gzipSync;const dir='dist/assets';fs.readdirSync(dir).forEach(f=>{const s=fs.statSync(path.join(dir,f));const gz=gzip(fs.readFileSync(path.join(dir,f)));console.log(`${f}: ${(s.size/1024).toFixed(1)}KB (${(gz.length/1024).toFixed(1)}KB gzipped)`);})\"",
+    "perf": "npm run build && npm run preview & sleep 3 && npx lighthouse http://localhost:3001 --only-categories=performance --chrome-flags='--headless' && pkill -f 'vite preview'",
+    "bundle-size": "npm run build && du -sh dist/assets/*"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5"
+  },
+  "devDependencies": {
+    "vite": "^5.0.0",
+    "nodemon": "^3.0.0",
+    "eslint": "^8.57.0",
+    "vitest": "^1.0.0",
+    "@vitest/ui": "^1.0.0",
+    "@vitest/coverage-v8": "^1.0.0",
+    "jsdom": "^23.0.0",
+    "prettier": "^3.0.0",
+    "terser": "^5.24.0"
+  },
+  "license": "MIT"
+}
