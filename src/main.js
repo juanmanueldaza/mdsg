@@ -2,6 +2,7 @@
 // Simple entry point
 
 import { SecureHTML } from './utils/security.js';
+import { tokenManager } from './utils/token-manager.js';
 
 class MDSG {
   constructor() {
@@ -188,16 +189,32 @@ Write something interesting about yourself here...
   }
 
   checkAuth() {
-    // Enhanced authentication check
-    const token = localStorage.getItem('github_token');
-    // Token type and scope are stored but not currently used
-    // const tokenType = localStorage.getItem('github_token_type');
-    // const tokenScope = localStorage.getItem('github_token_scope');
+    // Enhanced authentication check with secure token storage
+    // First, try to migrate any old localStorage tokens
+    tokenManager.migrateFromLocalStorage();
+
+    const token = tokenManager.getTokenString();
+    const userInfo = tokenManager.getUserInfo();
 
     if (token && this.isValidToken(token)) {
-      console.log('Valid authentication token found');
+      console.log('Valid secure authentication token found');
       this.token = token;
-      this.fetchUser(token);
+      this.user = userInfo; // Use cached user info if available
+
+      // Check if token is expiring soon
+      if (tokenManager.isTokenExpiringSoon()) {
+        console.warn('Token expires soon, consider refreshing');
+        this.showExpiryWarning();
+      }
+
+      if (userInfo) {
+        // Use cached user info
+        this.authenticated = true;
+        this.showEditor();
+      } else {
+        // Fetch fresh user info
+        this.fetchUser(token);
+      }
       return true;
     } else {
       console.log('No valid authentication found');
@@ -227,15 +244,23 @@ Write something interesting about yourself here...
   }
 
   clearAuthenticationState() {
-    // Clear all authentication-related data
-    localStorage.removeItem('github_token');
-    localStorage.removeItem('github_token_type');
-    localStorage.removeItem('github_token_scope');
-    localStorage.removeItem('oauth_state');
+    // Clear all authentication-related data using secure token manager
+    tokenManager.clearToken();
+
+    // Also clear any remaining localStorage items (migration cleanup)
+    try {
+      localStorage.removeItem('github_token');
+      localStorage.removeItem('github_token_type');
+      localStorage.removeItem('github_token_scope');
+      localStorage.removeItem('oauth_state');
+    } catch (e) {
+      // Ignore localStorage errors
+    }
 
     // Reset internal state
     this.authenticated = false;
     this.user = null;
+    this.token = null;
   }
 
   setupLoginHandler() {
@@ -390,10 +415,33 @@ Write something interesting about yourself here...
       // Test the token by fetching user data
       this.showLoading('Signing you in...');
 
-      localStorage.setItem('github_token', token);
-      await this.fetchUser(token);
+      // Fetch user data first to validate token
+      const response = await fetch('https://api.github.com/user', {
+        headers: {
+          Authorization: `token ${token}`,
+          Accept: 'application/vnd.github+json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Authentication failed: ${response.status}`);
+      }
+
+      const userData = await response.json();
+
+      // Store token securely with user info
+      const stored = tokenManager.storeToken(token, userData);
+      if (!stored) {
+        throw new Error('Failed to store authentication token securely');
+      }
+
+      this.token = token;
+      this.user = userData;
+      this.authenticated = true;
+      this.showEditor();
     } catch (error) {
-      localStorage.removeItem('github_token');
+      // Clear any potentially stored token on error
+      tokenManager.clearToken();
 
       // Enhanced error handling with retry option
       const errorMsg = this.getTokenErrorMessage(error);
@@ -1176,7 +1224,10 @@ Start editing this content to create your own site. The preview updates as you t
   }
 
   async createRepository() {
-    const token = localStorage.getItem('github_token');
+    const token = tokenManager.getTokenString();
+    if (!token) {
+      throw new Error('No authentication token available');
+    }
     const baseRepoName = this.repoName || 'mdsg-site';
     let attempt = 0;
     const maxAttempts = 10;
@@ -1279,7 +1330,10 @@ Start editing this content to create your own site. The preview updates as you t
   }
 
   async uploadContent(repoName) {
-    const token = localStorage.getItem('github_token');
+    const token = tokenManager.getTokenString();
+    if (!token) {
+      throw new Error('No authentication token available');
+    }
 
     // Generate enhanced HTML content with better styling
     const htmlContent = this.generateSiteHTML();
@@ -1461,7 +1515,10 @@ Start editing this content to create your own site. The preview updates as you t
   }
 
   async enableGitHubPages(repoName) {
-    const token = localStorage.getItem('github_token');
+    const token = tokenManager.getTokenString();
+    if (!token) {
+      throw new Error('No authentication token available');
+    }
     const response = await fetch(
       `https://api.github.com/repos/${this.user.login}/${repoName}/pages`,
       {
@@ -1735,6 +1792,16 @@ Start editing this content to create your own site. The preview updates as you t
       </div>
     `;
     SecureHTML.sanitizeAndRender(loadingHTML, mainContent);
+  }
+
+  showExpiryWarning() {
+    const timeUntilExpiry = tokenManager.getTimeUntilExpiry();
+    const minutesLeft = Math.floor(timeUntilExpiry / (60 * 1000));
+
+    this.showError(
+      `⚠️ Your session expires in ${minutesLeft} minutes. Please save your work.`,
+      'warning',
+    );
   }
 
   animateLoadingDots() {
