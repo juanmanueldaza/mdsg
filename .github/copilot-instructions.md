@@ -30,6 +30,13 @@ npm run lint            # Code quality ✅
 npm run test:run tests/basic.test.js     # ✅ RELIABLE (25/25)
 npm run test:run tests/markdown.test.js  # 📋 PLANNED (0/49)  
 npm run test:run tests/mdsg.test.js      # 📋 PLANNED (0/43)
+
+# 🔍 Status Verification (AI Agent Validation)
+npm run size            # Verify bundle size (expect: ~14.0KB total)
+npm run test tests/basic.test.js --reporter=verbose  # Verify core tests (expect: 25/25 ✅)
+npm run lint --quiet    # Verify code quality (expect: no errors)
+npm run build > /dev/null 2>&1 && echo "✅ Build Success" || echo "❌ Build Failed"
+curl -s -o /dev/null -w "%{http_code}" https://mdsg.daza.ar/ | grep -q "200" && echo "✅ Site Live" || echo "❌ Site Down"
 ```
 
 ## 🤖 AI Agent Handbook & Memory System
@@ -47,8 +54,7 @@ Use this as your knowledge navigation system:
 ├── 🧪 .github/docs/testing.md          → Testing strategy & implementation
 ├── 🚀 .github/docs/deployment.md       → Production deployment guide
 ├── ⚡ .github/docs/performance.md       → Performance optimization
-├── 🔒 .github/docs/security.md         → Security implementation
-└── 📚 .github/docs/README.md           → Documentation overview
+└── 🔒 .github/docs/security.md         → Security implementation
 ```
 
 **📋 DOCUMENTATION RULE**: ALL documentation MUST be in `.github/docs/` directory - never create docs elsewhere!
@@ -109,6 +115,23 @@ Use this as your knowledge navigation system:
 - **Security Score**: Basic protection implemented (Target: A+ comprehensive)
 - **Initialization**: <200ms estimated (Target: <200ms)
 - **CI/CD Status**: ✅ ALL CORE WORKFLOWS PASSING
+
+### AI Agent Pre-Flight Checklist (MANDATORY)
+Before making ANY changes, AI agents MUST verify:
+```bash
+# 1. Core tests are passing
+npm run test tests/basic.test.js --run | grep -q "25 passed" || exit 1
+
+# 2. Bundle size is within limits  
+npm run size 2>/dev/null | grep -q "gzipped" && echo "✅ Bundle check passed"
+
+# 3. Live site is accessible
+curl -s -f https://mdsg.daza.ar/ > /dev/null && echo "✅ Site accessible"
+
+# 4. No linting errors
+npm run lint --quiet && echo "✅ Code quality verified"
+```
+**⚠️ RULE**: If ANY check fails, investigate BEFORE proceeding with changes.
 
 ## 🧠 Mental Model for Navigation
 
@@ -474,16 +497,25 @@ npm run analyze         # Bundle analysis (needs implementation)
 ### Information Gathering (Decision Tree)
 ```
 🔍 STARTING A TASK?
+├── Run Pre-Flight Checklist → Verify current system health
 ├── Check Dashboard Above → Current metrics & status
 ├── Identify Domain → Frontend/Backend/Testing/Docs
 ├── Verify Bundle Impact → npm run size (target: <20KB)
 └── Reference Cross-Docs → Use navigation map
 
 🎯 IMPLEMENTING FEATURES?
+├── Pre-Flight Check → Ensure 25/25 tests passing baseline
 ├── Core Feature? → Add to basic.test.js (25/25 ✅)
 ├── Advanced Feature? → Check planned tests (64 pending)
 ├── Bundle Impact? → Monitor 14.0KB baseline
 └── Architecture Change? → Consider Clean Architecture triggers
+
+🔧 POST-IMPLEMENTATION VALIDATION?
+├── Run full test suite → npm run test tests/basic.test.js
+├── Check bundle impact → npm run size (must stay <20KB)
+├── Verify site builds → npm run build
+├── Test live deployment → curl -s https://mdsg.daza.ar/
+└── Update metrics if changed → Modify dashboard above
 ```
 
 ### Code Implementation (Current Reality)
@@ -510,11 +542,78 @@ npm run analyze         # Bundle analysis (needs implementation)
 ```
 
 ### Quality Gates (Pre-Action Checklist)
-- [ ] Core tests still passing (25/25)
-- [ ] Bundle size within target (<20KB)
+**BEFORE ANY CHANGES:**
+- [ ] Pre-flight checklist commands executed successfully
+- [ ] Core tests baseline verified (25/25)
+- [ ] Bundle size baseline confirmed (<20KB)
+- [ ] Live site accessibility verified
+
+**DURING DEVELOPMENT:**
+- [ ] Incremental testing after each change
+- [ ] Bundle size monitoring if modifying assets
 - [ ] Documentation updated if needed
 - [ ] Changes follow KISS principles
+
+**AFTER IMPLEMENTATION:**
+- [ ] Full test suite passes (25/25 maintained)
+- [ ] Bundle size within limits (<20KB confirmed)
+- [ ] Live site still functional
 - [ ] Security implications considered
+- [ ] Metrics updated in dashboard if changed
+
+## 🎯 Agent Success Framework
+
+### Decision Support System
+```
+🤔 MAKING A DECISION?
+├── Performance Impact? → Reference dashboard metrics above
+├── Security Implications? → Check .github/docs/security.md
+├── Testing Strategy? → Use tiered approach (core → advanced)
+├── Architecture Change? → Evaluate against current 1690-line baseline
+└── Documentation Update? → Must be in .github/docs/
+```
+
+### Reality-Based Development Philosophy
+This documentation provides both:
+- **✅ CURRENT REALITY**: What actually works (25/25 core tests)
+- **📋 FUTURE VISION**: What's planned (64 advanced features)
+- **🎯 CLEAR TARGETS**: Measurable goals with current baselines
+
+### Feature Status Legend
+- **✅ WORKING**: Features with passing tests in basic.test.js (25/25)
+- **🚧 IN PROGRESS**: Features partially implemented or being developed
+- **📋 PLANNED**: Features described in docs/tests but not implemented
+- **🔧 BASIC**: Features with minimal implementation, needs enhancement
+
+### Success Metrics Tracking (Auto-Update Target)
+```
+📊 CURRENT BASELINE (Update when changed)
+- Bundle Size: 14.0KB gzipped (target: <20KB ✅, stretch: <12KB)
+- Core Tests: 25/25 passing (target: 100% core ✅)
+- Advanced Tests: 0/64 passing (target: incremental implementation)
+- CI/CD Health: All workflows passing ✅
+- Architecture: Frontend-only static site (target: maintain simplicity)
+```
+
+### Quality Gates (Pre-Action Checklist)
+**BEFORE ANY CHANGES:**
+- [ ] Pre-flight checklist commands executed successfully
+- [ ] Core tests baseline verified (25/25)
+- [ ] Bundle size baseline confirmed (<20KB)
+- [ ] Live site accessibility verified
+
+**DURING DEVELOPMENT:**
+- [ ] Incremental testing after each change
+- [ ] Bundle size monitoring if modifying assets
+- [ ] Documentation updated if needed
+- [ ] Changes follow KISS principles
+
+**AFTER IMPLEMENTATION:**
+- [ ] Full test suite passes (25/25 maintained)
+- [ ] Bundle size within limits (<20KB confirmed)
+- [ ] Live site still functional
+- [ ] Security implications considered
+- [ ] Metrics updated in dashboard if changed
 
 ## 🎯 Agent Success Framework
 
