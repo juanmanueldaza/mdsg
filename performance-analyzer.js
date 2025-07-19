@@ -97,7 +97,7 @@ class PerformanceAnalyzer {
 
     const totalSize = Object.values(this.metrics.bundleSize).reduce(
       (sum, file) => sum + file.gzipped,
-      0
+      0,
     );
     const totalSizeKB = (totalSize / 1024).toFixed(1);
 
@@ -129,7 +129,7 @@ class PerformanceAnalyzer {
       ];
 
       const foundHeavy = Object.keys(deps).filter(dep =>
-        heavyDeps.some(heavy => dep.includes(heavy))
+        heavyDeps.some(heavy => dep.includes(heavy)),
       );
 
       if (foundHeavy.length > 0) {
@@ -206,16 +206,16 @@ class PerformanceAnalyzer {
 
         if (fs.existsSync('lighthouse-results.json')) {
           const results = JSON.parse(
-            fs.readFileSync('lighthouse-results.json', 'utf8')
+            fs.readFileSync('lighthouse-results.json', 'utf8'),
           );
 
           this.metrics.lighthouse = {
             performance: Math.round(results.categories.performance.score * 100),
             accessibility: Math.round(
-              results.categories.accessibility.score * 100
+              results.categories.accessibility.score * 100,
             ),
             bestPractices: Math.round(
-              results.categories['best-practices'].score * 100
+              results.categories['best-practices'].score * 100,
             ),
             seo: Math.round(results.categories.seo.score * 100),
             metrics: {
@@ -270,16 +270,16 @@ class PerformanceAnalyzer {
     console.log('📦 Bundle Analysis:');
     const totalGzipped = Object.values(this.metrics.bundleSize).reduce(
       (sum, file) => sum + file.gzipped,
-      0
+      0,
     );
 
     console.log(`  Total Size: ${(totalGzipped / 1024).toFixed(1)}KB gzipped`);
 
     const jsFiles = Object.values(this.metrics.bundleSize).filter(
-      f => f.type === 'js'
+      f => f.type === 'js',
     );
     const cssFiles = Object.values(this.metrics.bundleSize).filter(
-      f => f.type === 'css'
+      f => f.type === 'css',
     );
 
     if (jsFiles.length > 0) {
@@ -300,30 +300,30 @@ class PerformanceAnalyzer {
       const scores = this.metrics.lighthouse;
 
       console.log(
-        `  Performance: ${scores.performance}/100 ${this.getScoreEmoji(scores.performance)}`
+        `  Performance: ${scores.performance}/100 ${this.getScoreEmoji(scores.performance)}`,
       );
       console.log(
-        `  Accessibility: ${scores.accessibility}/100 ${this.getScoreEmoji(scores.accessibility)}`
+        `  Accessibility: ${scores.accessibility}/100 ${this.getScoreEmoji(scores.accessibility)}`,
       );
       console.log(
-        `  Best Practices: ${scores.bestPractices}/100 ${this.getScoreEmoji(scores.bestPractices)}`
+        `  Best Practices: ${scores.bestPractices}/100 ${this.getScoreEmoji(scores.bestPractices)}`,
       );
       console.log(`  SEO: ${scores.seo}/100 ${this.getScoreEmoji(scores.seo)}`);
 
       if (scores.metrics) {
         console.log('\n⚡ Core Web Vitals:');
         console.log(
-          `  First Contentful Paint: ${(scores.metrics.fcp / 1000).toFixed(2)}s`
+          `  First Contentful Paint: ${(scores.metrics.fcp / 1000).toFixed(2)}s`,
         );
         console.log(
-          `  Largest Contentful Paint: ${(scores.metrics.lcp / 1000).toFixed(2)}s`
+          `  Largest Contentful Paint: ${(scores.metrics.lcp / 1000).toFixed(2)}s`,
         );
         console.log(
-          `  Cumulative Layout Shift: ${scores.metrics.cls.toFixed(3)}`
+          `  Cumulative Layout Shift: ${scores.metrics.cls.toFixed(3)}`,
         );
         if (scores.metrics.fid > 0) {
           console.log(
-            `  First Input Delay: ${scores.metrics.fid.toFixed(0)}ms`
+            `  First Input Delay: ${scores.metrics.fid.toFixed(0)}ms`,
           );
         }
       }
@@ -374,7 +374,7 @@ class PerformanceAnalyzer {
     // Bundle size deductions
     const totalGzipped = Object.values(this.metrics.bundleSize).reduce(
       (sum, file) => sum + file.gzipped,
-      0
+      0,
     );
 
     if (totalGzipped > 70 * 1024) {
@@ -392,7 +392,7 @@ class PerformanceAnalyzer {
 
     // Security deductions
     const securityIssues = this.metrics.recommendations.filter(
-      r => r.type === 'security'
+      r => r.type === 'security',
     );
     if (securityIssues.length > 0) {
       score -= 30;
@@ -426,7 +426,7 @@ class PerformanceAnalyzer {
 
     if (score < 80) {
       console.log(
-        '\n🔧 Focus on the recommendations above to improve your score!'
+        '\n🔧 Focus on the recommendations above to improve your score!',
       );
     }
   }
@@ -449,7 +449,7 @@ class PerformanceAnalyzer {
       recommendations.push(
         'Consider using a lighter alternative library',
         'Remove console.log statements in production',
-        'Use terser for better minification'
+        'Use terser for better minification',
       );
     }
 
@@ -457,7 +457,7 @@ class PerformanceAnalyzer {
       recommendations.push(
         'Remove unused CSS rules',
         'Use CSS-in-JS for component-scoped styles',
-        'Consider critical CSS inlining'
+        'Consider critical CSS inlining',
       );
     }
 

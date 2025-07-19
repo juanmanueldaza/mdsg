@@ -37,7 +37,7 @@ app.use(
     credentials: true,
     methods: ['GET', 'POST'],
     allowedHeaders: ['Content-Type', 'Authorization'],
-  })
+  }),
 );
 
 // Security headers
@@ -50,7 +50,7 @@ app.use((req, res, next) => {
   if (NODE_ENV === 'production') {
     res.setHeader(
       'Strict-Transport-Security',
-      'max-age=31536000; includeSubDomains'
+      'max-age=31536000; includeSubDomains',
     );
   }
 
@@ -184,7 +184,7 @@ app.get('/auth/github/callback', rateLimit(), async (req, res) => {
           client_secret: GITHUB_CLIENT_SECRET,
           code: code,
         }),
-      }
+      },
     );
 
     if (!tokenResponse.ok) {
@@ -195,7 +195,7 @@ app.get('/auth/github/callback', rateLimit(), async (req, res) => {
 
     if (tokenData.error) {
       throw new Error(
-        `GitHub OAuth error: ${tokenData.error_description || tokenData.error}`
+        `GitHub OAuth error: ${tokenData.error_description || tokenData.error}`,
       );
     }
 
@@ -241,7 +241,7 @@ app.get('/auth/github/callback', rateLimit(), async (req, res) => {
     redirectUrl.searchParams.set('error', 'auth_failed');
     redirectUrl.searchParams.set(
       'message',
-      'Authentication failed. Please try again.'
+      'Authentication failed. Please try again.',
     );
 
     res.redirect(redirectUrl.toString());
@@ -296,7 +296,7 @@ app.post(
         message: 'An error occurred while processing your request.',
       });
     }
-  }
+  },
 );
 
 // Logout endpoint
@@ -348,7 +348,7 @@ setInterval(
       }
     }
   },
-  60 * 60 * 1000
+  60 * 60 * 1000,
 ); // Every hour
 
 // Start server
@@ -360,7 +360,7 @@ app.listen(PORT, () => {
 
   if (NODE_ENV === 'development') {
     console.log(
-      `💡 OAuth callback URL: http://localhost:${PORT}/auth/github/callback`
+      `💡 OAuth callback URL: http://localhost:${PORT}/auth/github/callback`,
     );
   }
 });
