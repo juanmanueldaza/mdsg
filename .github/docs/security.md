@@ -14,12 +14,28 @@
 MDSG implements comprehensive security measures to protect user data, prevent common web vulnerabilities, and ensure secure interactions with GitHub's API. This document outlines security architecture, implementation details, and best practices.
 
 > **Agent Alert**: Security is NON-NEGOTIABLE. Every input must be validated, every output sanitized.
-> **Security Score**: Currently A+ rating - maintain or improve with all changes.
+> **Security Score**: Currently B- rating (MODERATE RISK) - see security-audit.md for critical issues requiring immediate attention.
+> **🚨 CRITICAL**: XSS vulnerabilities and insecure token storage identified - refer to security-audit.md for action plan.
 
 ## 🔒 Security Architecture for Agents
 
 > **Agent Context**: Working on ANY part of MDSG? These security layers apply to your work.
 > **Cross-Reference**: `architecture.md#security-architecture` for implementation context.
+> **🚨 URGENT**: Review `security-audit.md` for critical vulnerabilities before making ANY changes.
+
+## 📋 Security Audit Status
+
+**Latest Audit**: January 19, 2025  
+**Overall Rating**: B- (MODERATE RISK)  
+**Critical Issues**: 2 (XSS vulnerabilities, insecure token storage)  
+**High Priority**: 4 issues requiring immediate attention  
+**Full Report**: See `.github/docs/security-audit.md`
+
+### Immediate Actions Required
+1. **XSS Prevention**: Replace innerHTML usage with DOMPurify sanitization
+2. **Secure Token Storage**: Move from localStorage to httpOnly cookies
+3. **Content Security Policy**: Implement CSP headers
+4. **Dependency Updates**: Fix 6 vulnerable packages
 
 ### Defense in Depth Strategy
 
@@ -42,12 +58,26 @@ MDSG employs multiple layers of security:
 ### Core Security Principles for Agents
 
 > **Agent Mindset**: Apply these principles to EVERY code change, no exceptions.
+> **⚠️ WARNING**: Current implementation has CRITICAL vulnerabilities - see security-audit.md
 
-1. **Zero Trust**: Validate all inputs and outputs
+1. **🚨 XSS Prevention** (CRITICAL ISSUE)
+   - **Current Problem**: innerHTML usage without sanitization
+   - **Agent Action**: NEVER use innerHTML with user content
+   - **Required Fix**: Implement DOMPurify sanitization for all HTML rendering
+
+2. **🚨 Secure Token Storage** (CRITICAL ISSUE)
+   - **Current Problem**: GitHub tokens in localStorage (vulnerable to XSS)
+   - **Agent Action**: NEVER store sensitive data in localStorage
+   - **Required Fix**: Implement httpOnly cookies for token storage
+
+3. **Zero Trust**: Validate all inputs and outputs
    - **Agent Action**: Use `validateInput()` patterns from `copilot-instructions.md`
-2. **Least Privilege**: Minimal permissions and access rights
+   - **Enhancement Needed**: Strengthen validation per audit recommendations
+
+4. **Least Privilege**: Minimal permissions and access rights
    - **Agent Action**: Request minimum GitHub scopes needed
-3. **Defense in Depth**: Multiple security layers
+
+5. **Defense in Depth**: Multiple security layers
    - **Agent Action**: Implement validation at UI, API, and data layers
 4. **Secure by Default**: Safe configurations out of the box
    - **Agent Action**: Default to most restrictive settings
