@@ -15,7 +15,7 @@ import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const projectRoot = path.resolve(__dirname, '../../..');
+const projectRoot = path.resolve(__dirname, '../..');
 
 // ANSI colors for terminal output
 const colors = {
@@ -38,15 +38,17 @@ class DocumentationValidator {
   }
 
   log(type, message) {
-    const timestamp = new Date().toISOString();
+    // const timestamp = new Date().toISOString(); // Reserved for future logging
     const colorMap = {
       error: colors.red,
       warning: colors.yellow,
       info: colors.blue,
-      success: colors.green
+      success: colors.green,
     };
 
-    console.log(`${colorMap[type]}[${type.toUpperCase()}] ${message}${colors.reset}`);
+    console.log(
+      `${colorMap[type]}[${type.toUpperCase()}] ${message}${colors.reset}`,
+    );
 
     if (type === 'error') this.errors.push(message);
     if (type === 'warning') this.warnings.push(message);
@@ -84,7 +86,10 @@ class DocumentationValidator {
     // Check if dist exists and get actual bundle sizes
     const distPath = path.join(projectRoot, 'dist');
     if (!fs.existsSync(distPath)) {
-      this.log('warning', 'dist/ folder not found. Run `npm run build` first for accurate validation.');
+      this.log(
+        'warning',
+        'dist/ folder not found. Run `npm run build` first for accurate validation.',
+      );
       return;
     }
 
@@ -120,18 +125,26 @@ class DocumentationValidator {
       this.metrics.bundleSize = {
         total: (totalSize / 1024).toFixed(1),
         js: (jsSize / 1024).toFixed(1),
-        css: (cssSize / 1024).toFixed(1)
+        css: (cssSize / 1024).toFixed(1),
       };
 
       // Check against documentation claims
-      const copilotInstructions = this.readFile('.github/copilot-instructions.md');
+      const copilotInstructions = this.readFile(
+        '.github/copilot-instructions.md',
+      );
       const readme = this.readFile('README.md');
 
       if (copilotInstructions) {
         if (copilotInstructions.includes('14.0KB gzipped')) {
-          this.log('success', 'Bundle size in copilot-instructions.md matches expected 14.0KB');
+          this.log(
+            'success',
+            'Bundle size in copilot-instructions.md matches expected 14.0KB',
+          );
         } else if (copilotInstructions.includes('11.7KB')) {
-          this.log('error', 'copilot-instructions.md still claims 11.7KB - should be 14.0KB');
+          this.log(
+            'error',
+            'copilot-instructions.md still claims 11.7KB - should be 14.0KB',
+          );
         }
       }
 
@@ -139,10 +152,12 @@ class DocumentationValidator {
         if (readme.includes('14.0KB%20gzipped')) {
           this.log('success', 'Bundle size badge in README.md is correct');
         } else if (readme.includes('11.7KB')) {
-          this.log('error', 'README.md bundle size badge needs updating to 14.0KB');
+          this.log(
+            'error',
+            'README.md bundle size badge needs updating to 14.0KB',
+          );
         }
       }
-
     } catch (error) {
       this.log('error', `Failed to analyze bundle: ${error.message}`);
     }
@@ -152,19 +167,31 @@ class DocumentationValidator {
   validateArchitecture() {
     this.log('info', 'Validating architecture documentation...');
 
-    const copilotInstructions = this.readFile('.github/copilot-instructions.md');
-    const archDoc = this.readFile('.github/docs/architecture.md');
+    const copilotInstructions = this.readFile(
+      '.github/copilot-instructions.md',
+    );
+    // const archDoc = this.readFile('.github/docs/architecture.md'); // Reserved for future validation
     const packageJson = this.readJSON('package.json');
 
     // Check for frontend-only architecture claims
     if (copilotInstructions) {
       if (copilotInstructions.includes('Frontend-only static site')) {
-        this.log('success', 'Architecture correctly documented as frontend-only');
+        this.log(
+          'success',
+          'Architecture correctly documented as frontend-only',
+        );
       } else if (copilotInstructions.includes('backend')) {
-        this.log('warning', 'Documentation mentions backend - verify if accurate');
+        this.log(
+          'warning',
+          'Documentation mentions backend - verify if accurate',
+        );
       }
 
-      if (copilotInstructions.includes('server.js exists for development convenience only')) {
+      if (
+        copilotInstructions.includes(
+          'server.js exists for development convenience only',
+        )
+      ) {
         this.log('success', 'server.js role correctly documented as dev-only');
       }
     }
@@ -172,10 +199,15 @@ class DocumentationValidator {
     // Check package.json for backend dependencies
     if (packageJson && packageJson.dependencies) {
       const backendDeps = ['express', 'cors'];
-      const hasBackendDeps = backendDeps.some(dep => packageJson.dependencies[dep]);
+      const hasBackendDeps = backendDeps.some(
+        dep => packageJson.dependencies[dep],
+      );
 
       if (hasBackendDeps) {
-        this.log('info', 'Backend dependencies found - ensure documented as dev-only');
+        this.log(
+          'info',
+          'Backend dependencies found - ensure documented as dev-only',
+        );
       }
     }
   }
@@ -191,21 +223,30 @@ class DocumentationValidator {
     }
 
     try {
-      const testFiles = fs.readdirSync(testsPath).filter(f => f.endsWith('.test.js'));
+      const testFiles = fs
+        .readdirSync(testsPath)
+        .filter(f => f.endsWith('.test.js'));
       this.log('info', `Found test files: ${testFiles.join(', ')}`);
 
       // Check copilot-instructions.md test claims
-      const copilotInstructions = this.readFile('.github/copilot-instructions.md');
+      const copilotInstructions = this.readFile(
+        '.github/copilot-instructions.md',
+      );
       if (copilotInstructions) {
         if (copilotInstructions.includes('25/25 core tests passing')) {
           this.log('success', 'Core test status documented correctly');
         }
 
-        if (copilotInstructions.includes('0/64 passing') || copilotInstructions.includes('64 failing')) {
-          this.log('success', 'Advanced test status documented as expected failures');
+        if (
+          copilotInstructions.includes('0/64 passing') ||
+          copilotInstructions.includes('64 failing')
+        ) {
+          this.log(
+            'success',
+            'Advanced test status documented as expected failures',
+          );
         }
       }
-
     } catch (error) {
       this.log('error', `Failed to analyze tests: ${error.message}`);
     }
@@ -223,24 +264,33 @@ class DocumentationValidator {
 
     try {
       const docFiles = fs.readdirSync(docsPath);
-      this.log('info', `Documentation files in .github/docs/: ${docFiles.join(', ')}`);
+      this.log(
+        'info',
+        `Documentation files in .github/docs/: ${docFiles.join(', ')}`,
+      );
 
       // Check for any documentation files in wrong locations
       const rootFiles = fs.readdirSync(projectRoot);
-      const wrongLocationDocs = rootFiles.filter(f =>
-        f.endsWith('.md') &&
-        f !== 'README.md' &&
-        !f.startsWith('.')
+      const wrongLocationDocs = rootFiles.filter(
+        f => f.endsWith('.md') && f !== 'README.md' && !f.startsWith('.'),
       );
 
       if (wrongLocationDocs.length > 0) {
-        this.log('error', `Documentation in wrong location: ${wrongLocationDocs.join(', ')} should be in .github/docs/`);
+        this.log(
+          'error',
+          `Documentation in wrong location: ${wrongLocationDocs.join(', ')} should be in .github/docs/`,
+        );
       } else {
-        this.log('success', 'All documentation properly located in .github/docs/');
+        this.log(
+          'success',
+          'All documentation properly located in .github/docs/',
+        );
       }
-
     } catch (error) {
-      this.log('error', `Failed to validate documentation location: ${error.message}`);
+      this.log(
+        'error',
+        `Failed to validate documentation location: ${error.message}`,
+      );
     }
   }
 
@@ -261,23 +311,34 @@ class DocumentationValidator {
         // Check for proper .github/docs/ references
         const references = content.match(/docs\/[\w-]+\.md/g) || [];
         if (references.length > 0) {
-          this.log('warning', `${file} contains references to 'docs/' instead of '.github/docs/': ${references.join(', ')}`);
+          this.log(
+            'warning',
+            `${file} contains references to 'docs/' instead of '.github/docs/': ${references.join(', ')}`,
+          );
         }
 
         // Check for valid .github/docs/ references
-        const validReferences = content.match(/\.github\/docs\/[\w-]+\.md/g) || [];
-        this.log('info', `${file} has ${validReferences.length} valid cross-references`);
+        const validReferences =
+          content.match(/\.github\/docs\/[\w-]+\.md/g) || [];
+        this.log(
+          'info',
+          `${file} has ${validReferences.length} valid cross-references`,
+        );
       }
-
     } catch (error) {
-      this.log('error', `Failed to validate cross-references: ${error.message}`);
+      this.log(
+        'error',
+        `Failed to validate cross-references: ${error.message}`,
+      );
     }
   }
 
   // Generate validation report
   generateReport() {
     console.log('\n' + '='.repeat(60));
-    console.log(`${colors.bright}MDSG Documentation Validation Report${colors.reset}`);
+    console.log(
+      `${colors.bright}MDSG Documentation Validation Report${colors.reset}`,
+    );
     console.log('='.repeat(60));
 
     if (this.metrics.bundleSize) {
@@ -289,7 +350,9 @@ class DocumentationValidator {
 
     console.log(`\n${colors.cyan}Validation Summary:${colors.reset}`);
     console.log(`  ${colors.red}Errors: ${this.errors.length}${colors.reset}`);
-    console.log(`  ${colors.yellow}Warnings: ${this.warnings.length}${colors.reset}`);
+    console.log(
+      `  ${colors.yellow}Warnings: ${this.warnings.length}${colors.reset}`,
+    );
     console.log(`  ${colors.blue}Info: ${this.info.length}${colors.reset}`);
 
     if (this.errors.length > 0) {
@@ -307,9 +370,14 @@ class DocumentationValidator {
     }
 
     const exitCode = this.errors.length > 0 ? 1 : 0;
-    const status = exitCode === 0 ? `${colors.green}PASSED${colors.reset}` : `${colors.red}FAILED${colors.reset}`;
+    const status =
+      exitCode === 0
+        ? `${colors.green}PASSED${colors.reset}`
+        : `${colors.red}FAILED${colors.reset}`;
 
-    console.log(`\n${colors.bright}Validation Result: ${status}${colors.reset}`);
+    console.log(
+      `\n${colors.bright}Validation Result: ${status}${colors.reset}`,
+    );
     console.log('='.repeat(60));
 
     return exitCode;
@@ -317,8 +385,12 @@ class DocumentationValidator {
 
   // Main validation runner
   async run() {
-    console.log(`${colors.bright}🔍 MDSG Documentation Validator${colors.reset}`);
-    console.log(`${colors.blue}Validating frontend-only static site documentation...${colors.reset}\n`);
+    console.log(
+      `${colors.bright}🔍 MDSG Documentation Validator${colors.reset}`,
+    );
+    console.log(
+      `${colors.blue}Validating frontend-only static site documentation...${colors.reset}\n`,
+    );
 
     this.validateBundleSize();
     this.validateArchitecture();
@@ -335,7 +407,9 @@ class DocumentationValidator {
 if (import.meta.url === `file://${process.argv[1]}`) {
   const validator = new DocumentationValidator();
   validator.run().catch(error => {
-    console.error(`${colors.red}Validation failed: ${error.message}${colors.reset}`);
+    console.error(
+      `${colors.red}Validation failed: ${error.message}${colors.reset}`,
+    );
     process.exit(1);
   });
 }

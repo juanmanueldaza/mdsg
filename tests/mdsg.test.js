@@ -31,7 +31,7 @@ describe('MDSG', () => {
       // Mock mobile user agent
       Object.defineProperty(window.navigator, 'userAgent', {
         value: 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X)',
-        writable: true
+        writable: true,
       });
 
       const mdsg = new MDSG();
@@ -42,7 +42,7 @@ describe('MDSG', () => {
       // Mock desktop user agent
       Object.defineProperty(window.navigator, 'userAgent', {
         value: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-        writable: true
+        writable: true,
       });
 
       const mdsg = new MDSG();
@@ -52,7 +52,7 @@ describe('MDSG', () => {
     it('should detect touch devices', () => {
       Object.defineProperty(window.navigator, 'maxTouchPoints', {
         value: 5,
-        writable: true
+        writable: true,
       });
 
       const mdsg = new MDSG();
@@ -95,7 +95,9 @@ describe('MDSG', () => {
 
     it('should check existing auth token', () => {
       localStorage.getItem.mockReturnValue('existing-token');
-      const fetchUserSpy = vi.spyOn(mdsg, 'fetchUser').mockImplementation(() => {});
+      const fetchUserSpy = vi
+        .spyOn(mdsg, 'fetchUser')
+        .mockImplementation(() => {});
 
       mdsg.checkAuth();
 
@@ -105,7 +107,9 @@ describe('MDSG', () => {
 
     it('should setup login handler when no token exists', () => {
       localStorage.getItem.mockReturnValue(null);
-      const setupLoginSpy = vi.spyOn(mdsg, 'setupLoginHandler').mockImplementation(() => {});
+      const setupLoginSpy = vi
+        .spyOn(mdsg, 'setupLoginHandler')
+        .mockImplementation(() => {});
 
       mdsg.checkAuth();
 
@@ -141,7 +145,8 @@ describe('MDSG', () => {
     });
 
     it('should parse code blocks with syntax highlighting', () => {
-      const markdown = '```javascript\nfunction hello() {\n  console.log("Hello");\n}\n```';
+      const markdown =
+        '```javascript\nfunction hello() {\n  console.log("Hello");\n}\n```';
       const html = mdsg.markdownToHTML(markdown);
 
       expect(html).toContain('<div class="code-block">');
@@ -151,7 +156,8 @@ describe('MDSG', () => {
     });
 
     it('should parse tables correctly', () => {
-      const markdown = '| Name | Age |\n|------|-----|\n| John | 25 |\n| Jane | 30 |';
+      const markdown =
+        '| Name | Age |\n|------|-----|\n| John | 25 |\n| Jane | 30 |';
       const html = mdsg.markdownToHTML(markdown);
 
       expect(html).toContain('<table class="markdown-table">');
@@ -167,14 +173,18 @@ describe('MDSG', () => {
       const markdown = '![Alt text](https://example.com/image.jpg)';
       const html = mdsg.markdownToHTML(markdown);
 
-      expect(html).toContain('<img src="https://example.com/image.jpg" alt="Alt text" class="markdown-image" loading="lazy" />');
+      expect(html).toContain(
+        '<img src="https://example.com/image.jpg" alt="Alt text" class="markdown-image" loading="lazy" />',
+      );
     });
 
     it('should parse links correctly', () => {
       const markdown = '[GitHub](https://github.com)';
       const html = mdsg.markdownToHTML(markdown);
 
-      expect(html).toContain('<a href="https://github.com" target="_blank" rel="noopener noreferrer">GitHub</a>');
+      expect(html).toContain(
+        '<a href="https://github.com" target="_blank" rel="noopener noreferrer">GitHub</a>',
+      );
     });
 
     it('should parse strikethrough text', () => {
@@ -248,7 +258,9 @@ describe('MDSG', () => {
       mockGitHubApi.mockFileContentSuccess(htmlContent);
       mdsg.existingSites = [testData.createMockRepo('test-site')];
 
-      const showEditorSpy = vi.spyOn(mdsg, 'showEditor').mockImplementation(() => {});
+      const showEditorSpy = vi
+        .spyOn(mdsg, 'showEditor')
+        .mockImplementation(() => {});
 
       await mdsg.loadSiteForEditing('test-site');
 
@@ -258,7 +270,8 @@ describe('MDSG', () => {
     });
 
     it('should extract markdown from HTML', () => {
-      const html = '<h1>Title</h1><p><strong>Bold</strong> text</p><ul><li>Item 1</li><li>Item 2</li></ul>';
+      const html =
+        '<h1>Title</h1><p><strong>Bold</strong> text</p><ul><li>Item 1</li><li>Item 2</li></ul>';
       const markdown = mdsg.extractMarkdownFromHTML(html);
 
       expect(markdown).toContain('# Title');
@@ -286,21 +299,26 @@ describe('MDSG', () => {
 
       const repo = await mdsg.createRepository();
 
-      expect(fetch).toHaveBeenCalledWith('https://api.github.com/user/repos', expect.objectContaining({
-        method: 'POST',
-        headers: expect.objectContaining({
-          Authorization: 'token null',
-          'Content-Type': 'application/json',
+      expect(fetch).toHaveBeenCalledWith(
+        'https://api.github.com/user/repos',
+        expect.objectContaining({
+          method: 'POST',
+          headers: expect.objectContaining({
+            Authorization: 'token null',
+            'Content-Type': 'application/json',
+          }),
+          body: expect.stringContaining('mdsg-site'),
         }),
-        body: expect.stringContaining('mdsg-site'),
-      }));
+      );
       expect(repo).toEqual(mockRepo);
     });
 
     it('should handle repository creation errors', async () => {
       mockGitHubApi.mockApiError(422, 'Repository already exists');
 
-      await expect(mdsg.createRepository()).rejects.toThrow('Repository already exists');
+      await expect(mdsg.createRepository()).rejects.toThrow(
+        'Repository already exists',
+      );
     });
 
     it('should upload content successfully', async () => {
@@ -317,7 +335,7 @@ describe('MDSG', () => {
         expect.objectContaining({
           method: 'PUT',
           body: expect.stringContaining('Add site content'),
-        })
+        }),
       );
     });
 
@@ -344,7 +362,7 @@ describe('MDSG', () => {
         expect.objectContaining({
           method: 'PUT',
           body: expect.stringContaining('existing-sha'),
-        })
+        }),
       );
     });
 
@@ -361,7 +379,7 @@ describe('MDSG', () => {
         expect.objectContaining({
           method: 'POST',
           body: expect.stringContaining('"branch":"main"'),
-        })
+        }),
       );
     });
 
@@ -373,7 +391,9 @@ describe('MDSG', () => {
       });
 
       // Should not throw error for 409 status
-      await expect(mdsg.enableGitHubPages('test-repo')).resolves.toBeUndefined();
+      await expect(
+        mdsg.enableGitHubPages('test-repo'),
+      ).resolves.toBeUndefined();
     });
   });
 
@@ -413,7 +433,9 @@ describe('MDSG', () => {
 
     it('should show editor when no sites exist', () => {
       mdsg.existingSites = [];
-      const showEditorSpy = vi.spyOn(mdsg, 'showEditor').mockImplementation(() => {});
+      const showEditorSpy = vi
+        .spyOn(mdsg, 'showEditor')
+        .mockImplementation(() => {});
 
       mdsg.showSiteManagement();
 
@@ -473,7 +495,9 @@ describe('MDSG', () => {
 
     it('should handle authentication errors', () => {
       const setupUISpy = vi.spyOn(mdsg, 'setupUI').mockImplementation(() => {});
-      const showErrorSpy = vi.spyOn(mdsg, 'showError').mockImplementation(() => {});
+      const showErrorSpy = vi
+        .spyOn(mdsg, 'showError')
+        .mockImplementation(() => {});
 
       mdsg.handleAuthError('Custom auth error');
 
@@ -506,14 +530,17 @@ describe('MDSG', () => {
 
     beforeEach(() => {
       // Mock mobile environment
-      Object.defineProperty(window, 'innerWidth', { value: 500, writable: true });
+      Object.defineProperty(window, 'innerWidth', {
+        value: 500,
+        writable: true,
+      });
       Object.defineProperty(window.navigator, 'userAgent', {
         value: 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X)',
-        writable: true
+        writable: true,
       });
       Object.defineProperty(window.navigator, 'maxTouchPoints', {
         value: 5,
-        writable: true
+        writable: true,
       });
 
       mdsg = new MDSG();
@@ -585,7 +612,9 @@ describe('MDSG', () => {
 
       await window.copyCode('test-code-123');
 
-      expect(navigator.clipboard.writeText).toHaveBeenCalledWith('console.log("Hello World");');
+      expect(navigator.clipboard.writeText).toHaveBeenCalledWith(
+        'console.log("Hello World");',
+      );
     });
   });
 
@@ -621,7 +650,9 @@ describe('MDSG', () => {
         json: () => Promise.resolve({ message: 'Pages enabled' }),
       });
 
-      const showSuccessSpy = vi.spyOn(mdsg, 'showSuccess').mockImplementation(() => {});
+      const showSuccessSpy = vi
+        .spyOn(mdsg, 'showSuccess')
+        .mockImplementation(() => {});
 
       await mdsg.deployToGitHub();
 
@@ -648,7 +679,9 @@ describe('MDSG', () => {
         json: () => Promise.resolve({ message: 'Updated' }),
       });
 
-      const showUpdateSuccessSpy = vi.spyOn(mdsg, 'showUpdateSuccess').mockImplementation(() => {});
+      const showUpdateSuccessSpy = vi
+        .spyOn(mdsg, 'showUpdateSuccess')
+        .mockImplementation(() => {});
 
       await mdsg.updateExistingSite();
 

@@ -87,15 +87,15 @@ const rateLimit = (windowMs = 15 * 60 * 1000, maxRequests = 10) => {
   };
 };
 
-// Input validation utilities
-const validateUrl = url => {
-  try {
-    new URL(url);
-    return true;
-  } catch {
-    return false;
-  }
-};
+// Input validation utilities (for future use)
+// const validateUrl = url => {
+//   try {
+//     new URL(url);
+//     return true;
+//   } catch {
+//     return false;
+//   }
+// };
 const validateGitHubCode = code => {
   return (
     typeof code === 'string' &&
@@ -122,30 +122,30 @@ const createSessionToken = userData => {
   return `${Buffer.from(payload).toString('base64url')}.${signature}`;
 };
 
-// Verify session token
-const verifySessionToken = token => {
-  try {
-    const [payloadB64, signature] = token.split('.');
-    const payload = JSON.parse(Buffer.from(payloadB64, 'base64url').toString());
+// Verify session token (for future use)
+// const verifySessionToken = token => {
+//   try {
+//     const [payloadB64, signature] = token.split('.');
+//     const payload = JSON.parse(Buffer.from(payloadB64, 'base64url').toString());
 
-    const expectedSignature = crypto
-      .createHmac('sha256', JWT_SECRET)
-      .update(JSON.stringify(payload))
-      .digest('base64url');
+//     const expectedSignature = crypto
+//       .createHmac('sha256', JWT_SECRET)
+//       .update(JSON.stringify(payload))
+//       .digest('base64url');
 
-    if (signature !== expectedSignature) {
-      return null;
-    }
+//     if (signature !== expectedSignature) {
+//       return null;
+//     }
 
-    if (Date.now() > payload.exp) {
-      return null;
-    }
+//     if (Date.now() > payload.exp) {
+//       return null;
+//     }
 
-    return payload;
-  } catch {
-    return null;
-  }
-};
+//     return payload;
+//   } catch {
+//     return null;
+//   }
+// };
 
 // Health check endpoint
 app.get('/health', (req, res) => {
@@ -159,7 +159,7 @@ app.get('/health', (req, res) => {
 // OAuth callback endpoint
 app.get('/auth/github/callback', rateLimit(), async (req, res) => {
   try {
-    const { code, state } = req.query;
+    const { code } = req.query;
 
     // Input validation
     if (!validateGitHubCode(code)) {
@@ -269,7 +269,7 @@ app.post(
       }
 
       // Validate endpoint
-      if (!/^[a-zA-Z0-9\/_-]+$/.test(endpoint)) {
+      if (!/^[a-zA-Z0-9/_-]+$/.test(endpoint)) {
         return res.status(400).json({ error: 'Invalid API endpoint' });
       }
 
@@ -316,7 +316,7 @@ app.post('/auth/logout', (req, res) => {
 });
 
 // Error handling middleware
-app.use((error, req, res, next) => {
+app.use((err, req, res) => {
   console.error('Server error:', error);
 
   res.status(500).json({

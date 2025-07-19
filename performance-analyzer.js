@@ -341,7 +341,7 @@ class PerformanceAnalyzer {
     if (this.metrics.recommendations.length > 0) {
       console.log('\n💡 Recommendations:');
 
-      this.metrics.recommendations.forEach((rec, index) => {
+      this.metrics.recommendations.forEach(rec => {
         const icon =
           rec.severity === 'error'
             ? '❌'
@@ -369,7 +369,6 @@ class PerformanceAnalyzer {
     console.log('\n🎯 Overall Performance Score:');
 
     let score = 100;
-    let maxDeductions = 0;
 
     // Bundle size deductions
     const totalGzipped = Object.values(this.metrics.bundleSize).reduce(
@@ -380,14 +379,13 @@ class PerformanceAnalyzer {
     if (totalGzipped > 70 * 1024) {
       // 70KB total
       score -= 20;
-      maxDeductions += 20;
     }
 
     // Lighthouse score deductions
     if (this.metrics.lighthouse.performance) {
       const perfScore = this.metrics.lighthouse.performance;
       if (perfScore < 90) score -= (90 - perfScore) / 2;
-      maxDeductions += 25;
+      // maxDeductions += 25; // Variable removed as it was unused
     }
 
     // Security deductions
@@ -396,7 +394,7 @@ class PerformanceAnalyzer {
     );
     if (securityIssues.length > 0) {
       score -= 30;
-      maxDeductions += 30;
+      // maxDeductions += 30; // Variable removed as it was unused
     }
 
     score = Math.max(0, Math.min(100, score));
