@@ -1,8 +1,20 @@
 # MDSG API Documentation
 
+## 🤖 Agent Navigation Hub
+
+**Primary Reference**: `../copilot-instructions.md` → API section
+**Cross-References**: 
+- `architecture.md` → API architecture patterns
+- `security.md` → API security implementation
+- `testing.md` → API testing strategies
+- `deployment.md` → API deployment configuration
+
 ## Overview
 
 MDSG provides both frontend and backend APIs for creating and managing GitHub Pages sites from markdown content. The system uses a secure OAuth proxy pattern to handle GitHub integration while maintaining client-side simplicity.
+
+> **Agent Alert**: Current API consists of working OAuth server (server.js) + client-side MDSG class methods
+> **Current Status**: Basic GitHub integration working, advanced API features planned
 
 ## Table of Contents
 

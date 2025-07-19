@@ -4,50 +4,77 @@
 
 This documentation serves as the **interconnected knowledge base** for AI agents working on MDSG. Use `copilot-instructions.md` as your entry point, then navigate here for detailed implementation guidance.
 
+**IMPORTANT**: This documentation contains both **current working features** and **planned future features**. Always check the current implementation status in `copilot-instructions.md` first.
+
 ## 📍 Knowledge Map Structure
 
 ```
-🎯 PRIMARY HUB: ../copilot-instructions.md
-├── 🧠 Agent Memory & Context
-├── 🗺️ Navigation Map to all docs
-├── 🎯 Mission & Success Criteria
-└── 🚀 Quick Action References
+🎯 PRIMARY HUB: ../copilot-instructions.md (UPDATED WITH CURRENT STATE)
+├── 🧠 Agent Memory & Context (ACCURATE METRICS)
+├── 🗺️ Navigation Map to all docs (CORRECTED PATHS)
+├── 🎯 Mission & Success Criteria (VERIFIED STATUS)
+└── 🚀 Quick Action References (WORKING COMMANDS)
     ↓
-📚 DETAILED KNOWLEDGE BASE: docs/ (this folder)
-├── architecture.md    → System design deep-dive
-├── api.md            → Complete API reference
-├── testing.md        → Testing implementation
-├── deployment.md     → Production deployment
-├── performance.md    → Optimization strategies
-└── security.md       → Security implementation
+📚 DETAILED KNOWLEDGE BASE: .github/docs/ (this folder)
+├── architecture.md    → System design (future) + current monolithic structure
+├── api.md            → Complete API reference (planned + current OAuth)
+├── testing.md        → Testing strategy (25 working + 64 planned tests)
+├── deployment.md     → Production deployment (working + enhancements)
+├── performance.md    → Optimization strategies (14.0KB current + targets)
+└── security.md       → Security implementation (basic + A+ roadmap)
 ```
 
 ## 🔄 How to Navigate as an AI Agent
 
 ### 1. Start with Context (Always)
 → Read `../copilot-instructions.md` first for:
-- Current project metrics and targets
-- Your role and responsibilities
-- Navigation guidance for your specific task
+- **CURRENT REALITY**: What actually works (25/25 core tests passing)
+- **IMPLEMENTATION STATUS**: Monolithic vs Clean Architecture plans
+- **BUNDLE METRICS**: 14.0KB current vs targets
+- **WORKING vs PLANNED**: Feature status verification
 
-### 2. Identify Your Domain
+### 2. Understand Current vs Future
+**🎯 CRITICAL**: Documentation contains both working features and roadmap items.
+
+#### ✅ CURRENT WORKING FEATURES
+- Basic markdown parsing (headers, formatting, simple lists)
+- GitHub OAuth authentication 
+- Site generation and deployment
+- Core test suite (25/25 passing)
+- Bundle: 14.0KB gzipped (within target <20KB)
+
+#### 📋 PLANNED FEATURES (In Documentation)
+- Advanced markdown (syntax highlighting, tables, nested lists)
+- Clean Architecture structure
+- Performance optimizations (<12KB target)
+- Comprehensive test coverage (64 additional tests)
+
+### 3. Identify Your Domain
 Based on your task, reference the appropriate detailed docs:
 
-#### Frontend Development Tasks
+#### Frontend Development Tasks (CURRENT)
 ```
-📝 Working on: src/main.js, UI components, client logic
-🔍 Primary docs: architecture.md + performance.md + security.md
-🎯 Focus: Vanilla JS patterns, XSS prevention, bundle optimization
+📝 Working on: src/main.js (1690-line monolithic file)
+🔍 Primary docs: architecture.md (future patterns) + performance.md + security.md
+🎯 Focus: Working within current structure, incremental improvements
+⚠️ Reality: No Clean Architecture implemented yet
 ```
 
-#### Backend Development Tasks
+#### Backend Development Tasks (CURRENT)
 ```
-📝 Working on: server.js, OAuth flow, API endpoints
+📝 Working on: server.js (395-line OAuth proxy)
 🔍 Primary docs: security.md + api.md + deployment.md
-🎯 Focus: Rate limiting, input validation, secure token handling
+🎯 Focus: OAuth flow working, basic rate limiting implemented
+✅ Status: FULLY FUNCTIONAL
 ```
 
-#### Testing Tasks
+#### Testing Tasks (CURRENT)
+```
+📝 Working on: tests/basic.test.js (25 PASSING) vs advanced tests (64 FAILING)
+🔍 Primary docs: testing.md + copilot-instructions.md for test status
+🎯 Focus: Maintain working core tests, implement advanced features gradually
+⚠️ Reality: Most advanced tests expect unimplemented features
+```
 ```
 📝 Working on: tests/, CI/CD, quality assurance
 🔍 Primary docs: testing.md + performance.md + security.md

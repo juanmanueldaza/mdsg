@@ -1,8 +1,20 @@
 # MDSG Testing Documentation
 
+## 🤖 Agent Navigation Hub
+
+**Primary Reference**: `../copilot-instructions.md` → Testing section
+**Cross-References**: 
+- `architecture.md` → Testing architecture patterns
+- `security.md` → Security testing strategies
+- `performance.md` → Performance testing
+- `deployment.md` → CI/CD testing
+
 ## Overview
 
-MDSG employs a comprehensive testing strategy to ensure reliability, security, and performance. The testing approach covers unit tests, integration tests, performance testing, security testing, and end-to-end workflows.
+MDSG employs a tiered testing strategy with **current working tests** and **planned comprehensive tests**. The approach prioritizes core functionality stability while building toward comprehensive coverage.
+
+> **Agent Alert**: 25/25 core tests passing ✅ | 64 advanced tests failing (expected - planned features)
+> **Current Status**: Focus on basic.test.js for working features, advanced tests for roadmap
 
 ## Table of Contents
 
@@ -47,40 +59,29 @@ MDSG employs a comprehensive testing strategy to ensure reliability, security, a
 ### Directory Organization
 
 ```
-tests/
-├── unit/
-│   ├── mdsg.test.js         # Core application logic
-│   ├── markdown.test.js     # Markdown parsing
-│   ├── auth.test.js         # Authentication
-│   └── utils.test.js        # Utility functions
-├── integration/
-│   ├── deployment.test.js   # End-to-end deployment
-│   ├── github-api.test.js   # GitHub API integration
-│   └── oauth.test.js        # OAuth flow
-├── performance/
-│   ├── bundle-size.test.js  # Bundle size validation
-│   ├── lighthouse.test.js   # Performance metrics
-│   └── load-testing.test.js # Load testing
-├── security/
-│   ├── xss.test.js         # XSS prevention
-│   ├── csrf.test.js        # CSRF protection
-│   └── input-validation.test.js # Input sanitization
-├── mocks/
-│   ├── github-api.js       # GitHub API mocks
-│   ├── dom.js              # DOM mocks
-│   └── localStorage.js     # Storage mocks
-├── fixtures/
-│   ├── markdown-samples.js # Test markdown content
-│   ├── user-data.js        # Sample user data
-│   └── repository-data.js  # Sample repo data
-└── setup.js                # Global test setup
+tests/ (CURRENT ACTUAL STRUCTURE)
+├── basic.test.js           # ✅ 25/25 CORE TESTS PASSING
+├── markdown.test.js        # ❌ 0/49 advanced markdown tests (planned features)
+├── mdsg.test.js           # ❌ 0/43 integration tests (planned features)  
+└── setup.js               # ✅ Test utilities and mocks (WORKING)
+
+CI/CD Status:
+├── Core tests: ✅ PASSING in all workflows
+├── Advanced tests: ❌ FAILING (expected - features not implemented)
+└── Build/Deploy: ✅ PASSING
 ```
 
-### Test Configuration
+### Current Test Reality vs Documentation
+- **WORKING**: 25 core functionality tests covering basic features
+- **PLANNED**: 64 advanced tests for syntax highlighting, tables, integration
+- **STATUS**: Core app fully tested and stable, advanced features in roadmap
+
+### Test Configuration (CURRENT WORKING)
 
 #### Vitest Configuration (`vitest.config.js`)
 
 ```javascript
+// ✅ WORKING: Current vitest.config.js
 import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
@@ -97,7 +98,8 @@ export default defineConfig({
         'tests/',
         '**/*.config.js'
       ],
-      thresholds: {
+      // Note: Thresholds commented out until advanced features implemented
+      // thresholds: {
         global: {
           branches: 80,
           functions: 80,
