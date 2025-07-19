@@ -174,7 +174,7 @@ jobs:
       - name: Validate HTML output
         run: |
           # Basic HTML structure validation
-          if ! grep -q "<!DOCTYPE html>" dist/index.html; then
+          if ! grep -qi "<!doctype html>" dist/index.html; then
             echo "Missing DOCTYPE declaration"
             exit 1
           fi
