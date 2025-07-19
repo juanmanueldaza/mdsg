@@ -1,6 +1,9 @@
 # MDSG Demo Script
 
-This document walks you through testing the MDSG application locally.
+This document walks you through testing the MDSG frontend-only application locally.
+
+> **Note**: MDSG is a frontend-only static site. No backend server setup required!
+> **Live Demo**: Try it directly at https://mdsg.daza.ar/
 
 ## Prerequisites Check
 
@@ -28,45 +31,40 @@ Expected output: Dependencies should install without errors.
 3. Click "Register application"
 4. Copy the Client ID and Client Secret
 
-## Step 3: Configure Environment
+## Step 3: No Configuration Required!
 
+MDSG is a frontend-only application - no environment setup needed.
+
+**Option A: Use the live site**
 ```bash
-cp .env.example .env
+# Just visit https://mdsg.daza.ar/ - no setup required!
 ```
 
-Edit `.env` and add your credentials:
-
-```
-GITHUB_CLIENT_ID=your_actual_client_id
-GITHUB_CLIENT_SECRET=your_actual_client_secret
-PORT=3001
-```
-
-## Step 4: Start the Servers
-
-### Terminal 1 - Backend Server
-
+**Option B: Run locally (optional)**
 ```bash
-npm run server
+npm run dev
+# Opens localhost:5173 with the same functionality
 ```
 
-Expected output: "OAuth server running on http://localhost:3001"
+## Step 4: Start Development (Optional)
 
-### Terminal 2 - Frontend Server
+Since MDSG is frontend-only, you only need one command:
 
 ```bash
 npm run dev
 ```
 
-Expected output: "Local: http://localhost:3000"
+Expected output: "Local: http://localhost:5173"
+
+The frontend application will open automatically in your browser.
 
 ## Step 5: Test the Application
 
-1. Visit http://localhost:3000
+1. Visit http://localhost:5173 (or use the live site at https://mdsg.daza.ar/)
 2. You should see the MDSG interface with "Login with GitHub" button
-3. Click "Login with GitHub"
-4. Authorize the application on GitHub
-5. You should be redirected back and see the markdown editor
+3. Click "Login with GitHub" 
+4. Follow the Personal Access Token setup guide
+5. Enter your GitHub token and see the markdown editor
 
 ## Step 6: Test Site Creation
 
@@ -106,14 +104,19 @@ After successful deployment:
 
 **1. "Failed to authenticate"**
 
-- Check GitHub OAuth app callback URL is exactly `http://localhost:3001`
-- Verify .env file has correct credentials
-- Ensure both servers are running
+- Verify your GitHub Personal Access Token has `repo` and `user` scopes
+- Check that token is correctly entered (no extra spaces)
+- Try refreshing the page and re-entering the token
 
 **2. "Repository name already exists"**
 
 - Delete existing `mdsg-site` repository on GitHub
-- Or wait for error handling to suggest alternatives
+- Or use a different repository name in the interface
+
+**3. "Bundle not loading locally"**
+
+- Run `npm run build` first if testing the built version
+- For development, just use `npm run dev`
 
 **3. "Rate limit exceeded"**
 

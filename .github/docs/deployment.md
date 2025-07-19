@@ -333,9 +333,7 @@ gh-pages -d dist
    # Install dependencies
    npm install --production
    
-   # Create environment file
-   cp .env.example .env.production
-   # Edit .env.production with your values
+   # No environment configuration needed - frontend-only static site
    ```
 
 3. **Configure PM2**
