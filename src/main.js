@@ -5,8 +5,32 @@ class MDSG {
   constructor() {
     this.authenticated = false;
     this.user = null;
+    this.token = null;
     this.content = '';
+    this.repoName = '';
+    this.existingSites = [];
+    this.isMobile = this.detectMobile();
     this.init();
+  }
+
+  detectMobile() {
+    // Handle testing environment
+    if (
+      typeof global !== 'undefined' &&
+      global.window &&
+      global.window.navigator
+    ) {
+      return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+        global.window.navigator.userAgent,
+      );
+    }
+
+    if (typeof window === 'undefined' || typeof navigator === 'undefined') {
+      return false;
+    }
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+      navigator.userAgent,
+    );
   }
 
   init() {
@@ -167,11 +191,14 @@ Write something interesting about yourself here...
 
     if (token && this.isValidToken(token)) {
       console.log('Valid authentication token found');
+      this.token = token;
       this.fetchUser(token);
+      return true;
     } else {
       console.log('No valid authentication found');
       this.clearAuthenticationState();
       this.setupLoginHandler();
+      return false;
     }
   }
 
@@ -660,15 +687,24 @@ Add code: \`console.log('Hello World!')\`
 
     // Headers (with ID generation for links)
     html = html.replace(/^### (.*$)/gm, (match, text) => {
-      const id = text.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+      const id = text
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '');
       return `<h3 id="${id}">${text}</h3>`;
     });
     html = html.replace(/^## (.*$)/gm, (match, text) => {
-      const id = text.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+      const id = text
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '');
       return `<h2 id="${id}">${text}</h2>`;
     });
     html = html.replace(/^# (.*$)/gm, (match, text) => {
-      const id = text.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+      const id = text
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '');
       return `<h1 id="${id}">${text}</h1>`;
     });
 
@@ -696,7 +732,7 @@ Add code: \`console.log('Hello World!')\`
     html = html.replace(/~~(.*?)~~/g, '<del>$1</del>');
     html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
 
-    // Links and images
+    // Links and images (process before paragraphs to avoid nesting)
     html = html.replace(
       /!\[([^\]]*)\]\(([^)]+)\)/g,
       '<img src="$2" alt="$1" />',
@@ -706,19 +742,19 @@ Add code: \`console.log('Hello World!')\`
       '<a href="$2" target="_blank" rel="noopener">$1</a>',
     );
 
-    // Email links
+    // Auto-link standalone URLs (simple approach)
     html = html.replace(
-      /([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/g,
-      '<a href="mailto:$1">$1</a>',
-    );
-
-    // Auto-link URLs
-    html = html.replace(
-      /(https?:\/\/[^\s<]+)/g,
+      /\b(https?:\/\/[^\s<]+)(?![^<]*<\/a>)/g,
       '<a href="$1" target="_blank" rel="noopener">$1</a>',
     );
 
-    // Paragraphs
+    // Email links (simple approach)
+    html = html.replace(
+      /\b([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})\b(?![^<]*<\/a>)/g,
+      '<a href="mailto:$1">$1</a>',
+    );
+
+    // Paragraphs (process after links)
     html = html.replace(/\n\s*\n/g, '</p><p>');
     html = html.replace(/^(.)/gm, '<p>$1');
     html = html.replace(/(.*)$/gm, '$1</p>');
@@ -795,7 +831,19 @@ Add code: \`console.log('Hello World!')\`
 
   validateContent() {
     const statusElement = document.getElementById('auto-save-status');
-    if (!statusElement) return;
+    if (!statusElement) return true;
+
+    // Basic content validation
+    if (typeof this.content !== 'string') {
+      return false;
+    }
+
+    // Check for minimum content length
+    if (this.content.trim().length === 0) {
+      return false;
+    }
+
+    return true;
 
     const contentLength = this.content.length;
     const wordCount = this.content
@@ -1257,16 +1305,16 @@ Start editing this content to create your own site. The preview updates as you t
   }
 
   generateSiteHTML() {
-    // Extract title from content
+    // Extract title from content or use repo name
     const titleMatch = this.content.match(/^#\s+(.+)$/m);
-    const siteTitle = titleMatch ? titleMatch[1] : 'My Site';
+    const siteTitle = this.repoName || (titleMatch ? titleMatch[1] : 'My Site');
 
     return `<!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>${this.escapeHtml(siteTitle)}</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>${this.escapeHtml(siteTitle)}</title>
     <meta name="description" content="A beautiful site created with MDSG">
     <meta name="generator" content="MDSG - Markdown Site Generator">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.2.0/github-markdown-light.min.css">
@@ -1359,7 +1407,7 @@ Start editing this content to create your own site. The preview updates as you t
     <footer class="site-footer">
         <p>
             Generated with <a href="https://mdsg.daza.ar" target="_blank" rel="noopener">MDSG</a> •
-            <a href="https://github.com/${this.user.login}" target="_blank" rel="noopener">@${this.user.login}</a> •
+            <a href="https://github.com/${this.user?.login || 'unknown'}" target="_blank" rel="noopener">${this.user?.login || 'Unknown User'}</a> •
             ${new Date().toLocaleDateString()}
         </p>
     </footer>
@@ -1368,9 +1416,17 @@ Start editing this content to create your own site. The preview updates as you t
   }
 
   escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
+    if (typeof text !== 'string') {
+      return '';
+    }
+
+    // Always use manual escaping for consistency
+    return text
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
   }
 
   encodeBase64Unicode(str) {
@@ -1539,37 +1595,69 @@ Start editing this content to create your own site. The preview updates as you t
   }
 
   showError(message, type = 'error') {
-    const mainContent = document.getElementById('main-content');
-    const existingError = document.querySelector(
-      '.error-banner, .success-banner',
-    );
-
-    if (existingError) {
-      existingError.remove();
+    // Handle testing environment where DOM may not exist
+    if (typeof document === 'undefined') {
+      console.error('Error:', message);
+      return;
     }
 
-    const bannerClass = type === 'success' ? 'success-banner' : 'error-banner';
-    const icon = type === 'success' ? '✅' : '⚠️';
+    const mainContent = document.getElementById('main-content');
+    if (!mainContent) {
+      console.error('Error (no main-content):', message);
+      return;
+    }
 
-    const errorBanner = document.createElement('div');
-    errorBanner.className = bannerClass;
-    errorBanner.innerHTML = `
+    try {
+      const existingError = document.querySelector(
+        '.error-banner, .success-banner',
+      );
+
+      if (existingError) {
+        existingError.remove();
+      }
+
+      const bannerClass =
+        type === 'success' ? 'success-banner' : 'error-banner';
+      const icon = type === 'success' ? '✅' : '⚠️';
+
+      const errorBanner = document.createElement('div');
+      errorBanner.className = bannerClass;
+      errorBanner.innerHTML = `
       <span>${icon} ${message}</span>
       <button onclick="this.parentElement.remove()">×</button>
     `;
 
-    mainContent.insertBefore(errorBanner, mainContent.firstChild);
+      if (
+        mainContent.insertBefore &&
+        typeof mainContent.insertBefore === 'function'
+      ) {
+        mainContent.insertBefore(errorBanner, mainContent.firstChild);
 
-    // Auto-remove after 10 seconds
-    setTimeout(() => {
-      if (errorBanner.parentElement) {
-        errorBanner.remove();
+        // Auto-remove after 10 seconds
+        setTimeout(() => {
+          if (errorBanner.parentElement) {
+            errorBanner.remove();
+          }
+        }, 10000);
       }
-    }, 10000);
+    } catch (error) {
+      console.error('Error showing error banner:', error.message);
+    }
   }
 
   showErrorWithRetry(message, retryCallback) {
+    // Handle testing environment where DOM may not exist
+    if (typeof document === 'undefined') {
+      console.error('Error with retry:', message);
+      return;
+    }
+
     const mainContent = document.getElementById('main-content');
+    if (!mainContent) {
+      console.error('Error with retry (no main-content):', message);
+      return;
+    }
+
     const existingError = document.querySelector(
       '.error-banner, .success-banner',
     );
@@ -1590,8 +1678,6 @@ Start editing this content to create your own site. The preview updates as you t
       </div>
     `;
 
-    mainContent.insertBefore(errorBanner, mainContent.firstChild);
-
     // Add retry functionality
     const retryBtn = errorBanner.querySelector('.retry-btn');
     if (retryBtn && retryCallback) {
@@ -1601,7 +1687,9 @@ Start editing this content to create your own site. The preview updates as you t
       });
     }
 
-    // Auto-remove after 15 seconds (longer for retry messages)
+    mainContent.insertBefore(errorBanner, mainContent.firstChild);
+
+    // Auto-remove after 15 seconds (longer for retry)
     setTimeout(() => {
       if (errorBanner.parentElement) {
         errorBanner.remove();
@@ -1672,8 +1760,10 @@ Start editing this content to create your own site. The preview updates as you t
     // Clear all authentication state
     this.clearAuthenticationState();
 
-    // Show login UI
-    this.setupUI();
+    // Show login UI only if we're in a browser environment
+    if (typeof document !== 'undefined') {
+      this.setupUI();
+    }
 
     // Show error to user
     this.showError(message);
