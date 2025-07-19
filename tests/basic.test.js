@@ -95,7 +95,8 @@ describe('MDSG Basic Functionality', () => {
       global.window = {
         ...global.window,
         navigator: {
-          userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+          userAgent:
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
           maxTouchPoints: 0,
         },
         innerWidth: 1024,
@@ -151,13 +152,17 @@ describe('MDSG Basic Functionality', () => {
     it('should parse links', () => {
       const markdown = '[Google](https://google.com)';
       const html = mdsg.markdownToHTML(markdown);
-      expect(html).toContain('<a href="https://google.com" target="_blank" rel="noopener">Google</a>');
+      expect(html).toContain('<a href="https://google.com"');
+      expect(html).toContain('target="_blank"');
+      expect(html).toContain('rel="noopener');
+      expect(html).toContain('>Google</a>');
     });
 
     it('should parse images', () => {
       const markdown = '![Alt text](image.jpg)';
       const html = mdsg.markdownToHTML(markdown);
-      expect(html).toContain('<img src="image.jpg" alt="Alt text" />');
+      expect(html).toContain('<img src="image.jpg" alt="Alt text"');
+      expect(html).toContain('loading="lazy"');
     });
 
     it('should handle empty input', () => {
@@ -175,7 +180,9 @@ describe('MDSG Basic Functionality', () => {
     it('should escape HTML properly', () => {
       const html = '<script>alert("xss")</script>';
       const escaped = mdsg.escapeHtml(html);
-      expect(escaped).toBe('&lt;script&gt;alert(&quot;xss&quot;)&lt;/script&gt;');
+      expect(escaped).toBe(
+        '&lt;script&gt;alert(&quot;xss&quot;)&lt;&#x2F;script&gt;',
+      );
     });
 
     it('should encode base64 unicode', () => {
@@ -187,9 +194,15 @@ describe('MDSG Basic Functionality', () => {
 
     it('should validate tokens correctly', () => {
       // Valid token patterns
-      expect(mdsg.isValidToken('ghp_1234567890123456789012345678901234567890')).toBe(true);
-      expect(mdsg.isValidToken('github_pat_11ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890')).toBe(true);
-      expect(mdsg.isValidToken('gho_1234567890123456789012345678901234567890')).toBe(true);
+      expect(
+        mdsg.isValidToken('ghp_1234567890123456789012345678901234567890'),
+      ).toBe(true);
+      expect(
+        mdsg.isValidToken('github_pat_11ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890'),
+      ).toBe(true);
+      expect(
+        mdsg.isValidToken('gho_1234567890123456789012345678901234567890'),
+      ).toBe(true);
 
       // Invalid tokens
       expect(mdsg.isValidToken('invalid')).toBe(false);

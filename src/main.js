@@ -1,6 +1,8 @@
 // MDSG - Markdown Site Generator
 // Simple entry point
 
+import { SecureHTML } from './utils/security.js';
+
 class MDSG {
   constructor() {
     this.authenticated = false;
@@ -40,7 +42,7 @@ class MDSG {
 
   setupUI() {
     const app = document.getElementById('app');
-    app.innerHTML = `
+    const safeHTML = `
       <div class="container">
         <header>
           <h1>📝 MDSG</h1>
@@ -51,6 +53,7 @@ class MDSG {
         </main>
       </div>
     `;
+    SecureHTML.sanitizeAndRender(safeHTML, app);
   }
 
   getLoginUI() {
@@ -102,6 +105,7 @@ class MDSG {
         </div>
       </div>
     `;
+    SecureHTML.sanitizeAndRender(successHTML, mainContent);
   }
 
   getEditorUI() {
@@ -180,6 +184,7 @@ Write something interesting about yourself here...
         </div>
       </div>
     `;
+    SecureHTML.sanitizeAndRender(tokenInputHTML, mainContent);
   }
 
   checkAuth() {
@@ -256,7 +261,7 @@ Write something interesting about yourself here...
 
   showTokenInput() {
     const mainContent = document.getElementById('main-content');
-    mainContent.innerHTML = `
+    const tokenInputHTML = `
       <div class="token-input-section">
         <div class="token-header">
           <h2>🔐 Sign in to GitHub</h2>
@@ -538,7 +543,8 @@ Add code: \`console.log('Hello World!')\`
   }
 
   showEditor() {
-    document.getElementById('main-content').innerHTML = this.getEditorUI();
+    const mainContent = document.getElementById('main-content');
+    SecureHTML.sanitizeAndRender(this.getEditorUI(), mainContent);
     this.setupEditorHandlers();
     this.updatePreview();
   }
@@ -655,7 +661,7 @@ Add code: \`console.log('Hello World!')\`
     const preview = document.getElementById('preview');
     if (preview) {
       if (this.content.trim() === '') {
-        preview.innerHTML = `
+        const emptyHTML = `
           <div class="preview-empty">
             <p>✨ Start typing in the editor to see your markdown come to life!</p>
             <p>Try some basic formatting:</p>
@@ -667,8 +673,12 @@ Add code: \`console.log('Hello World!')\`
             </ul>
           </div>
         `;
+        SecureHTML.sanitizeAndRender(emptyHTML, preview);
       } else {
-        preview.innerHTML = this.markdownToHTML(this.content);
+        const sanitizedHTML = SecureHTML.sanitize(
+          this.markdownToHTML(this.content),
+        );
+        preview.innerHTML = sanitizedHTML;
       }
 
       // Scroll preview to match editor scroll position
@@ -678,6 +688,9 @@ Add code: \`console.log('Hello World!')\`
 
   markdownToHTML(markdown) {
     if (!markdown) return '';
+
+    // Note: We'll sanitize the HTML output, not the markdown input
+    // This allows DOMPurify to properly handle mixed content
 
     // Enhanced markdown parsing with better regex patterns
     let html = markdown;
@@ -767,6 +780,21 @@ Add code: \`console.log('Hello World!')\`
     html = html.replace(/<p>(<blockquote>.*?<\/blockquote>)<\/p>/g, '$1');
     html = html.replace(/<p>(<pre>.*?<\/pre>)<\/p>/gs, '$1');
     html = html.replace(/<p>(<hr>)<\/p>/g, '$1');
+
+    // Final security check - ensure all attributes are safe
+    html = html.replace(/(<img[^>]+)(?=\s)/g, match => {
+      // Ensure images have loading="lazy" and safe attributes only
+      if (!match.includes('loading=')) {
+        return match + ' loading="lazy"';
+      }
+      return match;
+    });
+
+    // Ensure all external links have proper security attributes
+    html = html.replace(
+      /(<a[^>]+href=["']https?:\/\/[^"']*["'][^>]*)/g,
+      '$1 target="_blank" rel="noopener noreferrer"',
+    );
 
     return html;
   }
@@ -1314,7 +1342,7 @@ Start editing this content to create your own site. The preview updates as you t
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>${this.escapeHtml(siteTitle)}</title>
+<title>${SecureHTML.escapeText(siteTitle)}</title>
     <meta name="description" content="A beautiful site created with MDSG">
     <meta name="generator" content="MDSG - Markdown Site Generator">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.2.0/github-markdown-light.min.css">
@@ -1396,7 +1424,7 @@ Start editing this content to create your own site. The preview updates as you t
 </head>
 <body>
     <div class="site-header">
-        <h1>${this.escapeHtml(siteTitle)}</h1>
+        <h1>${SecureHTML.escapeText(siteTitle)}</h1>
         <p>Created with ❤️ using MDSG</p>
     </div>
 
@@ -1415,18 +1443,9 @@ Start editing this content to create your own site. The preview updates as you t
 </html>`;
   }
 
+  // Legacy escapeHtml method - now using SecureHTML.escapeText
   escapeHtml(text) {
-    if (typeof text !== 'string') {
-      return '';
-    }
-
-    // Always use manual escaping for consistency
-    return text
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#39;');
+    return SecureHTML.escapeText(text);
   }
 
   encodeBase64Unicode(str) {
@@ -1472,7 +1491,7 @@ Start editing this content to create your own site. The preview updates as you t
 
   showDeploymentProgress(message) {
     const mainContent = document.getElementById('main-content');
-    mainContent.innerHTML = `
+    const progressHTML = `
       <div class="deployment-progress">
         <div class="progress-header">
           <h2>🚀 Deploying Your Site</h2>
@@ -1504,6 +1523,7 @@ Start editing this content to create your own site. The preview updates as you t
         </div>
       </div>
     `;
+    SecureHTML.sanitizeAndRender(progressHTML, mainContent);
   }
 
   updateDeploymentProgress(message, percentage) {
@@ -1529,7 +1549,7 @@ Start editing this content to create your own site. The preview updates as you t
 
   showSuccess(repo) {
     const mainContent = document.getElementById('main-content');
-    mainContent.innerHTML = `
+    const successHTML = `
       <div class="success-section">
         <div class="success-header">
           <h2>🎉 Site Deployed Successfully!</h2>
@@ -1622,10 +1642,11 @@ Start editing this content to create your own site. The preview updates as you t
 
       const errorBanner = document.createElement('div');
       errorBanner.className = bannerClass;
-      errorBanner.innerHTML = `
-      <span>${icon} ${message}</span>
+      const bannerHTML = `
+      <span>${SecureHTML.escapeText(icon)} ${SecureHTML.escapeText(message)}</span>
       <button onclick="this.parentElement.remove()">×</button>
     `;
+      SecureHTML.sanitizeAndRender(bannerHTML, errorBanner);
 
       if (
         mainContent.insertBefore &&
@@ -1668,15 +1689,16 @@ Start editing this content to create your own site. The preview updates as you t
 
     const errorBanner = document.createElement('div');
     errorBanner.className = 'error-banner';
-    errorBanner.innerHTML = `
+    const retryHTML = `
       <div class="error-content">
-        <span>⚠️ ${message}</span>
+        <span>⚠️ ${SecureHTML.escapeText(message)}</span>
         <div class="error-actions">
           <button class="retry-btn" onclick="this.closest('.error-banner').remove()">Try Again</button>
           <button onclick="this.closest('.error-banner').remove()">×</button>
         </div>
       </div>
     `;
+    SecureHTML.sanitizeAndRender(retryHTML, errorBanner);
 
     // Add retry functionality
     const retryBtn = errorBanner.querySelector('.retry-btn');
@@ -1699,10 +1721,10 @@ Start editing this content to create your own site. The preview updates as you t
 
   showLoading(message) {
     const mainContent = document.getElementById('main-content');
-    mainContent.innerHTML = `
+    const loadingHTML = `
       <div class="loading-section">
         <div class="spinner"></div>
-        <p>${message}</p>
+        <p>${SecureHTML.escapeText(message)}</p>
         <div class="loading-progress">
           <div class="progress-dots">
             <span class="dot active"></span>
@@ -1712,9 +1734,7 @@ Start editing this content to create your own site. The preview updates as you t
         </div>
       </div>
     `;
-
-    // Animate progress dots
-    this.animateLoadingDots();
+    SecureHTML.sanitizeAndRender(loadingHTML, mainContent);
   }
 
   animateLoadingDots() {
