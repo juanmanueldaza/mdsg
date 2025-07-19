@@ -330,7 +330,7 @@ Write something interesting about yourself here...
 
     if (token.length < 20) {
       this.showError(
-        'GitHub tokens are typically longer than 20 characters. Please check your token.',
+        'GitHub tokens are typically longer than 20 characters. Please check your token.'
       );
       tokenInput?.focus();
       return;
@@ -342,7 +342,7 @@ Write something interesting about yourself here...
       !token.startsWith('gho_')
     ) {
       this.showError(
-        'Invalid token format. Please copy the complete token from GitHub (starts with "ghp_", "github_pat_", or "gho_")',
+        'Invalid token format. Please copy the complete token from GitHub (starts with "ghp_", "github_pat_", or "gho_")'
       );
       tokenInput?.focus();
       return;
@@ -494,11 +494,11 @@ Add code: \`console.log('Hello World!')\`
 
         if (response.status === 401) {
           this.handleAuthError(
-            'Authentication token expired. Please login again.',
+            'Authentication token expired. Please login again.'
           );
         } else if (response.status === 403) {
           this.handleAuthError(
-            'GitHub API rate limit exceeded. Please try again later.',
+            'GitHub API rate limit exceeded. Please try again later.'
           );
         } else {
           this.handleAuthError('Failed to authenticate with GitHub');
@@ -686,7 +686,7 @@ Add code: \`console.log('Hello World!')\`
     html = html.replace(/(<li>.*?<\/li>)(\n<li>.*?<\/li>)*/gs, '<ul>$&</ul>');
     html = html.replace(
       /(<oli>.*?<\/oli>)(\n<oli>.*?<\/oli>)*/gs,
-      '<ol>$&</ol>',
+      '<ol>$&</ol>'
     );
     html = html.replace(/<oli>/g, '<li>').replace(/<\/oli>/g, '</li>');
 
@@ -699,23 +699,23 @@ Add code: \`console.log('Hello World!')\`
     // Links and images
     html = html.replace(
       /!\[([^\]]*)\]\(([^)]+)\)/g,
-      '<img src="$2" alt="$1" />',
+      '<img src="$2" alt="$1" />'
     );
     html = html.replace(
       /\[([^\]]+)\]\(([^)]+)\)/g,
-      '<a href="$2" target="_blank" rel="noopener">$1</a>',
+      '<a href="$2" target="_blank" rel="noopener">$1</a>'
     );
 
     // Email links
     html = html.replace(
       /([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/g,
-      '<a href="mailto:$1">$1</a>',
+      '<a href="mailto:$1">$1</a>'
     );
 
     // Auto-link URLs
     html = html.replace(
       /(https?:\/\/[^\s<]+)/g,
-      '<a href="$1" target="_blank" rel="noopener">$1</a>',
+      '<a href="$1" target="_blank" rel="noopener">$1</a>'
     );
 
     // Paragraphs
@@ -813,7 +813,7 @@ Add code: \`console.log('Hello World!')\`
     } else if (wordCount > 10000) {
       this.showValidationStatus(
         'Very long content - may take time to deploy',
-        'warning',
+        'warning'
       );
     } else {
       this.showValidationStatus('Content looks good!', 'success');
@@ -830,7 +830,7 @@ Add code: \`console.log('Hello World!')\`
     statusElement.classList.remove(
       'validation-info',
       'validation-warning',
-      'validation-success',
+      'validation-success'
     );
 
     // Add appropriate class
@@ -853,7 +853,7 @@ Add code: \`console.log('Hello World!')\`
         statusElement.classList.remove(
           'validation-info',
           'validation-warning',
-          'validation-success',
+          'validation-success'
         );
       }
     }, 3000);
@@ -1005,7 +1005,7 @@ Start editing this content to create your own site. The preview updates as you t
     // Additional validation
     if (this.content.length > 100000) {
       this.showError(
-        'Content is too large. Please reduce the content size to under 100KB.',
+        'Content is too large. Please reduce the content size to under 100KB.'
       );
       return;
     }
@@ -1016,7 +1016,7 @@ Start editing this content to create your own site. The preview updates as you t
       const defaultName = `mdsg-site-${timestamp}`;
       const repoName = prompt(
         'Enter a name for your GitHub repository:',
-        defaultName,
+        defaultName
       );
 
       if (!repoName) {
@@ -1026,7 +1026,7 @@ Start editing this content to create your own site. The preview updates as you t
       // Validate repository name
       if (!/^[a-zA-Z0-9._-]+$/.test(repoName)) {
         this.showError(
-          'Repository name can only contain letters, numbers, dots, underscores, and hyphens.',
+          'Repository name can only contain letters, numbers, dots, underscores, and hyphens.'
         );
         return;
       }
@@ -1148,11 +1148,11 @@ Start editing this content to create your own site. The preview updates as you t
         // Check for repository already exists error
         if (errorData.errors) {
           const nameError = errorData.errors.find(
-            err => err.resource === 'Repository' && err.field === 'name',
+            err => err.resource === 'Repository' && err.field === 'name'
           );
           if (nameError && nameError.code === 'already_exists') {
             console.log(
-              `Repository ${currentRepoName} already exists, trying next name...`,
+              `Repository ${currentRepoName} already exists, trying next name...`
             );
             attempt++;
             continue;
@@ -1166,7 +1166,7 @@ Start editing this content to create your own site. The preview updates as you t
             errorData.message.includes('name already exists'))
         ) {
           console.log(
-            `Repository ${currentRepoName} already exists, trying next name...`,
+            `Repository ${currentRepoName} already exists, trying next name...`
           );
           attempt++;
           continue;
@@ -1178,7 +1178,7 @@ Start editing this content to create your own site. The preview updates as you t
           ? JSON.stringify(errorData.errors)
           : '';
         throw new Error(
-          `Repository creation failed: ${message}${details ? '. Details: ' + details : ''}`,
+          `Repository creation failed: ${message}${details ? '. Details: ' + details : ''}`
         );
       }
 
@@ -1187,18 +1187,18 @@ Start editing this content to create your own site. The preview updates as you t
         throw new Error('Authentication failed. Please login again.');
       } else if (response.status === 403) {
         throw new Error(
-          'Permission denied. You may have reached your repository limit.',
+          'Permission denied. You may have reached your repository limit.'
         );
       } else {
         const message = errorData.message || response.statusText;
         throw new Error(
-          `Failed to create repository (${response.status}): ${message}`,
+          `Failed to create repository (${response.status}): ${message}`
         );
       }
     }
 
     throw new Error(
-      `Unable to create repository after ${maxAttempts} attempts. Please try a different name.`,
+      `Unable to create repository after ${maxAttempts} attempts. Please try a different name.`
     );
   }
 
@@ -1229,7 +1229,7 @@ Start editing this content to create your own site. The preview updates as you t
               this.user.email || `${this.user.login}@users.noreply.github.com`,
           },
         }),
-      },
+      }
     );
 
     if (!response.ok) {
@@ -1239,7 +1239,7 @@ Start editing this content to create your own site. The preview updates as you t
         throw new Error('Authentication failed. Please login again.');
       } else if (response.status === 403) {
         throw new Error(
-          'Permission denied. You may not have write access to this repository.',
+          'Permission denied. You may not have write access to this repository.'
         );
       } else if (response.status === 404) {
         throw new Error('Repository not found. It may have been deleted.');
@@ -1380,8 +1380,8 @@ Start editing this content to create your own site. The preview updates as you t
         /%([0-9A-F]{2})/g,
         function toSolidBytes(match, p1) {
           return String.fromCharCode('0x' + p1);
-        },
-      ),
+        }
+      )
     );
   }
 
@@ -1402,14 +1402,14 @@ Start editing this content to create your own site. The preview updates as you t
             path: '/',
           },
         }),
-      },
+      }
     );
 
     if (!response.ok && response.status !== 409) {
       // 409 means already enabled
       const errorData = await response.json();
       throw new Error(
-        `Failed to enable GitHub Pages: ${errorData.message || response.status}`,
+        `Failed to enable GitHub Pages: ${errorData.message || response.status}`
       );
     }
   }
@@ -1541,7 +1541,7 @@ Start editing this content to create your own site. The preview updates as you t
   showError(message, type = 'error') {
     const mainContent = document.getElementById('main-content');
     const existingError = document.querySelector(
-      '.error-banner, .success-banner',
+      '.error-banner, .success-banner'
     );
 
     if (existingError) {
@@ -1571,7 +1571,7 @@ Start editing this content to create your own site. The preview updates as you t
   showErrorWithRetry(message, retryCallback) {
     const mainContent = document.getElementById('main-content');
     const existingError = document.querySelector(
-      '.error-banner, .success-banner',
+      '.error-banner, .success-banner'
     );
 
     if (existingError) {

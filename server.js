@@ -28,14 +28,17 @@ app.use(express.json({ limit: '10kb' })); // Limit payload size
 app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 
 // CORS configuration
-app.use(cors({
-  origin: NODE_ENV === 'production'
-    ? ['https://mdsg.daza.ar', 'https://juanmanueldaza.github.io']
-    : [FRONTEND_URL, 'http://localhost:5173', 'http://127.0.0.1:5173'],
-  credentials: true,
-  methods: ['GET', 'POST'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
+app.use(
+  cors({
+    origin:
+      NODE_ENV === 'production'
+        ? ['https://mdsg.daza.ar', 'https://juanmanueldaza.github.io']
+        : [FRONTEND_URL, 'http://localhost:5173', 'http://127.0.0.1:5173'],
+    credentials: true,
+    methods: ['GET', 'POST'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+  })
+);
 
 // Security headers
 app.use((req, res, next) => {
@@ -85,7 +88,7 @@ const rateLimit = (windowMs = 15 * 60 * 1000, maxRequests = 10) => {
 };
 
 // Input validation utilities
-const validateUrl = (url) => {
+const validateUrl = url => {
   try {
     new URL(url);
     return true;
@@ -120,7 +123,7 @@ const createSessionToken = userData => {
 };
 
 // Verify session token
-const verifySessionToken = (token) => {
+const verifySessionToken = token => {
   try {
     const [payloadB64, signature] = token.split('.');
     const payload = JSON.parse(Buffer.from(payloadB64, 'base64url').toString());
@@ -149,7 +152,7 @@ app.get('/health', (req, res) => {
   res.json({
     status: 'ok',
     timestamp: new Date().toISOString(),
-    environment: NODE_ENV
+    environment: NODE_ENV,
   });
 });
 
@@ -162,24 +165,27 @@ app.get('/auth/github/callback', rateLimit(), async (req, res) => {
     if (!validateGitHubCode(code)) {
       return res.status(400).json({
         error: 'Invalid authorization code',
-        message: 'The authorization code is invalid or missing.'
+        message: 'The authorization code is invalid or missing.',
       });
     }
 
     // Exchange code for access token
-    const tokenResponse = await fetch('https://github.com/login/oauth/access_token', {
-      method: 'POST',
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-        'User-Agent': 'MDSG/1.0.0'
-      },
-      body: JSON.stringify({
-        client_id: GITHUB_CLIENT_ID,
-        client_secret: GITHUB_CLIENT_SECRET,
-        code: code
-      })
-    });
+    const tokenResponse = await fetch(
+      'https://github.com/login/oauth/access_token',
+      {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+          'User-Agent': 'MDSG/1.0.0',
+        },
+        body: JSON.stringify({
+          client_id: GITHUB_CLIENT_ID,
+          client_secret: GITHUB_CLIENT_SECRET,
+          code: code,
+        }),
+      }
+    );
 
     if (!tokenResponse.ok) {
       throw new Error(`GitHub token exchange failed: ${tokenResponse.status}`);
@@ -198,7 +204,7 @@ app.get('/auth/github/callback', rateLimit(), async (req, res) => {
       headers: {
         Authorization: `token ${tokenData.access_token}`,
         Accept: 'application/vnd.github.v3+json',
-        'User-Agent': 'MDSG/1.0.0'
+        'User-Agent': 'MDSG/1.0.0',
       },
     });
 
@@ -218,7 +224,7 @@ app.get('/auth/github/callback', rateLimit(), async (req, res) => {
       github_token: tokenData.access_token,
       user_id: userData.id,
       created_at: Date.now(),
-      expires_at: Date.now() + (24 * 60 * 60 * 1000)
+      expires_at: Date.now() + 24 * 60 * 60 * 1000,
     });
 
     // Redirect back to frontend with session token
@@ -290,40 +296,6 @@ app.post(
         message: 'An error occurred while processing your request.',
       });
     }
-
-    // Retrieve GitHub token
-    const tokenData = rateLimitStore.get(`token_${token_id}`);
-    if (!tokenData || Date.now() > tokenData.expires_at) {
-      return res.status(401).json({ error: 'Token expired or invalid' });
-    }
-
-    // Validate endpoint
-    if (!/^[a-zA-Z0-9\/_-]+$/.test(endpoint)) {
-      return res.status(400).json({ error: 'Invalid API endpoint' });
-    }
-
-    // Make request to GitHub API
-    const githubResponse = await fetch(`https://api.github.com/${endpoint}`, {
-      method: method.toUpperCase(),
-      headers: {
-        'Authorization': `token ${tokenData.github_token}`,
-        'Accept': 'application/vnd.github.v3+json',
-        'User-Agent': 'MDSG/1.0.0',
-        'Content-Type': 'application/json'
-      },
-      body: method !== 'GET' ? JSON.stringify(req.body.data || {}) : undefined
-    });
-
-    const responseData = await githubResponse.json();
-
-    res.status(githubResponse.status).json(responseData);
-
-  } catch (error) {
-    console.error('GitHub API proxy error:', error.message);
-    res.status(500).json({
-      error: 'Internal server error',
-      message: 'An error occurred while processing your request.'
-    });
   }
 );
 
@@ -349,7 +321,8 @@ app.use((error, req, res, next) => {
 
   res.status(500).json({
     error: 'Internal server error',
-    message: NODE_ENV === 'development' ? error.message : 'Something went wrong.'
+    message:
+      NODE_ENV === 'development' ? error.message : 'Something went wrong.',
   });
 });
 
@@ -357,7 +330,7 @@ app.use((error, req, res, next) => {
 app.use((req, res) => {
   res.status(404).json({
     error: 'Not found',
-    message: 'The requested endpoint does not exist.'
+    message: 'The requested endpoint does not exist.',
   });
 });
 
