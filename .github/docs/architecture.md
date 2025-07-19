@@ -11,10 +11,10 @@
 
 ## Overview
 
-MDSG (Markdown Site Generator) currently uses a **monolithic architecture** with plans for Clean Architecture evolution. The project prioritizes working functionality over architectural complexity, achieving a 14.0KB bundle with full core functionality.
+MDSG (Markdown Site Generator) is a **frontend-only static site** deployed to GitHub Pages at **https://mdsg.daza.ar/** with no backend dependencies. The project achieves a 14.0KB bundle with full core functionality using direct GitHub OAuth integration.
 
-> **Agent Context**: Current bundle is 14.0KB (target <20KB). Monolithic src/main.js (1690 lines) handles all functionality. Clean Architecture is preparatory/aspirational.
-> **Reality Check**: Focus on current working structure, implement advanced features incrementally.
+> **Agent Context**: Live at https://mdsg.daza.ar/ via GitHub Pages. Current bundle is 14.0KB (target <20KB). Frontend-only architecture with src/main.js (1690 lines) handling all functionality. No backend required.
+> **Reality Check**: Static site deployment with custom domain, direct GitHub API integration, server.js only for development convenience.
 
 ## 🎯 Architectural Principles for Agents
 
@@ -28,7 +28,7 @@ MDSG (Markdown Site Generator) currently uses a **monolithic architecture** with
 1. **KISS Principles (Keep It Simple, Stupid)** ✅ ACHIEVED
    - Avoid over-engineering ✅ Single main.js file
    - Use vanilla JavaScript over heavy frameworks ✅ Zero frameworks
-   - Minimize dependencies ✅ Only express + cors for server
+   - Minimize dependencies ✅ Frontend-only, no backend
    - Focus on user value over architectural purity ✅ 25/25 core tests passing
 
 2. **Performance First** 🎯 GOOD PROGRESS
@@ -39,8 +39,8 @@ MDSG (Markdown Site Generator) currently uses a **monolithic architecture** with
 
 3. **Security by Design** 🔧 BASIC IMPLEMENTATION
    - Input validation at all entry points ✅ Basic validation implemented
-   - Secure token handling ✅ OAuth flow working
-   - Rate limiting and abuse prevention ✅ Basic rate limiting in server.js
+   - Secure token handling ✅ Direct GitHub OAuth working
+   - Rate limiting via GitHub API ✅ GitHub's built-in rate limiting
    - No sensitive data in frontend ✅ Tokens handled securely
 
 4. **User-Centric Experience** ✅ CORE ACHIEVED
@@ -51,10 +51,10 @@ MDSG (Markdown Site Generator) currently uses a **monolithic architecture** with
 
 ## 🏗️ Current Architecture (ACTUAL IMPLEMENTATION)
 
-> **Agent Quick Reference**: ALL code is in `src/main.js` (1690 lines). No Clean Architecture structure exists yet.
-> **Working Reality**: Monolithic MDSG class handles everything. Server.js (395 lines) handles OAuth.
+> **Agent Quick Reference**: ALL code is in `src/main.js` (1690 lines). Frontend-only static site deployed to https://mdsg.daza.ar/
+> **Working Reality**: Monolithic MDSG class handles everything. Direct GitHub OAuth, no backend required. Live on GitHub Pages with custom domain.
 
-### Monolithic Structure (CURRENT WORKING STATE)
+### Frontend-Only Structure (CURRENT WORKING STATE)
 
 ```
 ACTUAL PROJECT STRUCTURE:
@@ -62,12 +62,20 @@ ACTUAL PROJECT STRUCTURE:
 │   ├── class MDSG → All functionality
 │   ├── markdownToHTML() → Basic markdown parsing
 │   ├── setupUI() → All UI management  
-│   ├── authenticate() → GitHub OAuth flow
+│   ├── authenticate() → Direct GitHub OAuth flow
 │   ├── generateSiteHTML() → Site generation
-│   └── deployToGitHub() → Deployment logic
-├── server.js (395 lines) → OAuth proxy server
+│   └── deployToGitHub() → GitHub Pages deployment
+├── server.js (395 lines) → Dev OAuth helper (optional)
 ├── style.css → All styles
-└── index.html → Entry point
+├── index.html → Entry point
+├── CNAME → Custom domain configuration (mdsg.daza.ar)
+└── dist/ → Static build output deployed to GitHub Pages
+
+DEPLOYMENT:
+├── GitHub Pages → https://mdsg.daza.ar/ (custom domain)
+├── GitHub OAuth → Direct API integration
+├── Auto-deploy → .github/workflows/deploy-pages.yml
+└── No backend required → Pure frontend application
 
 TEST STATUS:
 ├── tests/basic.test.js → 25/25 PASSING ✅
@@ -81,6 +89,9 @@ TEST STATUS:
 - ✅ Great performance - 14.0KB bundle
 - ✅ Fully functional - all core features working
 - ✅ Well tested - 25/25 core tests passing
+- ✅ No backend complexity - pure frontend
+- ✅ Simple deployment - static site to GitHub Pages with custom domain
+- ✅ Live and accessible - https://mdsg.daza.ar/
 
 **Current Trade-offs:**
 - Large single file (1690 lines) but manageable
@@ -143,9 +154,11 @@ MIGRATION TRIGGERS:
 - Plugin architecture support
 
 **Current Reality:**
-- ✅ Monolithic approach working excellently
+- ✅ Frontend-only approach working excellently (live at mdsg.daza.ar)
 - ✅ 14.0KB bundle proves efficiency
 - ✅ 25/25 tests passing shows stability
+- ✅ No backend complexity or deployment issues
+- ✅ Auto-deploy pipeline working with custom domain
 - 📋 Migration only when complexity demands it
 │   │   ├── DeploySite.js
 │   │   └── ManageRepository.js

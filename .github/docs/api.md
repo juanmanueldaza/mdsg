@@ -11,105 +11,139 @@
 
 ## Overview
 
-MDSG provides both frontend and backend APIs for creating and managing GitHub Pages sites from markdown content. The system uses a secure OAuth proxy pattern to handle GitHub integration while maintaining client-side simplicity.
+MDSG is a frontend-only application deployed at **https://mdsg.daza.ar/** that directly integrates with GitHub's API to create and manage GitHub Pages sites from markdown content. The system uses direct GitHub OAuth authentication with no backend server required in production.
 
-> **Agent Alert**: Current API consists of working OAuth server (server.js) + client-side MDSG class methods
-> **Current Status**: Basic GitHub integration working, advanced API features planned
+> **Agent Alert**: Live at https://mdsg.daza.ar/ - Frontend-only architecture with direct GitHub API integration
+> **Current Status**: Direct GitHub OAuth working, static site deployment to GitHub Pages working  
+> **Development**: server.js exists only for development OAuth convenience (optional)
 
 ## Table of Contents
 
-- [Authentication API](#authentication-api)
-- [GitHub Proxy API](#github-proxy-api)
+- [Frontend Architecture](#frontend-architecture)
+- [GitHub OAuth Integration](#github-oauth-integration)
+- [GitHub API Direct Integration](#github-api-direct-integration)
 - [Frontend JavaScript API](#frontend-javascript-api)
 - [Error Handling](#error-handling)
-- [Rate Limiting](#rate-limiting)
 - [Security](#security)
+- [Development Server (Optional)](#development-server-optional)
 
-## Authentication API
+## Frontend Architecture
 
-### OAuth Flow
+MDSG is deployed as a **static site** to GitHub Pages at **https://mdsg.daza.ar/** with no backend server. All functionality runs in the browser using direct GitHub API integration.
 
-#### Initiate GitHub OAuth
+### Deployment Model
+- **Production**: https://mdsg.daza.ar/ - Static files served from GitHub Pages
+- **Authentication**: Direct GitHub OAuth (Personal Access Token)
+- **API Integration**: Direct calls to GitHub REST API
+- **Storage**: Browser localStorage for temporary data
+- **Custom Domain**: mdsg.daza.ar via CNAME file
 
-**Endpoint**: Manual redirect to GitHub
-**URL**: `https://github.com/login/oauth/authorize`
+### Development vs Production
+- **Development**: Optional server.js for OAuth convenience
+- **Production**: Pure frontend-only at https://mdsg.daza.ar/, no server required
+- **Auto-Deploy**: GitHub Actions workflow on push to main branch
 
-**Parameters**:
+## GitHub OAuth Integration
+
+### Direct GitHub Authentication (Production)
+
+**Method**: Personal Access Token Flow
+**Description**: Users create GitHub Personal Access Tokens directly
+
+**Steps**:
+1. User clicks "Login with GitHub"
+2. Application guides user to create Personal Access Token
+3. User enters token in MDSG interface
+4. Token stored securely in localStorage
+5. Direct API calls to GitHub with token
+
+**GitHub Token Requirements**:
 ```
-client_id: string (GitHub App Client ID)
-scope: string (repo,user)
-state: string (CSRF protection)
-redirect_uri: string (OAuth callback URL)
-```
-
-**Example**:
-```
-https://github.com/login/oauth/authorize?
-  client_id=Ov23liKZ8KgfLQDZFGSR&
-  scope=repo,user&
-  state=random_state_string&
-  redirect_uri=https://mdsg.daza.ar/auth/github/callback
-```
-
-#### OAuth Callback
-
-**Endpoint**: `GET /auth/github/callback`
-**Description**: Handles GitHub OAuth callback and creates user session
-
-**Query Parameters**:
-- `code` (string, required): GitHub authorization code
-- `state` (string, optional): CSRF protection state
-
-**Response**: Redirects to frontend with session data
-```
-https://mdsg.daza.ar/?session=SESSION_TOKEN&token_id=TOKEN_ID
+Scopes needed:
+- repo (full repository access)
+- user (user profile access)
 ```
 
-**Error Response**: Redirects with error parameters
+**Security**:
+- Tokens stored only in browser localStorage
+- No server-side storage or processing
+- Direct GitHub API communication
+
+### Development OAuth (Optional)
+
+**File**: `server.js` (development convenience only)
+**Purpose**: Simplify OAuth flow during development
+**Production**: Not used - static site deployment only
+
+**Development Flow**:
 ```
-https://mdsg.daza.ar/?error=auth_failed&message=Authentication%20failed
+1. npm run dev:server (optional)
+2. Traditional OAuth flow via development server
+3. Tokens handled same way as production
 ```
 
-#### Logout
+## GitHub API Direct Integration
 
-**Endpoint**: `POST /auth/logout`
-**Description**: Invalidates user session and cleans up tokens
+### Direct API Calls
+
+**Base URL**: `https://api.github.com`
+**Authentication**: Bearer token in Authorization header
+**Rate Limiting**: GitHub's standard rate limits apply
+
+#### Create Repository
+
+**Endpoint**: `POST https://api.github.com/user/repos`
+**Headers**:
+```
+Authorization: Bearer {personal_access_token}
+Content-Type: application/json
+```
 
 **Request Body**:
 ```json
 {
-  "token_id": "uuid-token-identifier"
+  "name": "repository-name",
+  "description": "Generated by MDSG",
+  "private": false,
+  "has_pages": true
 }
 ```
 
-**Response**:
-```json
-{
-  "success": true
-}
+#### Upload Files
+
+**Endpoint**: `PUT https://api.github.com/repos/{owner}/{repo}/contents/{path}`
+**Headers**:
 ```
-
-**Error Response**:
-```json
-{
-  "error": "Logout failed"
-}
+Authorization: Bearer {personal_access_token}
+Content-Type: application/json
 ```
-
-## GitHub Proxy API
-
-### Proxy GitHub API Calls
-
-**Endpoint**: `POST /api/github/:endpoint`
-**Description**: Securely proxy GitHub API requests with rate limiting
-
-**URL Parameters**:
-- `endpoint` (string): GitHub API endpoint path
 
 **Request Body**:
 ```json
 {
-  "token_id": "uuid-token-identifier",
+  "message": "Deploy MDSG site",
+  "content": "base64-encoded-content"
+}
+```
+
+#### Enable GitHub Pages
+
+**Endpoint**: `POST https://api.github.com/repos/{owner}/{repo}/pages`
+**Headers**:
+```
+Authorization: Bearer {personal_access_token}
+Content-Type: application/json
+```
+
+**Request Body**:
+```json
+{
+  "source": {
+    "branch": "main",
+    "path": "/"
+  }
+}
+```
   "method": "GET|POST|PUT|DELETE",
   "data": {} // Optional request data for non-GET requests
 }

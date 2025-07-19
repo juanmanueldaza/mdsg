@@ -1,5 +1,37 @@
 # GitHub Copilot Instructions for MDSG
 
+> **🌐 Live Site**: https://mdsg.daza.ar/ (GitHub Pages)
+
+## 📊 Live Project Dashboard
+*Last Updated: 2025-01-19 | Next Review: Weekly*
+
+| Metric | Current | Target | Status |
+|--------|---------|--------|--------|
+| **Bundle Size** | 14.0KB gzipped | <20KB (stretch: <12KB) | ✅ Excellent |
+| **Core Tests** | 25/25 passing | 100% core features | ✅ Complete |
+| **Advanced Tests** | 0/64 passing | Future implementation | 📋 Planned |
+| **CI/CD Status** | All workflows ✅ | All passing | ✅ Healthy |
+| **Architecture** | Frontend-only static site | No backend required | ✅ Simple |
+
+## 🔧 Quick Commands Reference
+
+```bash
+# 🏃 Development (Most Used)
+npm run dev              # Frontend dev server ✅
+npm run dev:server       # Dev OAuth helper (optional) ✅
+npm run test tests/basic.test.js  # Core tests (25/25 ✅)
+
+# 📦 Build & Deploy
+npm run build           # Production build → 14.0KB ✅
+npm run size            # Check bundle size
+npm run lint            # Code quality ✅
+
+# 🧪 Testing Strategy
+npm run test:run tests/basic.test.js     # ✅ RELIABLE (25/25)
+npm run test:run tests/markdown.test.js  # 📋 PLANNED (0/49)  
+npm run test:run tests/mdsg.test.js      # 📋 PLANNED (0/43)
+```
+
 ## 🤖 AI Agent Handbook & Memory System
 
 This file serves as the **primary knowledge base and navigation hub** for AI agents working on MDSG. All documentation is interconnected and should be referenced together for comprehensive understanding.
@@ -26,12 +58,22 @@ Use this as your knowledge navigation system:
 ### Project Identity
 **MDSG (Markdown Site Generator)** - A lightweight, browser-based tool that creates GitHub Pages websites from markdown content in under 5 minutes.
 
-### Core Values
-1. **KISS Principles**: Avoid over-engineering, use vanilla JavaScript
-2. **Performance First**: Bundle size <20KB gzipped, 90+ Lighthouse scores
-3. **Security Focus**: Comprehensive security implementation
-4. **User-Centric**: Zero-setup required, 5-minute deployment
-5. **Developer Experience**: Clean code, extensive testing, clear documentation
+**🌐 Live Application**: https://mdsg.daza.ar/  
+**🏗️ Hosting**: GitHub Pages (static site deployment)  
+**📦 Repository**: https://github.com/juanmanueldaza/mdsg
+
+### Core Values & Current Status
+1. **KISS Principles** ✅ **ACHIEVED**: Vanilla JavaScript, single main.js (1690 lines)
+2. **Performance First** ✅ **ACHIEVED**: 14.0KB bundle (<20KB target), mobile-responsive
+3. **Security Focus** 🔧 **BASIC**: OAuth working, input validation, rate limiting
+4. **User-Centric** ✅ **ACHIEVED**: Zero-setup, 5-minute deployment working
+5. **Developer Experience** ✅ **ACHIEVED**: 25/25 core tests, clear documentation
+
+### Development Phase Status
+- **Phase 1 (Core)**: ✅ **COMPLETE** - All basic functionality working
+- **Phase 2 (Enhanced)**: 🚧 **IN PROGRESS** - Advanced markdown features
+- **Phase 3 (Performance)**: 📋 **PLANNED** - <12KB target, 95+ Lighthouse
+- **Phase 4 (Architecture)**: 📋 **PLANNED** - Clean Architecture migration
 
 ### Current Implementation Status (ACTUAL STATE)
 
@@ -41,9 +83,9 @@ Use this as your knowledge navigation system:
 - **Basic Markdown**: Headers, bold, italic, links, images, simple lists, code blocks
 - **Authentication**: GitHub OAuth integration working
 - **Site Generation**: Basic HTML generation from markdown
-- **Deployment**: GitHub Pages integration functional
+- **Deployment**: GitHub Pages integration functional (live at mdsg.daza.ar)
 - **Mobile Support**: Responsive design implemented
-- **Core Security**: Input validation, XSS protection basics
+- **Core Security**: Input validation, XSS protection, direct GitHub OAuth
 
 #### 🚧 **IN DEVELOPMENT** (Partially Implemented)
 - **Advanced Markdown**: Syntax highlighting, tables, nested lists, emojis
@@ -91,25 +133,28 @@ Use this as your knowledge navigation system:
 - XSS-safe markdown parsing ✅ BASIC IMPLEMENTATION
 ```
 
-### When Working on Backend (server.js)
+### When Working on GitHub OAuth Integration
 ```
-📁 Current Structure: SIMPLE EXPRESS SERVER
-├── server.js → OAuth proxy server (395 lines)
-├── Key Features: GitHub OAuth flow, CORS handling
-├── Security: Basic rate limiting, input validation
+📁 Current Structure: FRONTEND-ONLY STATIC SITE
+├── Live Site: https://mdsg.daza.ar/ (GitHub Pages)
+├── Direct GitHub OAuth (no backend required)
+├── Personal Access Token flow
+├── Local storage for token management
 └── Status: FULLY FUNCTIONAL
 
 🔍 Primary References:
-├── security.md → OAuth flow & rate limiting
-├── api.md → Endpoint structure & validation
-├── deployment.md → Environment configuration
-└── architecture.md → Data flow & proxy patterns
+├── security.md → OAuth security patterns
+├── api.md → GitHub API integration
+├── deployment.md → Static site deployment
+└── architecture.md → Frontend-only patterns
 
 🎯 Key Principles (CURRENT):
-- OAuth 2.0 with secure token handling ✅ IMPLEMENTED
-- Basic rate limiting ✅ IMPLEMENTED
-- Input validation on all routes ✅ IMPLEMENTED
-- No persistent sensitive data storage ✅ IMPLEMENTED
+- Direct GitHub OAuth 2.0 ✅ IMPLEMENTED
+- Client-side token management ✅ IMPLEMENTED
+- No backend dependencies ✅ IMPLEMENTED
+- GitHub Pages deployment ✅ IMPLEMENTED
+
+Note: server.js exists for development convenience only
 ```
 
 ### When Working on Tests (tests/)
@@ -139,25 +184,25 @@ Use this as your knowledge navigation system:
 └── Total Coverage: 25/117 tests (21% - focused on working features)
 ```
 
-### When Working on Build/Config
+### When Working on Build/Deploy (Static Site)
 ```
-📁 Current Structure: VITE + MODERN TOOLING
+📁 Current Structure: VITE + GITHUB PAGES
 ├── vite.config.js → Build configuration
 ├── vitest.config.js → Test configuration
-├── eslint.config.js → Code quality
-└── package.json → Scripts and dependencies
+├── .github/workflows/deploy-pages.yml → Auto-deployment
+└── dist/ → Static build output
 
 🔍 Primary References:
 ├── performance.md → Bundle optimization
-├── deployment.md → Production configuration
-├── security.md → Security headers & CSP
-└── architecture.md → Build pipeline
+├── deployment.md → GitHub Pages deployment
+├── security.md → Client-side security
+└── architecture.md → Static site architecture
 
 🎯 Key Principles (CURRENT):
-- Vite for fast builds ✅ IMPLEMENTED
-- Vitest for testing ✅ IMPLEMENTED
-- ESLint + Prettier for code quality ✅ IMPLEMENTED
-- No source maps in production ✅ IMPLEMENTED
+- Vite static build ✅ IMPLEMENTED
+- GitHub Pages auto-deploy ✅ IMPLEMENTED
+- No backend dependencies ✅ IMPLEMENTED
+- CDN-ready assets ✅ IMPLEMENTED
 ```
 
 ## 📖 Code Patterns & Standards
@@ -175,10 +220,11 @@ mdsg/
 ├── .github/
 │   ├── docs/                  # Documentation (aspirational + current)
 │   └── workflows/             # CI/CD (WORKING for core features)
-├── dist/                      # Build output
-├── server.js                  # OAuth server (WORKING)
+├── dist/                      # Build output → deployed to mdsg.daza.ar
+├── server.js                  # Dev OAuth helper (optional)
 ├── style.css                  # Styles (WORKING)
 ├── index.html                 # Entry point (WORKING)
+├── CNAME                      # GitHub Pages custom domain (mdsg.daza.ar)
 └── package.json               # Dependencies & scripts (WORKING)
 ```
 
@@ -307,10 +353,11 @@ class Component {
 ### Working with Current Codebase
 ```bash
 # ✅ WORKING: Core development workflow
+# ✅ WORKING: Development
 npm run dev              # Frontend development (working)
-npm run dev:server       # Backend OAuth server (working)
+npm run dev:server       # Dev OAuth helper (optional, not needed in production)
 npm run test tests/basic.test.js  # Run working tests
-npm run build           # Production build (working)
+npm run build           # Static site production build → deploys to mdsg.daza.ar
 npm run size            # Check current bundle size
 
 # ❌ PARTIAL: Advanced features
@@ -344,12 +391,12 @@ npm run test:coverage tests/basic.test.js
 
 ### Phase 1: Core Functionality ✅ COMPLETE
 - [x] Basic markdown parsing (headers, text formatting, simple lists)
-- [x] GitHub OAuth authentication
-- [x] Site generation and deployment
+- [x] Direct GitHub OAuth authentication (frontend-only)
+- [x] Static site generation and GitHub Pages deployment (live at mdsg.daza.ar)
 - [x] Mobile-responsive UI
-- [x] Basic security measures
+- [x] Client-side security measures
 - [x] Core test suite (25 tests)
-- [x] CI/CD pipeline for core features
+- [x] GitHub Pages CI/CD pipeline with custom domain
 
 ### Phase 2: Enhanced Markdown 🚧 IN PROGRESS
 - [ ] Syntax highlighting for code blocks
@@ -424,60 +471,120 @@ npm run analyze         # Bundle analysis (needs implementation)
 
 ## 💡 Agent Best Practices
 
-### Information Gathering
-1. **Start with this file** for current state vs aspirational goals
-2. **Check test status** to understand what's actually working
-3. **Verify bundle size** before making changes
-4. **Reference docs** for planned patterns but implement incrementally
+### Information Gathering (Decision Tree)
+```
+🔍 STARTING A TASK?
+├── Check Dashboard Above → Current metrics & status
+├── Identify Domain → Frontend/Backend/Testing/Docs
+├── Verify Bundle Impact → npm run size (target: <20KB)
+└── Reference Cross-Docs → Use navigation map
 
-### Code Implementation
-1. **Work within current monolithic structure** (src/main.js)
-2. **Add to basic.test.js** for core features
-3. **Test in development server** before building
-4. **Check bundle impact** with npm run size
+🎯 IMPLEMENTING FEATURES?
+├── Core Feature? → Add to basic.test.js (25/25 ✅)
+├── Advanced Feature? → Check planned tests (64 pending)
+├── Bundle Impact? → Monitor 14.0KB baseline
+└── Architecture Change? → Consider Clean Architecture triggers
+```
 
-### Documentation Management
-1. **ALL documentation MUST be in `.github/docs/`** - never create docs in root or other locations
-2. **Update copilot-instructions.md** when adding new documentation files
-3. **Reference documentation** using `.github/docs/filename.md` format
-4. **Maintain documentation accuracy** - distinguish current vs planned features
+### Code Implementation (Current Reality)
+1. **Work within monolithic structure** → src/main.js (1690 lines working ✅)
+2. **Test-driven approach** → basic.test.js for core, advanced files for roadmap
+3. **Performance monitoring** → Bundle size check before commits
+4. **Incremental delivery** → Build on 25/25 stable foundation
 
-### Problem Solving
-1. **Focus on working features first** (basic.test.js scope)
-2. **Implement advanced features incrementally**
-3. **Maintain current performance characteristics**
-4. **Update documentation to reflect actual state**
+### Documentation Management (Enforced Standards)
+1. **ALL documentation MUST be in `.github/docs/`** - never create docs elsewhere!
+2. **Update this file** when adding new documentation files
+3. **Reference format** → Always use `.github/docs/filename.md`
+4. **Accuracy requirement** → Distinguish current vs planned features
+5. **Timestamp updates** → Track documentation freshness
 
-## 🎯 Remember: Reality-Based Development
+### Problem Solving (Escalation Path)
+```
+🐛 ISSUE ENCOUNTERED?
+├── Core Functionality? → Check basic.test.js (25/25 should pass)
+├── Advanced Feature? → Expected if not implemented yet
+├── Bundle Size? → Target <20KB, investigate if exceeded
+├── Architecture? → Stay monolithic until complexity demands change
+└── Documentation? → Update to reflect actual state
+```
 
-### Current State Philosophy
+### Quality Gates (Pre-Action Checklist)
+- [ ] Core tests still passing (25/25)
+- [ ] Bundle size within target (<20KB)
+- [ ] Documentation updated if needed
+- [ ] Changes follow KISS principles
+- [ ] Security implications considered
+
+## 🎯 Agent Success Framework
+
+### Decision Support System
+```
+🤔 MAKING A DECISION?
+├── Performance Impact? → Reference dashboard metrics above
+├── Security Implications? → Check .github/docs/security.md
+├── Testing Strategy? → Use tiered approach (core → advanced)
+├── Architecture Change? → Evaluate against current 1690-line baseline
+└── Documentation Update? → Must be in .github/docs/
+```
+
+### Reality-Based Development Philosophy
 This documentation provides both:
-- **Current Reality**: What actually works (basic functionality)
-- **Future Vision**: What's planned (advanced features)
+- **✅ CURRENT REALITY**: What actually works (25/25 core tests)
+- **📋 FUTURE VISION**: What's planned (64 advanced features)
+- **🎯 CLEAR TARGETS**: Measurable goals with current baselines
 
-### Working vs Planned
-- **✅ WORKING**: Features with passing tests in basic.test.js
-- **🚧 IN PROGRESS**: Features partially implemented
-- **📋 PLANNED**: Features described in docs but not implemented
+### Feature Status Legend
+- **✅ WORKING**: Features with passing tests in basic.test.js (25/25)
+- **🚧 IN PROGRESS**: Features partially implemented or being developed
+- **📋 PLANNED**: Features described in docs/tests but not implemented
+- **🔧 BASIC**: Features with minimal implementation, needs enhancement
 
-### Success Metrics (ACTUAL)
-- **Bundle Size**: 14.0KB (good, target <20KB)
-- **Core Tests**: 25/25 passing (excellent)
-- **Advanced Tests**: 0/92 passing (expected - they test planned features)
-- **CI/CD**: Working for implemented features
-- **Security**: Basic protection active
+### Success Metrics Tracking (Auto-Update Target)
+```
+📊 CURRENT BASELINE (Update when changed)
+- Bundle Size: 14.0KB gzipped (target: <20KB ✅, stretch: <12KB)
+- Core Tests: 25/25 passing (target: 100% core ✅)
+- Advanced Tests: 0/64 passing (target: incremental implementation)
+- CI/CD Health: All workflows passing ✅
+- Architecture: Frontend-only static site (target: maintain simplicity)
+```
 
-### Documentation Standards (CRITICAL)
-- **ALL documentation files MUST be in `.github/docs/`**
-- **NEVER create documentation in root directory or other locations**
-- **Always reference docs as `.github/docs/filename.md`**
-- **Update this copilot-instructions.md when adding new documentation**
-- **Keep documentation accurate and current vs aspirational**
+### Documentation Quality Assurance
+- **Location Standard**: `.github/docs/` directory ONLY
+- **Cross-Reference Integrity**: All links verified and working
+- **Currency Requirement**: Distinguish current implementation from roadmap
+- **Update Protocol**: Timestamp and track all changes
+- **Validation**: Pre-commit checks for doc-code consistency
 
-When working on MDSG, focus on:
-1. **Maintaining working core functionality**
-2. **Implementing advanced features incrementally**
-3. **Testing new features thoroughly**
-4. **Keeping documentation accurate and properly located**
+### Agent Operating Principles
+1. **🎯 Start with Dashboard**: Check current status before proceeding
+2. **🔍 Verify Reality**: Test assumptions against actual implementation
+3. **📦 Monitor Impact**: Bundle size and performance implications
+4. **🧪 Test-Driven**: Core features must maintain 25/25 passing status
+5. **📚 Document Changes**: Update relevant docs when implementation changes
+6. **🔄 Feedback Loop**: Track what guidance was helpful vs needs improvement
 
-**Your mission**: Build incrementally on the solid foundation that exists, implementing advanced features one at a time while maintaining the excellent core functionality that's already working. Always ensure documentation is properly organized in `.github/docs/`.
+### Mission Statement
+**Build incrementally on the proven foundation** (14.0KB bundle, 25/25 tests) **while implementing advanced features systematically**. Always ensure documentation accuracy and proper organization in `.github/docs/`.
+
+### Emergency Protocols
+```
+🚨 IF CORE TESTS FAIL (25/25 status broken):
+1. Stop all feature development
+2. Investigate regression immediately  
+3. Restore working state
+4. Update documentation if needed
+
+🚨 IF BUNDLE SIZE EXCEEDS 20KB:
+1. Analyze bundle composition (npm run size)
+2. Identify size regression source
+3. Optimize or revert changes
+4. Update performance documentation
+
+🚨 IF DOCUMENTATION BECOMES INACCURATE:
+1. Identify gap between docs and reality
+2. Update affected documentation files
+3. Verify cross-references still work
+4. Add timestamp and change log
+```

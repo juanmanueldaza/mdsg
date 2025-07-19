@@ -1,37 +1,97 @@
 # MDSG Deployment Guide
 
+## 🤖 Agent Navigation Hub
+
+**Primary Reference**: `../copilot-instructions.md` → Deployment section
+**Cross-References**: 
+- `architecture.md` → Frontend-only architecture patterns
+- `security.md` → Security deployment configuration
+- `performance.md` → Production optimization
+- `api.md` → GitHub API integration
+
 ## Overview
 
-This guide covers deploying MDSG (Markdown Site Generator) to production environments. MDSG consists of a frontend application and a backend OAuth server that can be deployed independently or together.
+This guide covers deploying MDSG (Markdown Site Generator) as a **frontend-only static site** to GitHub Pages. MDSG is currently live at **https://mdsg.daza.ar/** and requires no backend server in production.
+
+> **Agent Alert**: Frontend-only deployment - no backend server required in production
+> **Live Site**: https://mdsg.daza.ar/ (GitHub Pages with custom domain)
+> **Architecture**: Static site with direct GitHub OAuth integration
 
 ## Table of Contents
 
-- [Prerequisites](#prerequisites)
-- [Environment Setup](#environment-setup)
-- [Frontend Deployment](#frontend-deployment)
-- [Backend Deployment](#backend-deployment)
-- [Domain Configuration](#domain-configuration)
+- [Current Production Setup](#current-production-setup)
+- [GitHub Pages Deployment](#github-pages-deployment)
+- [Custom Domain Configuration](#custom-domain-configuration)
+- [Frontend-Only Architecture](#frontend-only-architecture)
+- [Development Server (Optional)](#development-server-optional)
 - [Security Configuration](#security-configuration)
 - [Monitoring & Maintenance](#monitoring--maintenance)
 - [Troubleshooting](#troubleshooting)
 
-## Prerequisites
+## Current Production Setup
 
-### System Requirements
-- Node.js 18.x or later
-- Git
-- GitHub account with OAuth app
-- Domain name (recommended)
-- SSL certificate (required for production)
+**Live Site**: https://mdsg.daza.ar/
+**Hosting**: GitHub Pages (static site)
+**Domain**: Custom domain via CNAME file
+**Architecture**: Frontend-only, no backend server
+**Authentication**: Direct GitHub OAuth (Personal Access Token)
+**Deployment**: Automatic via GitHub Actions on push to main
 
-### GitHub OAuth App Setup
-1. Go to GitHub Settings → Developer settings → OAuth Apps
-2. Click "New OAuth App"
-3. Fill in application details:
-   - **Application name**: `MDSG - Your Instance`
-   - **Homepage URL**: `https://your-domain.com`
-   - **Authorization callback URL**: `https://your-api-domain.com/auth/github/callback`
-4. Save the Client ID and Client Secret
+### Production Characteristics
+- ✅ Zero server maintenance required
+- ✅ Auto-scaling via GitHub's CDN
+- ✅ SSL/TLS handled by GitHub Pages
+- ✅ Custom domain support
+- ✅ Automatic deployments from repository
+
+## GitHub Pages Deployment
+
+### Current Working Setup (mdsg.daza.ar)
+
+The production site uses GitHub Pages with automated deployment:
+
+1. **Repository**: https://github.com/juanmanueldaza/mdsg
+2. **Build Process**: Vite static site build
+3. **Deployment**: GitHub Actions workflow
+4. **Custom Domain**: mdsg.daza.ar via CNAME file
+5. **SSL**: Automatic via GitHub Pages
+
+### Deployment Workflow
+
+```yaml
+# .github/workflows/deploy-pages.yml (current working config)
+name: Deploy to GitHub Pages
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+      - run: npm ci
+      - run: npm run build
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: './dist'
+  
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/deploy-pages@v4
+```
+
+### Prerequisites for Your Own Deployment
+- GitHub repository
+- GitHub Pages enabled
+- Node.js 18.x+ for local development
+- Optional: Custom domain name
 
 ## Environment Setup
 

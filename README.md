@@ -2,12 +2,16 @@
 
 [![CI](https://github.com/juanmanueldaza/mdsg/actions/workflows/ci.yml/badge.svg)](https://github.com/juanmanueldaza/mdsg/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Bundle Size](https://img.shields.io/badge/bundle%20size-11.7KB%20gzipped-brightgreen)](https://bundlephobia.com/)
+[![Bundle Size](https://img.shields.io/badge/bundle%20size-14.0KB%20gzipped-brightgreen)](https://bundlephobia.com/)
 [![Performance](https://img.shields.io/badge/lighthouse-95%2B-brightgreen)](https://developers.google.com/web/tools/lighthouse)
 
-> A powerful, lightweight tool to create beautiful GitHub Pages sites from markdown content. No backend required, works entirely in your browser!
+> A powerful, lightweight frontend-only tool to create beautiful GitHub Pages sites from markdown content. Pure static site - no backend server required!
+
+🌐 **[Try it live at mdsg.daza.ar](https://mdsg.daza.ar/)**
 
 ## ✨ What MDSG Does
+
+**Live Demo**: https://mdsg.daza.ar/
 
 Transform your markdown into stunning websites in under 5 minutes:
 
@@ -21,7 +25,7 @@ Transform your markdown into stunning websites in under 5 minutes:
 
 ### For Users (No Setup Required!)
 
-Visit **[mdsg.daza.ar](https://mdsg.daza.ar)** and start creating immediately:
+🚀 **Visit [mdsg.daza.ar](https://mdsg.daza.ar)** and start creating immediately:
 
 1. Click "Login with GitHub"
 2. Create a Personal Access Token (guided process)
@@ -46,7 +50,7 @@ npm run dev
 npm run build
 ```
 
-**No backend setup required!** MDSG works entirely in the browser.
+**Frontend-only application!** MDSG is a static site deployed at **https://mdsg.daza.ar/** that works entirely in the browser with direct GitHub API integration.
 
 ## 🌟 Features
 
