@@ -1,6 +1,6 @@
 // Security tests for MDSG XSS prevention and input validation
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { MinimalSecurity } from '../src/security-minimal.js';
+import { MinimalSecurity } from '../src/utils/security-minimal.js';
 
 // Use MinimalSecurity as SecureHTML for compatibility with tests
 const SecureHTML = MinimalSecurity;

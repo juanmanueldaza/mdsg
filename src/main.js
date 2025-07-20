@@ -1,25 +1,55 @@
-// MDSG - Markdown Site Generator
-// Simple entry point - Optimized for bundle size
-
-import { MinimalSecurity } from './security-minimal.js';
+import { MinimalSecurity } from '@security';
+import { MarkdownProcessor } from '@markdown';
+import { UIComponentBuilder } from '@ui';
+import { AuthenticationState, ContentState } from '@state';
+import { serviceRegistry, getAuthService, getGitHubService, getDeploymentService } from '@registry';
+import { EventHandlerService, eventBus, MDSG_EVENTS } from '@handlers';
 
 class MDSG {
   constructor() {
-    this.authenticated = false;
-    this.user = null;
-    this.token = null;
-    this.content = '';
-    this.repoName = '';
+    this.services = serviceRegistry;
+    this.services.initialize();
+    
+    this.auth = new AuthenticationState();
+    this.contentState = new ContentState();
+    
+    this.eventHandler = null;
+    
     this.existingSites = [];
     this.currentSite = null;
     this.isMobile = this.detectMobile();
     this.isTouch = this.detectTouch();
     this.csrfToken = this.generateCSRFToken();
+    
+    this.services.setProgressCallback((message, percentage) => {
+      this.updateDeploymentProgress(message, percentage);
+    });
+    
     this.init();
   }
 
+  get authenticated() { return this.auth.authenticated; }
+  get user() { return this.auth.user; }
+  get token() { return this.auth.token; }
+  get content() { return this.contentState.content; }
+  get repoName() { return this.contentState.repoName; }
+
+  set authenticated(value) { 
+    if (value) {
+    } else {
+      this.auth.clearAuthentication();
+    }
+  }
+  set user(value) { 
+    this.auth.user = value; 
+  }
+  set token(value) { 
+    this.auth.token = value; 
+  }
+  set content(value) { this.contentState.setContent(value); }
+  set repoName(value) { this.contentState.setRepoName(value); }
+
   detectMobile() {
-    // Handle testing environment
     if (
       typeof global !== 'undefined' &&
       global.window &&
@@ -39,7 +69,6 @@ class MDSG {
   }
 
   detectTouch() {
-    // Handle testing environment
     if (typeof global !== 'undefined' && global.window) {
       return 'ontouchstart' in global.window;
     }
@@ -56,15 +85,12 @@ class MDSG {
       this.checkAuth();
       this.setupErrorHandling();
     } catch (error) {
-      console.error('MDSG initialization error:', error);
       this.showFallbackUI();
     }
   }
 
   setupErrorHandling() {
-    // Suppress browser extension errors
     window.addEventListener('error', (event) => {
-      // Ignore extension-related errors
       if (event.filename && (event.filename.includes('extension://') ||
           event.filename.includes('chrome-extension://') ||
           event.filename.includes('moz-extension://'))) {
@@ -91,195 +117,40 @@ class MDSG {
 
   setupUI() {
     const app = document.getElementById('app');
-    const safeHTML = `
-      <div class="container">
-        <header>
-          <h1>📝 MDSG</h1>
-          <p>Create GitHub Pages sites from markdown</p>
-        </header>
-        <main id="main-content">
-          ${this.getLoginUI()}
-        </main>
-      </div>
-    `;
-    MinimalSecurity.sanitizeAndRender(safeHTML, app);
+    const interfaceHTML = UIComponentBuilder.buildMainInterface();
+    MinimalSecurity.sanitizeAndRender(interfaceHTML, app);
+    
+    this.initializeEventSystem();
   }
 
-  getLoginUI() {
-    return `
-      <div class="login-section">
-        <div class="login-header">
-          <h2>🚀 Welcome to MDSG</h2>
-          <p>Create beautiful GitHub Pages sites from markdown</p>
-        </div>
+  initializeEventSystem() {
+    if (typeof process !== 'undefined' && process.env.NODE_ENV === 'test') {
+      return;
+    }
 
-        <div class="login-content">
-          <div class="features-list">
-            <div class="feature-item">
-              <span class="feature-icon">✨</span>
-              <span>Live markdown preview</span>
-            </div>
-            <div class="feature-item">
-              <span class="feature-icon">🔧</span>
-              <span>One-click deployment</span>
-            </div>
-            <div class="feature-item">
-              <span class="feature-icon">🌐</span>
-              <span>Your own GitHub Pages site</span>
-            </div>
-          </div>
+    if (this.eventHandler) {
+      this.eventHandler.cleanup();
+    }
 
-          <div class="login-options">
-            <button id="login-btn" class="primary-btn login-button">
-              <span class="github-icon">🔑</span>
-              Login with GitHub
-            </button>
+    try {
+      this.eventHandler = new EventHandlerService(
+        getAuthService(),
+        getGitHubService(),
+        getDeploymentService(),
+        this.contentState,
+        this
+      );
 
-            <div class="demo-option">
-              <p>Want to try it first?</p>
-              <button id="demo-btn" class="secondary-btn demo-button">
-                <span>🎮</span>
-                Try Demo Mode
-              </button>
-            </div>
-          </div>
+      this.eventHandler.initialize();
 
-          <p class="login-description">
-            Sign in to create your markdown site in minutes
-          </p>
+      this.setupEventBusSubscriptions();
 
-          <div class="security-note">
-            <small>🔒 Secure OAuth authentication • No passwords stored</small>
-          </div>
-        </div>
-      </div>
-    `;
-  }
-
-  getEditorUI() {
-    return `
-      <div class="editor-section">
-        <div class="user-info">
-          <div class="user-profile">
-            <img src="${this.user.avatar_url}" alt="${this.user.login}" class="user-avatar">
-            <div class="user-details">
-              <span class="user-greeting">👋 Hello, <strong>${this.user.name || this.user.login}</strong></span>
-              <span class="user-login">@${this.user.login}</span>
-            </div>
-          </div>
-          <div class="header-actions">
-            <button id="logout-btn" class="secondary-btn logout-button">
-              <span>🚪</span> Logout
-            </button>
-          </div>
-        </div>
-
-        <div class="editor-container">
-          <div class="editor-pane">
-            <div class="editor-header">
-              <h3>📝 Write your markdown</h3>
-              <div class="editor-tools">
-                <button id="clear-btn" class="tool-btn" title="Clear content">🗑️</button>
-                <button id="sample-btn" class="tool-btn" title="Load sample content">📄</button>
-                <span class="word-count" id="word-count">0 words</span>
-              </div>
-            </div>
-            <textarea id="markdown-editor"
-              placeholder="# My Awesome Site
-
-Welcome to my site! This is where you can write your content in markdown.
-
-## Features
-- **Easy editing** with live preview
-- *Markdown* support for formatting
-- \`Code snippets\` and links
-- Lists and much more!
-
-## About Me
-Write something interesting about yourself here...
-
-## Contact
-- Email: your.email@example.com
-- GitHub: [yourusername](https://github.com/yourusername)
-- Website: https://yoursite.com
-
-> Start typing to see the live preview! ✨"
-              spellcheck="true"
-              autocomplete="off"
-              rows="20">${this.content}</textarea>
-            <div class="editor-status">
-              <span class="char-count" id="char-count">0 characters</span>
-              <span class="auto-save-status" id="auto-save-status">Auto-save: Ready</span>
-            </div>
-          </div>
-
-          <div class="preview-pane">
-            <div class="preview-header">
-              <h3>👁️ Live Preview</h3>
-              <div class="preview-tools">
-                <button id="preview-mode" class="tool-btn active" title="Toggle preview mode">📱</button>
-                <button id="fullscreen-preview" class="tool-btn" title="Fullscreen preview">🔍</button>
-              </div>
-            </div>
-            <div id="preview" class="preview-content"></div>
-          </div>
-        </div>
-
-        <div class="actions">
-          <button id="deploy-btn" class="primary-btn">
-            🚀 Deploy to GitHub Pages
-          </button>
-        </div>
-      </div>
-    `;
-  }
-
-  checkAuth() {
-    // Enhanced authentication check with secure token storage
-    const authData = MinimalSecurity.getToken();
-
-    if (authData && authData.token && this.isValidToken(authData.token)) {
-      console.log('Valid secure authentication token found');
-      this.token = authData.token;
-      this.user = authData.user; // Use cached user info if available
-      this.authenticated = true;
-      this.showEditor();
-      return true;
-    } else {
-      // Suppress console message for first-time visitors
-      // console.log('No valid authentication found');
-      this.clearAuthenticationState();
-      this.setupLoginHandler();
-      return false;
+    } catch (error) {
+      this.setupFallbackEventHandlers();
     }
   }
 
-  isValidToken(token) {
-    // Use minimal token validation
-    return MinimalSecurity.validateToken(token);
-  }
-
-  clearAuthenticationState() {
-    // Clear all authentication-related data
-    MinimalSecurity.clearToken();
-
-    // Reset internal state
-    this.authenticated = false;
-    this.user = null;
-    this.token = null;
-  }
-
-  generateCSRFToken() {
-    // Generate a secure random token for CSRF protection
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    let result = '';
-    for (let i = 0; i < 32; i++) {
-      result += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    return result;
-  }
-
-  setupLoginHandler() {
+  setupFallbackEventHandlers() {
     document.getElementById('login-btn')?.addEventListener('click', () => {
       this.loginWithGitHub();
     });
@@ -289,14 +160,183 @@ Write something interesting about yourself here...
     });
   }
 
-  loginWithGitHub() {
-    // Check if we're already authenticated
-    if (this.authenticated) {
-      console.log('User already authenticated');
+  setupEventBusSubscriptions() {
+    if (typeof process !== 'undefined' && process.env.NODE_ENV === 'test') {
       return;
     }
 
-    console.log('Starting GitHub Personal Access Token authentication...');
+    eventBus.on(MDSG_EVENTS.AUTH_LOGIN_SUCCESS, (event) => {
+      this.handleAuthenticationSuccess(event);
+    });
+
+    eventBus.on(MDSG_EVENTS.AUTH_LOGOUT, (event) => {
+      this.handleLogout(event);
+    });
+
+    eventBus.on(MDSG_EVENTS.CONTENT_UPDATED, (event) => {
+      this.handleContentUpdate(event);
+    });
+
+    eventBus.on(MDSG_EVENTS.PREVIEW_UPDATE, (event) => {
+      this.updatePreview();
+    });
+
+    eventBus.on(MDSG_EVENTS.AUTOSAVE_REQUESTED, (event) => {
+      this.autoSave();
+    });
+
+    eventBus.on(MDSG_EVENTS.DEPLOYMENT_START, (event) => {
+      this.handleDeploymentStart(event);
+    });
+
+    eventBus.on(MDSG_EVENTS.DEPLOYMENT_SUCCESS, (event) => {
+      this.handleDeploymentSuccess(event);
+    });
+
+    eventBus.on(MDSG_EVENTS.DEPLOYMENT_ERROR, (event) => {
+      this.handleDeploymentError(event);
+    });
+
+    eventBus.on(MDSG_EVENTS.GLOBAL_ERROR, (event) => {
+      this.handleGlobalError(event);
+    });
+  }
+
+  handleAuthenticationSuccess(event) {
+    this.showEditor();
+  }
+
+  handleLogout(event) {
+    this.clearAuthenticationState();
+    this.setupUI();
+  }
+
+  handleContentUpdate(event) {
+    this.content = event.content;
+    this.updateWordCount();
+  }
+
+  handleDeploymentStart(event) {
+    this.showError('Deploying to GitHub Pages...', 'info');
+  }
+
+  handleDeploymentSuccess(event) {
+    this.showError('Site deployed successfully!', 'success');
+  }
+
+  handleDeploymentError(event) {
+    this.showError(`Deployment failed: ${event.error}`, 'error');
+  }
+
+  handleGlobalError(event) {
+    this.showError('An unexpected error occurred', 'error');
+  }
+
+  showMainInterface() {
+    this.showEditor();
+  }
+
+  showWelcomeScreen() {
+    this.setupUI();
+  }
+
+  clearEditor() {
+    const editor = document.getElementById('markdown-editor');
+    if (editor) {
+      editor.value = '';
+      this.content = '';
+      this.updatePreview();
+      this.updateWordCount();
+    }
+  }
+
+  updateEditorContent() {
+    const editor = document.getElementById('markdown-editor');
+    if (editor) {
+      editor.value = this.contentState.content;
+      this.content = this.contentState.content;
+      this.updatePreview();
+      this.updateWordCount();
+    }
+  }
+
+  togglePreviewMode() {
+    this.toggleMobilePreview();
+  }
+
+  toggleFullscreenPreview() {
+    this.toggleFullscreen();
+  }
+
+  resetForNewSite() {
+    this.content = '';
+    this.clearEditor();
+    this.setupUI();
+  }
+
+  showErrorMessage(message, type = 'error', duration = 5000) {
+    this.showError(message, type, duration);
+  }
+
+  getLoginUI() {
+    return UIComponentBuilder.buildLoginInterface();
+  }
+
+  getEditorUI() {
+    return UIComponentBuilder.buildEditorInterface(this.auth.user, this.contentState.content);
+  }
+
+  checkAuth() {
+    const authService = getAuthService();
+    
+    if (authService.isAuthenticated()) {
+      const user = authService.getCurrentUser();
+      const token = authService.getCurrentToken();
+      
+      this.auth.setAuthenticated(user, token);
+      this.authenticated = true;
+      this.user = user;
+      this.token = token;
+      
+      this.showEditor();
+      return true;
+    } else {
+      this.clearAuthenticationState();
+      this.setupLoginHandler();
+      return false;
+    }
+  }
+
+  isValidToken(token) {
+    const authService = getAuthService();
+    return authService.isValidToken(token);
+  }
+
+  clearAuthenticationState() {
+    const authService = getAuthService();
+    authService.logout();
+
+    this.auth.clearAuthentication();
+    this.authenticated = false;
+  }
+
+  generateCSRFToken() {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    let result = '';
+    for (let i = 0; i < 32; i++) {
+      result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return result;
+  }
+
+  setupLoginHandler() {
+  }
+
+  loginWithGitHub() {
+    if (this.authenticated) {
+      return;
+    }
+
     this.showTokenInput();
   }
 
@@ -371,36 +411,14 @@ Write something interesting about yourself here...
       </div>
     `;
 
-    // Setup event handlers
-    document.getElementById('save-token')?.addEventListener('click', () => {
-      this.savePersonalToken();
-    });
-
-    document.getElementById('cancel-token')?.addEventListener('click', () => {
-      this.cancelAuthentication();
-    });
-
-    // Render the token input UI securely
     const mainContent = document.getElementById('main-content');
     if (mainContent) {
       MinimalSecurity.sanitizeAndRender(tokenInputHTML, mainContent);
     }
 
-    // Setup event handlers after rendering
-    document.getElementById('save-token')?.addEventListener('click', () => {
-      this.savePersonalToken();
-    });
-
-    document.getElementById('cancel-token')?.addEventListener('click', () => {
-      this.cancelAuthentication();
-    });
-
-    // Enter key to save
-    document.getElementById('token-input')?.addEventListener('keypress', e => {
-      if (e.key === 'Enter') {
-        this.savePersonalToken();
-      }
-    });
+    if (this.eventHandler) {
+      this.eventHandler.reinitialize();
+    }
   }
 
   async savePersonalToken() {
@@ -408,7 +426,6 @@ Write something interesting about yourself here...
     const saveButton = document.getElementById('save-token');
     const token = tokenInput?.value.trim();
 
-    // Enhanced form validation
     if (!token) {
       this.showError('Please enter a valid GitHub token');
       tokenInput?.focus();
@@ -435,51 +452,33 @@ Write something interesting about yourself here...
       return;
     }
 
-    // Disable button during validation
     if (saveButton) {
       saveButton.disabled = true;
       saveButton.textContent = '🔄 Validating...';
     }
 
     try {
-      // Test the token by fetching user data
       this.showLoading('Signing you in...');
-
-      // Fetch user data first to validate token
-      const response = await fetch('https://api.github.com/user', {
-        headers: {
-          Authorization: `token ${token}`,
-          Accept: 'application/vnd.github+json',
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`Authentication failed: ${response.status}`);
-      }
-
-      const userData = await response.json();
-
-      // Store token securely with user info
-      const stored = MinimalSecurity.storeToken(token, userData);
-      if (!stored) {
-        throw new Error('Failed to store authentication token securely');
-      }
-
+      
+      const authService = getAuthService();
+      const userData = await authService.validateTokenWithGitHub(token);
+      
+      authService.setAuthenticated(userData, token);
+      
+      this.auth.setAuthenticated(userData, token);
       this.token = token;
       this.user = userData;
       this.authenticated = true;
+      
       this.showEditor();
     } catch (error) {
-      // Clear any potentially stored token on error
-      MinimalSecurity.clearToken();
-
-      // Enhanced error handling with retry option
-      const errorMsg = this.getTokenErrorMessage(error);
+      const authService = getAuthService();
+      const errorMsg = authService.getAuthenticationErrorMessage(error);
+      
       this.showErrorWithRetry(errorMsg, () => {
         this.showTokenInput();
       });
     } finally {
-      // Re-enable button
       if (saveButton) {
         saveButton.disabled = false;
         saveButton.textContent = '🚀 Continue';
@@ -500,32 +499,18 @@ Write something interesting about yourself here...
   }
 
   cancelAuthentication() {
-    console.log('Authentication cancelled by user');
     this.setupUI();
   }
 
   startDemoMode() {
-    console.log('Starting demo mode...');
-
-    // Create mock user for demo
-    this.user = {
-      login: 'demo-user',
-      name: 'Demo User',
-      avatar_url: 'https://github.com/github.png',
-      html_url: 'https://github.com/demo-user',
-      email: 'demo@example.com',
-      displayName: 'Demo User',
-      avatarUrl: 'https://github.com/github.png',
-      profileUrl: 'https://github.com/demo-user',
-      tokenValid: true,
-      lastAuthenticated: new Date().toISOString(),
-      demoMode: true,
-    };
-
+    const authService = getAuthService();
+    const demoUser = authService.setDemoMode();
+    
+    this.auth.setAuthenticated(demoUser, 'demo-token');
+    this.user = demoUser;
     this.authenticated = true;
 
-    // Load sample content
-    this.content = `# Welcome to MDSG Demo! 🚀
+    const sampleContent = `# Welcome to MDSG Demo! 🚀
 
 ## What is MDSG?
 
@@ -552,17 +537,14 @@ Create lists:
 - First item
 - Second item
 - Third item
-
-Add code: \`console.log('Hello World!')\`
-
 > This is a blockquote - perfect for highlighting important information!
 
 *Happy creating with MDSG!* 🎉`;
 
-    const editor = document.getElementById('markdown-editor');
-    if (editor) {
-      editor.value = this.content;
-    }
+    this.contentState.setContent(sampleContent);
+    this.content = sampleContent;
+
+    this.showEditor();
     this.updatePreview();
     this.updateWordCount();
   }
@@ -571,7 +553,6 @@ Add code: \`console.log('Hello World!')\`
     try {
       this.showLoading('Fetching user profile...');
 
-      // Fetch user profile from GitHub API
       const response = await fetch('https://api.github.com/user', {
         headers: {
           Authorization: `token ${token}`,
@@ -583,24 +564,19 @@ Add code: \`console.log('Hello World!')\`
       if (response.ok) {
         const userData = await response.json();
 
-        // Enhance user data with additional information
         this.user = {
           ...userData,
-          // Add computed properties for easier access
           displayName: userData.name || userData.login,
           avatarUrl: userData.avatar_url,
           profileUrl: userData.html_url,
-          // Token information
           tokenValid: true,
           lastAuthenticated: new Date().toISOString(),
         };
 
-        console.log('User authenticated successfully:', this.user.login);
         this.authenticated = true;
         this.showEditor();
       } else {
         const errorData = await response.json().catch(() => ({}));
-        console.error('GitHub API error:', response.status, errorData);
 
         if (response.status === 401) {
           this.handleAuthError(
@@ -615,7 +591,6 @@ Add code: \`console.log('Hello World!')\`
         }
       }
     } catch (error) {
-      console.error('Auth error:', error);
       this.handleAuthError('Network error during authentication');
     }
   }
@@ -628,110 +603,6 @@ Add code: \`console.log('Hello World!')\`
   }
 
   setupEditorHandlers() {
-    const editor = document.getElementById('markdown-editor');
-    const deployBtn = document.getElementById('deploy-btn');
-    const logoutBtn = document.getElementById('logout-btn');
-    const clearBtn = document.getElementById('clear-btn');
-    const sampleBtn = document.getElementById('sample-btn');
-    const previewMode = document.getElementById('preview-mode');
-    const fullscreenPreview = document.getElementById('fullscreen-preview');
-
-    // Main editor input handler with debouncing and validation
-    let inputTimer;
-    let validationTimer;
-    editor?.addEventListener('input', e => {
-      this.content = e.target.value;
-      this.updateWordCount();
-      this.updatePreview();
-
-      // Real-time validation with debouncing
-      clearTimeout(validationTimer);
-      validationTimer = setTimeout(() => {
-        this.validateContent();
-      }, 500);
-
-      // Auto-save with debouncing
-      clearTimeout(inputTimer);
-      inputTimer = setTimeout(() => {
-        this.autoSave();
-      }, 1000);
-    });
-
-    // Keyboard shortcuts
-    editor?.addEventListener('keydown', e => {
-      if (e.ctrlKey || e.metaKey) {
-        switch (e.key) {
-          case 's':
-            e.preventDefault();
-            this.autoSave();
-            break;
-          case 'b':
-            e.preventDefault();
-            this.insertMarkdown('**', '**', 'bold text');
-            break;
-          case 'i':
-            e.preventDefault();
-            this.insertMarkdown('*', '*', 'italic text');
-            break;
-        }
-      }
-
-      // Tab handling for code blocks
-      if (e.key === 'Tab') {
-        e.preventDefault();
-        const start = e.target.selectionStart;
-        const end = e.target.selectionEnd;
-        e.target.value =
-          e.target.value.substring(0, start) +
-          '    ' +
-          e.target.value.substring(end);
-        e.target.selectionStart = e.target.selectionEnd = start + 4;
-        this.content = e.target.value;
-        this.updatePreview();
-      }
-    });
-
-    // Tool buttons
-    clearBtn?.addEventListener('click', () => {
-      // Enhanced confirmation with content length check
-      const contentLength = this.content.trim().length;
-      const confirmMessage =
-        contentLength > 100
-          ? `Are you sure you want to clear ${contentLength} characters of content? This cannot be undone.`
-          : 'Are you sure you want to clear all content?';
-
-      if (confirm(confirmMessage)) {
-        this.content = '';
-        editor.value = '';
-        this.updatePreview();
-        this.updateWordCount();
-
-        // Show success feedback
-        this.showError('Content cleared successfully', 'success');
-      }
-    });
-
-    sampleBtn?.addEventListener('click', () => {
-      this.loadSampleContent();
-    });
-
-    previewMode?.addEventListener('click', () => {
-      this.togglePreviewMode();
-    });
-
-    fullscreenPreview?.addEventListener('click', () => {
-      this.toggleFullscreenPreview();
-    });
-
-    deployBtn?.addEventListener('click', () => {
-      this.deployToGitHub();
-    });
-
-    logoutBtn?.addEventListener('click', () => {
-      this.logout();
-    });
-
-    // Load saved content if available
     this.loadSavedContent();
   }
 
@@ -759,126 +630,16 @@ Add code: \`console.log('Hello World!')\`
         preview.innerHTML = sanitizedHTML;
       }
 
-      // Scroll preview to match editor scroll position
       this.syncPreviewScroll();
     }
   }
 
   markdownToHTML(markdown) {
     if (!markdown) return '';
-
-    // Note: We'll sanitize the HTML output, not the markdown input
-    // This allows DOMPurify to properly handle mixed content
-
-    // Enhanced markdown parsing with better regex patterns
-    let html = markdown;
-
-    // Code blocks (must be processed first)
-    html = html.replace(/```([^`]*?)```/gs, '<pre><code>$1</code></pre>');
-
-    // Headers (with ID generation for links)
-    html = html.replace(/^### (.*$)/gm, (match, text) => {
-      const id = text
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/^-+|-+$/g, '');
-      return `<h3 id="${id}">${text}</h3>`;
-    });
-    html = html.replace(/^## (.*$)/gm, (match, text) => {
-      const id = text
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/^-+|-+$/g, '');
-      return `<h2 id="${id}">${text}</h2>`;
-    });
-    html = html.replace(/^# (.*$)/gm, (match, text) => {
-      const id = text
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/^-+|-+$/g, '');
-      return `<h1 id="${id}">${text}</h1>`;
-    });
-
-    // Horizontal rules
-    html = html.replace(/^---$/gm, '<hr>');
-
-    // Blockquotes
-    html = html.replace(/^> (.*$)/gm, '<blockquote>$1</blockquote>');
-
-    // Lists (improved handling)
-    html = html.replace(/^[*\-+] (.+$)/gm, '<li>$1</li>');
-    html = html.replace(/^(\d+)\. (.+$)/gm, '<oli>$2</oli>');
-
-    // Group consecutive list items
-    html = html.replace(/(<li>.*?<\/li>)(\n<li>.*?<\/li>)*/gs, '<ul>$&</ul>');
-    html = html.replace(
-      /(<oli>.*?<\/oli>)(\n<oli>.*?<\/oli>)*/gs,
-      '<ol>$&</ol>',
-    );
-    html = html.replace(/<oli>/g, '<li>').replace(/<\/oli>/g, '</li>');
-
-    // Text formatting
-    html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-    html = html.replace(/(?<!\*)\*([^*]+)\*(?!\*)/g, '<em>$1</em>');
-    html = html.replace(/~~(.*?)~~/g, '<del>$1</del>');
-    html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
-
-    // Links and images (process before paragraphs to avoid nesting)
-    // Process images FIRST to avoid conflicts with link processing
-    html = html.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (match, alt, src) => {
-      // Validate image URLs for security
-      if (src.match(/^(javascript:|vbscript:|data:)/i)) {
-        return `![${alt}](#invalid-url)`;
-      }
-      return `<img src="${src}" alt="${alt}" loading="lazy" />`;
-    });
-
-    // Process links AFTER images
-    html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (match, text, href) => {
-      // Validate link URLs for security
-      if (href.match(/^(javascript:|vbscript:|data:)/i)) {
-        return text; // Just return the text without the link
-      }
-      return `<a href="${href}" target="_blank" rel="noopener noreferrer">${text}</a>`;
-    });
-
-    // Auto-link standalone URLs (simple approach)
-    html = html.replace(
-      /\b(https?:\/\/[^\s<]+)(?![^<]*<\/a>)/g,
-      '<a href="$1" target="_blank" rel="noopener">$1</a>',
-    );
-
-    // Email links (simple approach)
-    html = html.replace(
-      /\b([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})\b(?![^<]*<\/a>)/g,
-      '<a href="mailto:$1">$1</a>',
-    );
-
-    // Paragraphs (process after links)
-    html = html.replace(/\n\s*\n/g, '</p><p>');
-    html = html.replace(/^(.)/gm, '<p>$1');
-    html = html.replace(/(.*)$/gm, '$1</p>');
-
-    // Clean up
-    html = html.replace(/<p><\/p>/g, '');
-    html = html.replace(/<p>(<h[1-6][^>]*>.*?<\/h[1-6]>)<\/p>/g, '$1');
-    html = html.replace(/<p>(<ul>.*?<\/ul>)<\/p>/gs, '$1');
-    html = html.replace(/<p>(<ol>.*?<\/ol>)<\/p>/gs, '$1');
-    html = html.replace(/<p>(<blockquote>.*?<\/blockquote>)<\/p>/g, '$1');
-    html = html.replace(/<p>(<pre>.*?<\/pre>)<\/p>/gs, '$1');
-    html = html.replace(/<p>(<hr>)<\/p>/g, '$1');
-
-    // Final security check - ensure all attributes are safe
-    html = html.replace(/(<img[^>]+)(?=\s)/g, match => {
-      // Ensure images have loading="lazy" and safe attributes only
-      if (!match.includes('loading=')) {
-        return match + ' loading="lazy"';
-      }
-      return match;
-    });
-
-    // Apply security sanitization and return
-    return MinimalSecurity.sanitizeHTML(html);
+    
+    const processedHTML = MarkdownProcessor.process(markdown);
+    
+    return MinimalSecurity.sanitizeHTML(processedHTML);
   }
 
   updateWordCount() {
@@ -916,7 +677,6 @@ Add code: \`console.log('Hello World!')\`
         throw new Error('Content validation failed');
       }
     } catch (error) {
-      console.error('Auto-save failed:', error);
       const status = document.getElementById('auto-save-status');
       if (status) {
         status.textContent = 'Auto-save: Failed';
@@ -936,10 +696,8 @@ Add code: \`console.log('Hello World!')\`
         }
         this.updatePreview();
         this.updateWordCount();
-        console.log('Content loaded and validated');
       }
     } catch (error) {
-      console.error('Failed to load saved content:', error);
     }
   }
 
@@ -947,7 +705,6 @@ Add code: \`console.log('Hello World!')\`
     const statusElement = document.getElementById('auto-save-status');
     if (!statusElement) return true;
 
-    // Use minimal content validation
     const isValid = MinimalSecurity.validateContent(this.content);
 
     if (!isValid) {
@@ -958,10 +715,9 @@ Add code: \`console.log('Hello World!')\`
       return false;
     }
 
-    // Show appropriate status based on content length
     if (this.content.length === 0) {
       this.showValidationStatus('Write some content to get started', 'info');
-    } else if (this.content.length > 500000) { // 500KB
+    } else if (this.content.length > 500000) {
       this.showValidationStatus('Large content - may take time to deploy', 'warning');
     } else {
       this.showValidationStatus(
@@ -979,7 +735,6 @@ Add code: \`console.log('Hello World!')\`
 
     statusElement.textContent = message;
 
-    // Remove existing validation classes
     statusElement.classList.remove(
       'validation-info',
       'validation-warning',
@@ -987,7 +742,6 @@ Add code: \`console.log('Hello World!')\`
       'validation-error',
     );
 
-    // Add appropriate class
     switch (type) {
       case 'info':
         statusElement.classList.add('validation-info');
@@ -1003,7 +757,6 @@ Add code: \`console.log('Hello World!')\`
         break;
     }
 
-    // Reset to auto-save status after 5 seconds for errors, 3 seconds for others
     const resetTime = type === 'error' ? 5000 : 3000;
     setTimeout(() => {
       if (statusElement.textContent === message) {
@@ -1051,7 +804,6 @@ Inline \`code\` looks like this, and code blocks:
 
 \`\`\`javascript
 function hello() {
-    console.log("Hello, world!");
 }
 \`\`\`
 
@@ -1103,7 +855,6 @@ Start editing this content to create your own site. The preview updates as you t
     editor.value =
       editor.value.substring(0, start) + newText + editor.value.substring(end);
 
-    // Set cursor position
     const newCursorPos = start + before.length + replacement.length;
     editor.selectionStart = editor.selectionEnd = newCursorPos;
 
@@ -1161,7 +912,6 @@ Start editing this content to create your own site. The preview updates as you t
       return;
     }
 
-    // Additional validation
     if (this.content.length > 100000) {
       this.showError(
         'Content is too large. Please reduce the content size to under 100KB.',
@@ -1169,7 +919,6 @@ Start editing this content to create your own site. The preview updates as you t
       return;
     }
 
-    // Prompt for repository name if not set
     if (!this.repoName) {
       const timestamp = Date.now().toString().slice(-6);
       const defaultName = `mdsg-site-${timestamp}`;
@@ -1179,10 +928,9 @@ Start editing this content to create your own site. The preview updates as you t
       );
 
       if (!repoName) {
-        return; // User cancelled
+        return;
       }
 
-      // Validate repository name using minimal validator
       if (!MinimalSecurity.validateRepoName(repoName)) {
         this.showError('Repository name validation failed: Invalid characters or length');
         return;
@@ -1195,242 +943,51 @@ Start editing this content to create your own site. The preview updates as you t
     const originalText = deployBtn.textContent;
     deployBtn.disabled = true;
 
-    // Show detailed progress
     this.showDeploymentProgress('Preparing deployment...');
 
     try {
-      // Step 1: Create repository
-      this.updateDeploymentProgress('Creating GitHub repository...', 25);
-      deployBtn.textContent = '⏳ Creating repository...';
-      const repo = await this.createRepository();
+      const deploymentService = getDeploymentService();
+      
+      const siteInfo = await deploymentService.deployToGitHubPages(
+        this.content,
+        this.repoName,
+        {
+          description: `My markdown site created with MDSG on ${new Date().toLocaleDateString()}`,
+          autoNaming: true
+        }
+      );
 
-      // Step 2: Upload content
-      this.updateDeploymentProgress('Uploading your content...', 50);
-      deployBtn.textContent = '⏳ Uploading content...';
-      await this.uploadContent(repo.name);
-
-      // Step 3: Enable GitHub Pages
-      this.updateDeploymentProgress('Enabling GitHub Pages...', 75);
-      deployBtn.textContent = '⏳ Enabling GitHub Pages...';
-      await this.enableGitHubPages(repo.name);
-
-      // Step 4: Complete
-      this.updateDeploymentProgress('Deployment complete!', 100);
       deployBtn.textContent = '✅ Deployed!';
-
       setTimeout(() => {
-        this.showSuccess(repo);
+        this.showSuccessFromSiteInfo(siteInfo);
       }, 1000);
+      
     } catch (error) {
-      console.error('Deployment error:', error);
       this.hideDeploymentProgress();
-
-      let errorMessage = 'Deployment failed';
-      let errorDetails = error.message;
-
-      if (error.message.includes('Authentication failed')) {
-        errorMessage = 'Authentication expired';
-        errorDetails =
-          'Please log out and log in again to refresh your credentials.';
-      } else if (error.message.includes('rate limit')) {
-        errorMessage = 'GitHub API rate limit exceeded';
-        errorDetails = 'Please wait a few minutes and try again.';
-      } else if (error.message.includes('Permission denied')) {
-        errorMessage = 'Permission denied';
-        errorDetails =
-          'Please make sure you granted repository access during login.';
-      } else if (error.message.includes('repository limit')) {
-        errorMessage = 'Repository limit reached';
-        errorDetails =
-          'You may have reached your GitHub repository limit for this account.';
-      } else if (error.message.includes('Unable to create repository after')) {
-        errorMessage = 'Repository naming conflict';
-        errorDetails =
-          'Multiple repositories with similar names exist. Please delete some old MDSG repositories.';
-      }
-
-      this.showError(`${errorMessage}: ${errorDetails}`);
+      
+      this.showError(error.message);
     } finally {
       deployBtn.textContent = originalText;
       deployBtn.disabled = false;
     }
   }
-
-  async createRepository() {
-    const token = MinimalSecurity.getToken()?.token;
-    if (!token) {
-      throw new Error('No authentication token available');
-    }
-    const baseRepoName = this.repoName || 'mdsg-site';
-    let attempt = 0;
-    const maxAttempts = 10;
-
-    while (attempt < maxAttempts) {
-      const currentRepoName =
-        attempt === 0 ? baseRepoName : `${baseRepoName}-${attempt}`;
-
-      console.log(`Attempting to create repository: ${currentRepoName}`);
-
-      // Validate origin for security (CSRF protection)
-      if (!MinimalSecurity.validateOrigin('https://mdsg.daza.ar')) {
-        console.warn('Invalid origin detected for repository creation');
-      }
-
-      const response = await fetch('https://api.github.com/user/repos', {
-        method: 'POST',
-        headers: {
-          Authorization: `token ${token}`,
-          Accept: 'application/vnd.github.v3+json',
-          'Content-Type': 'application/json',
-          'User-Agent': 'MDSG-App',
-        },
-        body: JSON.stringify({
-          name: currentRepoName,
-          description: `My markdown site created with MDSG on ${new Date().toLocaleDateString()}`,
-          auto_init: true,
-          public: true,
-          has_issues: false,
-          has_projects: false,
-          has_wiki: false,
-        }),
-      });
-
-      if (response.ok) {
-        const repo = await response.json();
-        console.log(`Repository created successfully: ${repo.name}`);
-        return repo;
-      }
-
-      const errorData = await response.json().catch(() => ({}));
-      console.log('Repository creation error:', {
-        status: response.status,
-        statusText: response.statusText,
-        errorData: errorData,
-      });
-
-      // Handle specific error cases for repository name conflicts
-      if (response.status === 422) {
-        // Check for repository already exists error
-        if (errorData.errors) {
-          const nameError = errorData.errors.find(
-            err => err.resource === 'Repository' && err.field === 'name',
-          );
-          if (nameError && nameError.code === 'already_exists') {
-            console.log(
-              `Repository ${currentRepoName} already exists, trying next name...`,
-            );
-            attempt++;
-            continue;
-          }
-        }
-
-        // Check for error message indicating repository exists
-        if (
-          errorData.message &&
-          (errorData.message.includes('already exists') ||
-            errorData.message.includes('name already exists'))
-        ) {
-          console.log(
-            `Repository ${currentRepoName} already exists, trying next name...`,
-          );
-          attempt++;
-          continue;
-        }
-
-        // Other 422 errors - provide more detailed feedback
-        const message = errorData.message || 'Invalid repository configuration';
-        const details = errorData.errors
-          ? JSON.stringify(errorData.errors)
-          : '';
-        throw new Error(
-          `Repository creation failed: ${message}${details ? '. Details: ' + details : ''}`,
-        );
-      }
-
-      // Handle other errors
-      if (response.status === 401) {
-        throw new Error('Authentication failed. Please login again.');
-      } else if (response.status === 403) {
-        throw new Error(
-          'Permission denied. You may have reached your repository limit.',
-        );
-      } else {
-        const message = errorData.message || response.statusText;
-        throw new Error(
-          `Failed to create repository (${response.status}): ${message}`,
-        );
-      }
-    }
-
-    throw new Error(
-      `Unable to create repository after ${maxAttempts} attempts. Please try a different name.`,
-    );
-  }
-
-  async uploadContent(repoName) {
-    const token = MinimalSecurity.getToken()?.token;
-    if (!token) {
-      throw new Error('No authentication token available');
-    }
-
-    // Generate enhanced HTML content with better styling
-    const htmlContent = this.generateSiteHTML();
-
-    console.log(`Uploading content to repository: ${repoName}`);
-
-    // Validate origin for security (CSRF protection)
-    if (!MinimalSecurity.validateOrigin('https://mdsg.daza.ar')) {
-      console.warn('Invalid origin detected for content upload');
-    }
-
-    const response = await fetch(
-      `https://api.github.com/repos/${this.user.login}/${repoName}/contents/index.html`,
-      {
-        method: 'PUT',
-        headers: {
-          Authorization: `token ${token}`,
-          Accept: 'application/vnd.github.v3+json',
-          'Content-Type': 'application/json',
-          'User-Agent': 'MDSG-App',
-        },
-        body: JSON.stringify({
-          message: 'Add site content via MDSG',
-          content: this.encodeBase64Unicode(htmlContent),
-          committer: {
-            name: this.user.name || this.user.login,
-            email:
-              this.user.email || `${this.user.login}@users.noreply.github.com`,
-          },
-        }),
-      },
-    );
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-
-      if (response.status === 401) {
-        throw new Error('Authentication failed. Please login again.');
-      } else if (response.status === 403) {
-        throw new Error(
-          'Permission denied. You may not have write access to this repository.',
-        );
-      } else if (response.status === 404) {
-        throw new Error('Repository not found. It may have been deleted.');
-      } else if (response.status === 409) {
-        throw new Error('File already exists. Please try again.');
-      } else {
-        const message = errorData.message || 'Unknown error occurred';
-        throw new Error(`Failed to upload content: ${message}`);
-      }
-    }
-
-    const result = await response.json();
-    console.log('Content uploaded successfully');
-    return result;
+  escapeHtml(text) {
+    return MinimalSecurity.escapeText(text);
   }
 
   generateSiteHTML() {
-    // Extract title from content or use repo name
+    try {
+      const deploymentService = getDeploymentService();
+      return deploymentService.generateSiteHTML(this.content);
+    } catch (error) {
+      if (error.message.includes('User information required')) {
+        return this.generateBasicHTML();
+      }
+      throw error;
+    }
+  }
+
+  generateBasicHTML() {
     const titleMatch = this.content.match(/^#\s+(.+)$/m);
     const siteTitle = this.repoName || (titleMatch ? titleMatch[1] : 'My Site');
 
@@ -1440,133 +997,16 @@ Start editing this content to create your own site. The preview updates as you t
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>${MinimalSecurity.escapeText(siteTitle)}</title>
-    <meta name="description" content="A beautiful site created with MDSG">
-    <meta name="generator" content="MDSG - Markdown Site Generator">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.2.0/github-markdown-light.min.css" integrity="sha384-EO78zcRLJOWOYmZKYbYhPIHo53ToVMiu54zJoucRPfThAtC6Y5VNw4aT3GTnkaP+" crossorigin="anonymous">
-    <script>
-        // SRI Fallback: Check if CDN CSS loaded, provide fallback if not
-        window.addEventListener('load', function() {
-            const link = document.querySelector('link[href*="github-markdown-css"]');
-            if (link) {
-                link.onerror = function() {
-                    console.warn('CDN CSS failed to load, using fallback styles');
-                    const fallbackStyle = document.createElement('style');
-                    fallbackStyle.textContent = \`
-                        .markdown-body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; line-height: 1.6; }
-                        .markdown-body h1, .markdown-body h2, .markdown-body h3 { margin-top: 1.5em; margin-bottom: 0.5em; font-weight: 600; }
-                        .markdown-body p { margin-bottom: 1em; }
-                        .markdown-body code { padding: 0.2em 0.4em; background-color: #f6f8fa; border-radius: 3px; }
-                        .markdown-body pre { background-color: #f6f8fa; padding: 1em; border-radius: 6px; overflow-x: auto; }
-                    \`;
-                    document.head.appendChild(fallbackStyle);
-                };
-            }
-        });
-    </script>
-    <style>
-        body {
-            box-sizing: border-box;
-            min-width: 200px;
-            max-width: 980px;
-            margin: 0 auto;
-            padding: 45px;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif;
-            line-height: 1.6;
-            color: #24292f;
-            background-color: #ffffff;
-        }
-
-        @media (max-width: 767px) {
-            body {
-                padding: 15px;
-            }
-        }
-
-        .markdown-body {
-            box-sizing: border-box;
-            min-width: 200px;
-        }
-
-        .site-header {
-            text-align: center;
-            border-bottom: 1px solid #d0d7de;
-            padding-bottom: 2rem;
-            margin-bottom: 2rem;
-        }
-
-        .site-footer {
-            margin-top: 3rem;
-            padding-top: 2rem;
-            border-top: 1px solid #d0d7de;
-            text-align: center;
-            color: #656d76;
-            font-size: 0.9rem;
-        }
-
-        .site-footer a {
-            color: #0969da;
-            text-decoration: none;
-        }
-
-        .site-footer a:hover {
-            text-decoration: underline;
-        }
-
-        /* Enhanced styling for better visual appeal */
-        .markdown-body h1, .markdown-body h2, .markdown-body h3 {
-            margin-top: 2rem;
-            margin-bottom: 1rem;
-        }
-
-        .markdown-body h1:first-child {
-            margin-top: 0;
-        }
-
-        .markdown-body blockquote {
-            background: #f6f8fa;
-            border-radius: 6px;
-            padding: 1rem;
-        }
-
-        .markdown-body pre {
-            background: #f6f8fa !important;
-            border-radius: 6px;
-        }
-
-        .markdown-body img {
-            border-radius: 6px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        }
-    </style>
 </head>
 <body>
-    <div class="site-header">
-        <h1>${MinimalSecurity.escapeText(siteTitle)}</h1>
-        <p>Created with ❤️ using MDSG</p>
-    </div>
-
-    <article class="markdown-body">
-        ${this.markdownToHTML(this.content)}
-    </article>
-
-    <footer class="site-footer">
-        <p>
-            Generated with <a href="https://mdsg.daza.ar" target="_blank" rel="noopener">MDSG</a> •
-            <a href="https://github.com/${this.user?.login || 'unknown'}" target="_blank" rel="noopener">${this.user?.login || 'Unknown User'}</a> •
-            ${new Date().toLocaleDateString()}
-        </p>
-    </footer>
+<article class="markdown-body">
+${this.markdownToHTML(this.content)}
+</article>
 </body>
 </html>`;
   }
 
-  // Legacy escapeHtml method - now using MinimalSecurity.escapeText
-  escapeHtml(text) {
-    return MinimalSecurity.escapeText(text);
-  }
-
   encodeBase64Unicode(str) {
-    // Handle Unicode characters by converting to UTF-8 bytes first
     return btoa(
       encodeURIComponent(str).replace(
         /%([0-9A-F]{2})/g,
@@ -1576,45 +1016,6 @@ Start editing this content to create your own site. The preview updates as you t
       ),
     );
   }
-
-  async enableGitHubPages(repoName) {
-    const token = MinimalSecurity.getToken()?.token;
-    if (!token) {
-      throw new Error('No authentication token available');
-    }
-
-    // Validate origin for security (CSRF protection)
-    if (!MinimalSecurity.validateOrigin('https://mdsg.daza.ar')) {
-      console.warn('Invalid origin detected for GitHub Pages operation');
-    }
-
-    const response = await fetch(
-      `https://api.github.com/repos/${this.user.login}/${repoName}/pages`,
-      {
-        method: 'POST',
-        headers: {
-          Authorization: `token ${token}`,
-          Accept: 'application/vnd.github+json',
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          source: {
-            branch: 'main',
-            path: '/',
-          },
-        }),
-      },
-    );
-
-    if (!response.ok && response.status !== 409) {
-      // 409 means already enabled
-      const errorData = await response.json();
-      throw new Error(
-        `Failed to enable GitHub Pages: ${errorData.message || response.status}`,
-      );
-    }
-  }
-
   showDeploymentProgress(message) {
     const mainContent = document.getElementById('main-content');
     const progressHTML = `
@@ -1661,7 +1062,6 @@ Start editing this content to create your own site. The preview updates as you t
     if (progressFill) progressFill.style.width = `${percentage}%`;
     if (progressPercentage) progressPercentage.textContent = `${percentage}%`;
 
-    // Update step indicators
     const stepNumber = Math.ceil(percentage / 25);
     for (let i = 1; i <= stepNumber && i <= 4; i++) {
       const step = document.getElementById(`step-${i}`);
@@ -1670,7 +1070,6 @@ Start editing this content to create your own site. The preview updates as you t
   }
 
   hideDeploymentProgress() {
-    // Progress will be hidden when error is shown or success is displayed
   }
 
   showSuccess(repo) {
@@ -1733,29 +1132,85 @@ Start editing this content to create your own site. The preview updates as you t
       </div>
     `;
 
-    // Render the success UI securely
     const mainContent = document.getElementById('main-content');
     if (mainContent) {
       MinimalSecurity.sanitizeAndRender(successHTML, mainContent);
     }
 
-    // Setup event handler after rendering
-    document.getElementById('create-another')?.addEventListener('click', () => {
-      this.content = '';
-      this.showEditor();
-    });
+    if (this.eventHandler) {
+      this.eventHandler.reinitialize();
+    }
+  }
+
+  showSuccessFromSiteInfo(siteInfo) {
+    const successHTML = `
+      <div class="success-section">
+        <div class="success-header">
+          <h2>🎉 Site Deployed Successfully!</h2>
+          <p>Your markdown site is now live on GitHub Pages!</p>
+        </div>
+
+        <div class="site-info">
+          <div class="site-url">
+            <label>🌐 Live Site URL:</label>
+            <a href="${siteInfo.url}" target="_blank" class="site-link">
+              ${siteInfo.url}
+            </a>
+          </div>
+
+          <div class="repo-info">
+            <label>📁 Repository:</label>
+            <a href="${siteInfo.repoUrl}" target="_blank" class="repo-link">
+              ${siteInfo.repoUrl.replace('https://github.com/', '')}
+            </a>
+          </div>
+        </div>
+
+        <div class="deployment-stats">
+          <div class="stat">
+            <span class="stat-label">Repository Created:</span>
+            <span class="stat-value">✅ ${siteInfo.name}</span>
+          </div>
+          <div class="stat">
+            <span class="stat-label">Deployment Time:</span>
+            <span class="stat-value">🚀 ${new Date(siteInfo.deployedAt).toLocaleTimeString()}</span>
+          </div>
+        </div>
+
+        <div class="success-note">
+          <p><strong>⏰ Please note:</strong> It may take 1-2 minutes for your site to be fully available.</p>
+          <p>GitHub Pages needs time to build and deploy your site.</p>
+        </div>
+
+        <div class="success-actions">
+          <a href="${siteInfo.url}" target="_blank" class="primary-btn">
+            🌐 View Live Site
+          </a>
+          <a href="${siteInfo.repoUrl}" target="_blank" class="secondary-btn">
+            📁 View Repository
+          </a>
+          <button id="create-another" class="secondary-btn">✨ Create Another Site</button>
+        </div>
+      </div>
+    `;
+
+    const mainContent = document.getElementById('main-content');
+    if (mainContent) {
+      MinimalSecurity.sanitizeAndRender(successHTML, mainContent);
+    }
+
+    if (this.eventHandler) {
+      this.eventHandler.reinitialize();
+    }
   }
 
   showError(message, type = 'error') {
-    // Handle testing environment where DOM may not exist
     if (typeof document === 'undefined') {
-      console.error('Error:', message);
       return;
     }
 
     const mainContent = document.getElementById('main-content');
     if (!mainContent) {
-      console.error('Error (no main-content):', message);
       return;
     }
 
@@ -1786,7 +1241,6 @@ Start editing this content to create your own site. The preview updates as you t
       ) {
         mainContent.insertBefore(errorBanner, mainContent.firstChild);
 
-        // Auto-remove after 10 seconds
         setTimeout(() => {
           if (errorBanner.parentElement) {
             errorBanner.remove();
@@ -1794,20 +1248,16 @@ Start editing this content to create your own site. The preview updates as you t
         }, 10000);
       }
     } catch (error) {
-      console.error('Error showing error banner:', error.message);
     }
   }
 
   showErrorWithRetry(message, retryCallback) {
-    // Handle testing environment where DOM may not exist
     if (typeof document === 'undefined') {
-      console.error('Error with retry:', message);
       return;
     }
 
     const mainContent = document.getElementById('main-content');
     if (!mainContent) {
-      console.error('Error with retry (no main-content):', message);
       return;
     }
 
@@ -1832,7 +1282,6 @@ Start editing this content to create your own site. The preview updates as you t
     `;
     MinimalSecurity.sanitizeAndRender(retryHTML, errorBanner);
 
-    // Add retry functionality
     const retryBtn = errorBanner.querySelector('.retry-btn');
     if (retryBtn && retryCallback) {
       retryBtn.addEventListener('click', () => {
@@ -1843,7 +1292,6 @@ Start editing this content to create your own site. The preview updates as you t
 
     mainContent.insertBefore(errorBanner, mainContent.firstChild);
 
-    // Auto-remove after 15 seconds (longer for retry)
     setTimeout(() => {
       if (errorBanner.parentElement) {
         errorBanner.remove();
@@ -1874,17 +1322,14 @@ Start editing this content to create your own site. The preview updates as you t
     let currentDot = 0;
 
     const interval = setInterval(() => {
-      // Remove active class from all dots
       dots.forEach(dot => dot.classList.remove('active'));
 
-      // Add active class to current dot
       if (dots[currentDot]) {
         dots[currentDot].classList.add('active');
       }
 
       currentDot = (currentDot + 1) % dots.length;
 
-      // Stop animation if loading section is removed
       if (!document.querySelector('.loading-section')) {
         clearInterval(interval);
       }
@@ -1892,41 +1337,61 @@ Start editing this content to create your own site. The preview updates as you t
   }
 
   logout() {
-    console.log('User logging out...');
 
-    // Clear all authentication state
     this.clearAuthenticationState();
 
-    // Reset content
     this.content = '';
 
-    // Show login UI
     this.setupUI();
 
-    console.log('Logout completed');
   }
 
   handleAuthError(message = 'Authentication failed') {
-    console.error('Authentication error:', message);
 
-    // Clear all authentication state
     this.clearAuthenticationState();
 
-    // Show login UI only if we're in a browser environment
     if (typeof document !== 'undefined') {
       this.setupUI();
     }
 
-    // Show error to user
     this.showError(message);
+  }
+
+  cleanup() {
+    
+    if (this.eventHandler) {
+      this.eventHandler.cleanup();
+      this.eventHandler = null;
+    }
+    
+    if (this.inputTimer) clearTimeout(this.inputTimer);
+    if (this.validationTimer) clearTimeout(this.validationTimer);
+    
+  }
+
+  getSystemStats() {
+    const baseStats = {
+      mdsgVersion: '2.0.0-observable',
+      authenticated: this.authenticated,
+      contentLength: this.content?.length || 0,
+      isMobile: this.isMobile,
+      bundleOptimized: true
+    };
+
+    if (this.eventHandler) {
+      baseStats.eventSystem = this.eventHandler.getStats();
+    }
+
+    if (this.services) {
+      baseStats.services = this.services.getStats?.() || 'Available';
+    }
+
+    return baseStats;
   }
 }
 
-// Start the app (no OAuth callback needed with PAT flow)
-// Only start if not in test environment
 if (typeof process === 'undefined' || process.env.NODE_ENV !== 'test') {
   new MDSG();
 }
 
-// Export MDSG class for testing
 export default MDSG;
