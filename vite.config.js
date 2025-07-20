@@ -64,10 +64,10 @@ export default defineConfig({
     },
   },
 
-  // Optimize dependencies
+  // Optimize dependencies (frontend only)
   optimizeDeps: {
-    include: ['cors', 'express'],
-    exclude: [], // Keep all dependencies for faster builds
+    include: [], // No external dependencies to optimize for frontend
+    exclude: ['cors', 'express'], // Exclude server-side dependencies
   },
 
   // CSS processing
