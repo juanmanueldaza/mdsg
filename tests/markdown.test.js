@@ -340,7 +340,9 @@ describe('Markdown Parsing', () => {
     it('should escape HTML in text content', () => {
       const text = '<script>alert("xss")</script>';
       const escaped = mdsg.escapeHtml(text);
-      expect(escaped).toBe('&lt;script&gt;alert(&quot;xss&quot;)&lt;&#x2F;script&gt;');
+      expect(escaped).toBe(
+        '&lt;script&gt;alert(&quot;xss&quot;)&lt;&#x2F;script&gt;',
+      );
     });
 
     it('should escape special characters', () => {

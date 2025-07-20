@@ -262,21 +262,26 @@ describe('Content Security Policy Validation', () => {
       // Test that CSP allows necessary external domains
       const allowedDomains = [
         'api.github.com',
-        'github.com', 
+        'github.com',
         'cdnjs.cloudflare.com',
-        'user.github.io'
+        'user.github.io',
       ];
 
       allowedDomains.forEach(domain => {
         // Check if domain is in connect-src for API calls
-        const allowsConnect = cspPolicy.includes(`connect-src 'self'`) && 
-                             (cspPolicy.includes(`https://${domain}`) || 
-                              cspPolicy.includes(`https://*.${domain.split('.').slice(-2).join('.')}`));
-        
-        // Check if domain is in style-src for CDN resources  
-        const allowsStyle = cspPolicy.includes(`style-src`) &&
-                           (cspPolicy.includes(`https://${domain}`) || domain === 'api.github.com');
-        
+        const allowsConnect =
+          cspPolicy.includes(`connect-src 'self'`) &&
+          (cspPolicy.includes(`https://${domain}`) ||
+            cspPolicy.includes(
+              `https://*.${domain.split('.').slice(-2).join('.')}`,
+            ));
+
+        // Check if domain is in style-src for CDN resources
+        const allowsStyle =
+          cspPolicy.includes(`style-src`) &&
+          (cspPolicy.includes(`https://${domain}`) ||
+            domain === 'api.github.com');
+
         // At least one permission should be granted for each domain
         const isAllowed = allowsConnect || allowsStyle;
         expect(isAllowed).toBe(true);
