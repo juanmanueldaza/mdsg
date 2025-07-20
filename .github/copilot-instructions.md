@@ -40,6 +40,129 @@ npm run build > /dev/null 2>&1 && echo "✅ Build Success" || echo "❌ Build Fa
 curl -s -o /dev/null -w "%{http_code}" https://mdsg.daza.ar/ | grep -q "200" && echo "✅ Site Live" || echo "❌ Site Down"
 ```
 
+## 📋 GitHub Issues Management (AI Agent Protocol)
+
+**🎯 MANDATORY**: AI agents MUST always use the GitHub CLI (`gh`) client for issue management and resolution.
+
+### Issue Resolution Workflow
+```bash
+# 🔍 Issue Discovery & Analysis
+gh issue list --state=open --limit=50     # List all open issues
+gh issue view <issue-number>               # View specific issue details
+gh issue list --label=bug --state=open    # Filter by labels (bug, enhancement, etc.)
+gh issue list --assignee=@me              # Show assigned issues
+
+# 📊 Issue Triage & Prioritization
+gh issue list --json number,title,labels,createdAt --jq '.[] | select(.labels[].name == "critical")'
+gh issue list --json number,title,state,updatedAt | jq 'sort_by(.updatedAt) | reverse'
+
+# 🛠️ Issue Resolution Process
+gh issue comment <issue-number> "Working on this issue. Starting investigation..."
+gh issue edit <issue-number> --assignee @me              # Assign to self
+gh issue edit <issue-number> --add-label "in-progress"   # Update status
+
+# 🧪 Testing & Validation
+npm run test tests/basic.test.js                         # Ensure core stability
+npm run test                                             # Run comprehensive tests
+npm run build && npm run size                           # Verify no regressions
+
+# ✅ Issue Completion
+gh issue comment <issue-number> "Issue resolved. Changes include: [brief summary]"
+gh issue close <issue-number>                           # Close when complete
+gh issue edit <issue-number> --remove-label "in-progress" --add-label "resolved"
+```
+
+### Issue Creation & Documentation
+```bash
+# 🐛 Bug Reports
+gh issue create --title "Bug: [Brief Description]" \
+  --body "## Problem\n[Description]\n\n## Steps to Reproduce\n1. ...\n\n## Expected vs Actual\n..." \
+  --label "bug,needs-investigation"
+
+# 💡 Feature Requests  
+gh issue create --title "Feature: [Brief Description]" \
+  --body "## Use Case\n[Why needed]\n\n## Proposed Solution\n[Implementation idea]\n\n## Acceptance Criteria\n- [ ] ..." \
+  --label "enhancement,roadmap"
+
+# 🔒 Security Issues
+gh issue create --title "Security: [Brief Description]" \
+  --body "## Security Concern\n[Description]\n\n## Impact Assessment\n[Risk level]\n\n## Proposed Fix\n..." \
+  --label "security,critical"
+```
+
+### Integration with Development Workflow
+```bash
+# 🔄 Before Starting Any Work
+gh issue list --state=open --assignee=@me   # Check assigned issues
+gh issue view <issue-number>                # Review issue details
+gh pr list --state=open                     # Check related PRs
+
+# 🚀 During Development
+gh issue comment <issue-number> "Progress update: [what's been done]"
+gh issue edit <issue-number> --add-label "testing" # Update status labels
+
+# 📋 After Implementation
+gh issue comment <issue-number> "Fixed in commit: $(git rev-parse HEAD)"
+gh pr create --title "Fix #<issue-number>: [Brief Description]" \
+  --body "Closes #<issue-number>\n\n## Changes\n- [change 1]\n- [change 2]"
+```
+
+### AI Agent Issue Resolution Standards
+```bash
+# ⚠️ MANDATORY COMMANDS: Run these for EVERY issue resolution
+gh auth status                              # Verify GitHub CLI authentication
+gh issue view <issue-number> --json title,body,labels,assignees  # Get full context
+npm run test tests/basic.test.js            # Ensure no regression (29/31 must pass)
+gh issue comment <issue-number> "AI Agent: Issue analysis complete. Resolution in progress."
+
+# 🎯 Issue Categorization (Auto-label based on type)
+gh issue edit <issue-number> --add-label "ai-agent-resolved"  # Track AI resolutions
+gh issue edit <issue-number> --add-label "core-functionality" # If affects basic.test.js
+gh issue edit <issue-number> --add-label "advanced-features"  # If affects markdown/mdsg tests
+gh issue edit <issue-number> --add-label "security-related"   # If security implications
+```
+
+### Quality Gates for Issue Resolution
+```bash
+# ✅ Pre-Resolution Validation
+gh issue view <issue-number> | grep -E "(critical|security|breaking)" && echo "⚠️ HIGH PRIORITY"
+npm run test tests/basic.test.js | grep -q "29 passed" || echo "❌ CORE REGRESSION"
+npm run size | grep -oP '\d+\.\d+KB' | head -1 | awk '{if($1>20) print "❌ BUNDLE TOO LARGE"}'
+
+# ✅ Post-Resolution Validation  
+gh issue view <issue-number> --json state | jq -r '.state' | grep -q "CLOSED" && echo "✅ Issue Closed"
+gh pr list --search "in:title #<issue-number>" --json number,state | jq '.[0].state' | grep -q "MERGED" && echo "✅ PR Merged"
+npm run test tests/basic.test.js | grep -q "29 passed" && echo "✅ Core Stability Maintained"
+```
+
+### Documentation & Communication Protocol
+```bash
+# 📝 Always Document Resolution Process
+gh issue comment <issue-number> "## Resolution Summary
+- **Root Cause**: [brief explanation]
+- **Changes Made**: [file changes]
+- **Tests Added/Updated**: [test coverage]
+- **Verification**: \`npm run test tests/basic.test.js\` passing
+- **Bundle Impact**: [size impact if any]"
+
+# 🔗 Link Related Issues/PRs
+gh issue comment <issue-number> "Related to #<other-issue> and PR #<pr-number>"
+gh issue edit <issue-number> --milestone "Phase 2: Enhanced Features"  # If applicable
+```
+
+### Emergency Issue Protocols
+```bash
+# 🚨 Critical Issues (Production Down)
+gh issue list --label=critical --state=open | head -5  # Focus on critical issues first
+gh issue edit <issue-number> --add-label "hotfix" --milestone "Emergency"
+gh issue comment <issue-number> "🚨 CRITICAL: Investigating immediately"
+
+# 🔒 Security Issues (Special Handling)
+gh issue edit <issue-number> --add-label "security" --assignee @me
+gh issue comment <issue-number> "🔒 Security issue being addressed with priority"
+# Note: Security issues may need private discussion before public resolution
+```
+
 ## 🤖 AI Agent Handbook & Memory System
 
 This file serves as the **primary knowledge base and navigation hub** for AI agents working on MDSG. All documentation is interconnected and should be referenced together for comprehensive understanding.
@@ -453,6 +576,25 @@ npm run test:run tests/mdsg.test.js
 npm run test:coverage tests/basic.test.js
 ```
 
+### GitHub Issues Management
+```bash
+# 🔍 WORKING: Issue discovery and management
+gh issue list --state=open --limit=20      # List open issues
+gh issue view <issue-number>                # View specific issue
+gh issue list --label=bug --state=open     # Filter by bug label
+gh issue list --assignee=@me               # Show my assigned issues
+
+# 🛠️ WORKING: Issue resolution workflow
+gh issue comment <issue-number> "Working on this issue"
+gh issue edit <issue-number> --assignee @me --add-label "in-progress"
+gh issue close <issue-number>              # Close when resolved
+
+# 🆕 WORKING: Create new issues
+gh issue create --title "Bug: [Description]" --label "bug"
+gh issue create --title "Feature: [Description]" --label "enhancement"
+gh issue create --title "Security: [Description]" --label "security,critical"
+```
+
 ## 🔄 Implementation Roadmap
 
 ### Phase 1: Core Functionality ✅ COMPLETE
@@ -559,6 +701,13 @@ npm run analyze         # Bundle analysis (needs implementation)
 ├── Verify site builds → npm run build
 ├── Test live deployment → curl -s https://mdsg.daza.ar/
 └── Update metrics if changed → Modify dashboard above
+
+🔍 WORKING WITH GITHUB ISSUES?
+├── Always use gh client → gh issue list --state=open
+├── Check assigned issues → gh issue list --assignee=@me
+├── View issue details → gh issue view <issue-number>
+├── Update issue status → gh issue edit <issue-number> --add-label "in-progress"
+└── Document resolution → gh issue comment <issue-number> "Resolution summary"
 ```
 
 ### Code Implementation (Current Reality)
@@ -566,6 +715,14 @@ npm run analyze         # Bundle analysis (needs implementation)
 2. **Test-driven approach** → basic.test.js for core, advanced files for roadmap
 3. **Performance monitoring** → Bundle size check before commits
 4. **Incremental delivery** → Build on 25/25 stable foundation
+5. **GitHub Issues integration** → Always use `gh` client for issue management and tracking
+
+### GitHub Issues Protocol (MANDATORY)
+1. **Before ANY work** → Check assigned issues: `gh issue list --assignee=@me`
+2. **Issue investigation** → Get full context: `gh issue view <issue-number>`
+3. **Progress tracking** → Update status: `gh issue edit <issue-number> --add-label "in-progress"`
+4. **Resolution documentation** → Document changes: `gh issue comment <issue-number> "Resolution summary"`
+5. **Completion workflow** → Close when done: `gh issue close <issue-number>`
 
 ### Documentation Management (Enforced Standards)
 1. **ALL documentation MUST be in `.github/docs/`** - never create docs elsewhere!
