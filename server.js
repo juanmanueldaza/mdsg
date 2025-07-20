@@ -4,14 +4,14 @@ import crypto from 'crypto';
 import { URL } from 'url';
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3001;
 
 // Environment variables with secure defaults
 const GITHUB_CLIENT_ID = process.env.GITHUB_CLIENT_ID || 'Ov23liKZ8KgfLQDZFGSR';
 const GITHUB_CLIENT_SECRET = process.env.GITHUB_CLIENT_SECRET;
 const JWT_SECRET =
   process.env.JWT_SECRET || crypto.randomBytes(32).toString('hex');
-const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
+const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
 const NODE_ENV = process.env.NODE_ENV || 'development';
 
 // Security: Ensure required environment variables in production
@@ -341,13 +341,13 @@ app.post('/auth/logout', (req, res) => {
 });
 
 // Error handling middleware
-app.use((err, req, res) => {
-  console.error('Server error:', error);
+app.use((err, req, res, next) => {
+  console.error('Server error:', err);
 
   res.status(500).json({
     error: 'Internal server error',
     message:
-      NODE_ENV === 'development' ? error.message : 'Something went wrong.',
+      NODE_ENV === 'development' ? err.message : 'Something went wrong.',
   });
 });
 
