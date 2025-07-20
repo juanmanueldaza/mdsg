@@ -1,8 +1,8 @@
 export class MarkdownProcessor {
-  
+
   static process(markdown) {
     if (!markdown) return '';
-    
+
     return this._finalCleanup(
       this._wrapParagraphs(
         this._processEmailLinks(
@@ -13,16 +13,16 @@ export class MarkdownProcessor {
                   this._processLists(
                     this._processBlockquotes(
                       this._processHeaders(
-                        this._processCodeBlocks(markdown)
-                      )
-                    )
-                  )
-                )
-              )
-            )
-          )
-        )
-      )
+                        this._processCodeBlocks(markdown),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
   static _processCodeBlocks(html) {
@@ -83,13 +83,13 @@ export class MarkdownProcessor {
   static _processAutoLinks(html) {
     return html.replace(
       /\b(https?:\/\/[^\s<]+)(?![^<]*<\/a>)/g,
-      '<a href="$1" target="_blank" rel="noopener">$1</a>'
+      '<a href="$1" target="_blank" rel="noopener">$1</a>',
     );
   }
   static _processEmailLinks(html) {
     return html.replace(
       /\b([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})\b(?![^<]*<\/a>)/g,
-      '<a href="mailto:$1">$1</a>'
+      '<a href="mailto:$1">$1</a>',
     );
   }
   static _wrapParagraphs(html) {

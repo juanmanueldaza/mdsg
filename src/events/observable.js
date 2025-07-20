@@ -22,7 +22,7 @@ export class Observable {
       return this.subscribe(value => {
         try {
           observer(mapper(value));
-        } catch (error) {
+        } catch (__error) {
         }
       });
     });
@@ -40,7 +40,7 @@ export class Observable {
     return new Observable(observer => {
       const handler = (event) => observer(event);
       element.addEventListener(eventType, handler, options);
-      
+
       return () => {
         element.removeEventListener(eventType, handler, options);
       };
@@ -48,9 +48,9 @@ export class Observable {
   }
   static fromPromise(promise) {
     return new Observable(observer => {
-      promise.then(observer).catch(error => {
+      promise.then(observer).catch(_error => {
       });
-      
+
       return () => {};
     });
   }
@@ -67,7 +67,7 @@ export class Observable {
           }
         }
       };
-      
+
       emit();
       return () => {};
     });
@@ -78,7 +78,7 @@ export class Observable {
       const intervalId = setInterval(() => {
         observer(count++);
       }, interval);
-      
+
       return () => clearInterval(intervalId);
     });
   }
@@ -104,7 +104,7 @@ export class EventBus {
     const subject = this.getSubject(eventName);
     try {
       subject.next(data);
-    } catch (error) {
+    } catch (__error) {
       if (this.globalErrorHandler) {
         this.globalErrorHandler(error, eventName, data);
       } else {
@@ -135,7 +135,7 @@ export class EventBus {
       activeEvents: this.subjects.size,
       events: Array.from(this.subjects.keys()),
       totalSubscriptions: Array.from(this.subjects.values())
-        .reduce((total, subject) => total + subject.observerCount, 0)
+        .reduce((total, subject) => total + subject.observerCount, 0),
     };
   }
 }
@@ -145,18 +145,18 @@ export class Subject extends Observable {
       this.observers.add(observer);
       return () => this.observers.delete(observer);
     });
-    
+
     this.observers = new Set();
     this.completed = false;
     this.observerCount = 0;
   }
   next(value) {
     if (this.completed) return;
-    
+
     this.observers.forEach(observer => {
       try {
         observer(value);
-      } catch (error) {
+      } catch (__error) {
       }
     });
   }
@@ -166,10 +166,10 @@ export class Subject extends Observable {
   }
   subscribe(observer) {
     if (this.completed) return () => {};
-    
+
     this.observers.add(observer);
     this.observerCount++;
-    
+
     return () => {
       this.observers.delete(observer);
       this.observerCount--;
@@ -183,12 +183,12 @@ export class EventManager {
   }
   fromElement(element, eventType, options = {}) {
     const observable = Observable.fromEvent(element, eventType, options);
-    
+
     if (!this.elementWeakMap.has(element)) {
       this.elementWeakMap.set(element, new Set());
     }
-    this.elementWeakMap.get(element).add({eventType, options});
-    
+    this.elementWeakMap.get(element).add({ eventType, options });
+
     return observable;
   }
   addSubscription(unsubscribe) {
@@ -198,7 +198,7 @@ export class EventManager {
     this.subscriptions.forEach(unsubscribe => {
       try {
         unsubscribe();
-      } catch (error) {
+      } catch (__error) {
       }
     });
     this.subscriptions.clear();
@@ -206,7 +206,7 @@ export class EventManager {
   getStats() {
     return {
       activeSubscriptions: this.subscriptions.size,
-      trackedElements: this.elementWeakMap.size || 'WeakMap size not available'
+      trackedElements: this.elementWeakMap.size || 'WeakMap size not available',
     };
   }
 }
@@ -220,7 +220,7 @@ export const fromChange = (element) => Observable.fromEvent(element, 'change');
 export const fromKeydown = (element) => Observable.fromEvent(element, 'keydown');
 export const fromSubmit = (element) => Observable.fromEvent(element, 'submit');
 
-export const debouncedInput = (element, delay = 300) => 
+export const debouncedInput = (element, delay = 300) =>
   fromInput(element).debounce(delay).map(e => e.target.value);
 
 export const throttledScroll = (element, delay = 100) =>

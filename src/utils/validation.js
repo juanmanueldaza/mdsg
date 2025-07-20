@@ -30,7 +30,7 @@ const SUSPICIOUS_PATTERNS = [
   /<svg[^>]*onload/i,
 ];
 export class InputValidator {
-  
+
   static validateGitHubToken(token) {
     const errors = [];
 

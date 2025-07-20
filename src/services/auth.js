@@ -35,11 +35,11 @@ export class AuthenticationService {
       profileUrl: userData.html_url,
       tokenValid: true,
       lastAuthenticated: new Date().toISOString(),
-      demoMode: false
+      demoMode: false,
     };
 
     MinimalSecurity.storeToken(token, enhancedUser);
-    
+
   }
   setDemoMode() {
     const demoUser = {
@@ -57,7 +57,7 @@ export class AuthenticationService {
     };
 
     MinimalSecurity.storeToken('demo-token', demoUser);
-    
+
     return demoUser;
   }
   logout() {
@@ -88,7 +88,7 @@ export class AuthenticationService {
       }
 
       const userData = await response.json();
-      
+
       if (!userData.login) {
         throw new Error('Unable to fetch user information - token may be invalid');
       }
@@ -127,7 +127,7 @@ export class AuthenticationService {
       tokenValid: token ? this.isValidToken(token) : false,
       demoMode: user?.demoMode || false,
       lastAuthenticated: user?.lastAuthenticated || null,
-      csrfToken: this.csrfToken
+      csrfToken: this.csrfToken,
     };
   }
   getAuthenticationErrorMessage(error) {

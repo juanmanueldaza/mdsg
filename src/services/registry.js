@@ -56,7 +56,7 @@ export class ServiceRegistry {
       const githubService = this.getGitHubService();
 
       const authStatus = authService.getAuthenticationStatus();
-      
+
       let connectionTest = { connected: false };
       if (authStatus.authenticated) {
         connectionTest = await githubService.testConnection();
@@ -69,18 +69,18 @@ export class ServiceRegistry {
             initialized: true,
             authenticated: authStatus.authenticated,
             user: authStatus.user?.login,
-            demoMode: authStatus.demoMode
+            demoMode: authStatus.demoMode,
           },
           github: {
             initialized: true,
             connected: connectionTest.connected,
-            rateLimit: connectionTest.rateLimit
+            rateLimit: connectionTest.rateLimit,
           },
           deployment: {
             initialized: true,
-            ready: authStatus.authenticated && connectionTest.connected
-          }
-        }
+            ready: authStatus.authenticated && connectionTest.connected,
+          },
+        },
       };
     } catch (error) {
       return {
@@ -89,8 +89,8 @@ export class ServiceRegistry {
         services: {
           authentication: { error: 'Failed to check' },
           github: { error: 'Failed to check' },
-          deployment: { error: 'Failed to check' }
-        }
+          deployment: { error: 'Failed to check' },
+        },
       };
     }
   }

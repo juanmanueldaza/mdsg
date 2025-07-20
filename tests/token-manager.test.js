@@ -1,6 +1,6 @@
 // Comprehensive tests for SecureTokenManager
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { MinimalSecurity } from '../src/security-minimal.js';
+import { MinimalSecurity } from '../src/utils/security-minimal.js';
 
 // Use MinimalSecurity as SecureTokenManager for compatibility with tests
 const SecureTokenManager = MinimalSecurity;

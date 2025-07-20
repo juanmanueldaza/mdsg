@@ -9,22 +9,22 @@ class MDSG {
   constructor() {
     this.services = serviceRegistry;
     this.services.initialize();
-    
+
     this.auth = new AuthenticationState();
     this.contentState = new ContentState();
-    
+
     this.eventHandler = null;
-    
+
     this.existingSites = [];
     this.currentSite = null;
     this.isMobile = this.detectMobile();
     this.isTouch = this.detectTouch();
     this.csrfToken = this.generateCSRFToken();
-    
+
     this.services.setProgressCallback((message, percentage) => {
       this.updateDeploymentProgress(message, percentage);
     });
-    
+
     this.init();
   }
 
@@ -34,17 +34,17 @@ class MDSG {
   get content() { return this.contentState.content; }
   get repoName() { return this.contentState.repoName; }
 
-  set authenticated(value) { 
+  set authenticated(value) {
     if (value) {
     } else {
       this.auth.clearAuthentication();
     }
   }
-  set user(value) { 
-    this.auth.user = value; 
+  set user(value) {
+    this.auth.user = value;
   }
-  set token(value) { 
-    this.auth.token = value; 
+  set token(value) {
+    this.auth.token = value;
   }
   set content(value) { this.contentState.setContent(value); }
   set repoName(value) { this.contentState.setRepoName(value); }
@@ -119,7 +119,7 @@ class MDSG {
     const app = document.getElementById('app');
     const interfaceHTML = UIComponentBuilder.buildMainInterface();
     MinimalSecurity.sanitizeAndRender(interfaceHTML, app);
-    
+
     this.initializeEventSystem();
   }
 
@@ -138,7 +138,7 @@ class MDSG {
         getGitHubService(),
         getDeploymentService(),
         this.contentState,
-        this
+        this,
       );
 
       this.eventHandler.initialize();
@@ -177,11 +177,11 @@ class MDSG {
       this.handleContentUpdate(event);
     });
 
-    eventBus.on(MDSG_EVENTS.PREVIEW_UPDATE, (event) => {
+    eventBus.on(MDSG_EVENTS.PREVIEW_UPDATE, (_event) => {
       this.updatePreview();
     });
 
-    eventBus.on(MDSG_EVENTS.AUTOSAVE_REQUESTED, (event) => {
+    eventBus.on(MDSG_EVENTS.AUTOSAVE_REQUESTED, (_event) => {
       this.autoSave();
     });
 
@@ -202,11 +202,11 @@ class MDSG {
     });
   }
 
-  handleAuthenticationSuccess(event) {
+  handleAuthenticationSuccess(_event) {
     this.showEditor();
   }
 
-  handleLogout(event) {
+  handleLogout(_event) {
     this.clearAuthenticationState();
     this.setupUI();
   }
@@ -216,11 +216,11 @@ class MDSG {
     this.updateWordCount();
   }
 
-  handleDeploymentStart(event) {
+  handleDeploymentStart(_event) {
     this.showError('Deploying to GitHub Pages...', 'info');
   }
 
-  handleDeploymentSuccess(event) {
+  handleDeploymentSuccess(_event) {
     this.showError('Site deployed successfully!', 'success');
   }
 
@@ -228,7 +228,7 @@ class MDSG {
     this.showError(`Deployment failed: ${event.error}`, 'error');
   }
 
-  handleGlobalError(event) {
+  handleGlobalError(_event) {
     this.showError('An unexpected error occurred', 'error');
   }
 
@@ -288,16 +288,16 @@ class MDSG {
 
   checkAuth() {
     const authService = getAuthService();
-    
+
     if (authService.isAuthenticated()) {
       const user = authService.getCurrentUser();
       const token = authService.getCurrentToken();
-      
+
       this.auth.setAuthenticated(user, token);
       this.authenticated = true;
       this.user = user;
       this.token = token;
-      
+
       this.showEditor();
       return true;
     } else {
@@ -459,22 +459,22 @@ class MDSG {
 
     try {
       this.showLoading('Signing you in...');
-      
+
       const authService = getAuthService();
       const userData = await authService.validateTokenWithGitHub(token);
-      
+
       authService.setAuthenticated(userData, token);
-      
+
       this.auth.setAuthenticated(userData, token);
       this.token = token;
       this.user = userData;
       this.authenticated = true;
-      
+
       this.showEditor();
     } catch (error) {
       const authService = getAuthService();
       const errorMsg = authService.getAuthenticationErrorMessage(error);
-      
+
       this.showErrorWithRetry(errorMsg, () => {
         this.showTokenInput();
       });
@@ -505,7 +505,7 @@ class MDSG {
   startDemoMode() {
     const authService = getAuthService();
     const demoUser = authService.setDemoMode();
-    
+
     this.auth.setAuthenticated(demoUser, 'demo-token');
     this.user = demoUser;
     this.authenticated = true;
@@ -576,7 +576,7 @@ Create lists:
         this.authenticated = true;
         this.showEditor();
       } else {
-        const errorData = await response.json().catch(() => ({}));
+        const _errorData = await response.json().catch(() => ({}));
 
         if (response.status === 401) {
           this.handleAuthError(
@@ -636,9 +636,9 @@ Create lists:
 
   markdownToHTML(markdown) {
     if (!markdown) return '';
-    
+
     const processedHTML = MarkdownProcessor.process(markdown);
-    
+
     return MinimalSecurity.sanitizeHTML(processedHTML);
   }
 
@@ -947,24 +947,24 @@ Start editing this content to create your own site. The preview updates as you t
 
     try {
       const deploymentService = getDeploymentService();
-      
+
       const siteInfo = await deploymentService.deployToGitHubPages(
         this.content,
         this.repoName,
         {
           description: `My markdown site created with MDSG on ${new Date().toLocaleDateString()}`,
-          autoNaming: true
-        }
+          autoNaming: true,
+        },
       );
 
       deployBtn.textContent = '✅ Deployed!';
       setTimeout(() => {
         this.showSuccessFromSiteInfo(siteInfo);
       }, 1000);
-      
+
     } catch (error) {
       this.hideDeploymentProgress();
-      
+
       this.showError(error.message);
     } finally {
       deployBtn.textContent = originalText;
@@ -1358,15 +1358,15 @@ ${this.markdownToHTML(this.content)}
   }
 
   cleanup() {
-    
+
     if (this.eventHandler) {
       this.eventHandler.cleanup();
       this.eventHandler = null;
     }
-    
+
     if (this.inputTimer) clearTimeout(this.inputTimer);
     if (this.validationTimer) clearTimeout(this.validationTimer);
-    
+
   }
 
   getSystemStats() {
@@ -1375,7 +1375,7 @@ ${this.markdownToHTML(this.content)}
       authenticated: this.authenticated,
       contentLength: this.content?.length || 0,
       isMobile: this.isMobile,
-      bundleOptimized: true
+      bundleOptimized: true,
     };
 
     if (this.eventHandler) {

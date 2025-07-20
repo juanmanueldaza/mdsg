@@ -47,7 +47,8 @@ export default [
           vars: 'all',
           args: 'after-used',
           ignoreRestSiblings: false,
-          varsIgnorePattern: '^(openFolder)$',
+          varsIgnorePattern: '^(openFolder|_)',
+          argsIgnorePattern: '^_',
         },
       ],
 

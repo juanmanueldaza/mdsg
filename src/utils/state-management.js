@@ -12,16 +12,16 @@ export class AuthenticationState {
     if (!user || !token) {
       throw new Error('Invalid authentication data: user and token required');
     }
-    
+
     if (!user.login) {
       throw new Error('Invalid user data: login required');
     }
-    
+
     this.authenticated = true;
     this.user = user;
     this.token = token;
     this.lastAuthenticationTime = new Date().toISOString();
-    
+
   }
   clearAuthentication() {
     this.reset();
@@ -39,21 +39,21 @@ export class AuthenticationState {
     return {
       'Authorization': `token ${this.token}`,
       'Accept': 'application/vnd.github.v3+json',
-      'User-Agent': 'MDSG-App'
+      'User-Agent': 'MDSG-App',
     };
   }
   saveToStorage() {
     if (!this.isAuthenticated()) {
       return false;
     }
-    
+
     try {
       const authData = {
         user: this.user,
         token: this.token,
-        lastAuthenticated: this.lastAuthenticationTime
+        lastAuthenticated: this.lastAuthenticationTime,
       };
-      
+
       localStorage.setItem('mdsg_auth', JSON.stringify(authData));
       return true;
     } catch (error) {
@@ -64,7 +64,7 @@ export class AuthenticationState {
     try {
       const stored = localStorage.getItem('mdsg_auth');
       if (!stored) return false;
-      
+
       const authData = JSON.parse(stored);
       if (this._isValidStoredAuth(authData)) {
         this.setAuthenticated(authData.user, authData.token);
@@ -74,7 +74,7 @@ export class AuthenticationState {
     } catch (error) {
       this.clearStoredAuth();
     }
-    
+
     return false;
   }
   clearStoredAuth() {
@@ -93,11 +93,11 @@ export class AuthenticationState {
   }
   isTokenExpired() {
     if (!this.lastAuthenticationTime) return true;
-    
+
     const authTime = new Date(this.lastAuthenticationTime);
     const now = new Date();
     const hoursSinceAuth = (now - authTime) / (1000 * 60 * 60);
-    
+
     return hoursSinceAuth > 24;
   }
 }
@@ -115,12 +115,12 @@ export class ContentState {
     if (typeof newContent !== 'string') {
       throw new Error('Content must be a string');
     }
-    
+
     const oldContent = this.content;
     this.content = newContent;
     this._updateCounts();
     this.hasUnsavedChanges = (oldContent !== newContent);
-    
+
     if (this.hasUnsavedChanges) {
       this._scheduleAutoSave();
     }
@@ -133,8 +133,8 @@ export class ContentState {
   }
   _updateCounts() {
     this.charCount = this.content.length;
-    this.wordCount = this.content.trim() 
-      ? this.content.trim().split(/\s+/).filter(word => word.length > 0).length 
+    this.wordCount = this.content.trim()
+      ? this.content.trim().split(/\s+/).filter(word => word.length > 0).length
       : 0;
   }
   markSaved() {
@@ -148,7 +148,7 @@ export class ContentState {
     return /^[a-zA-Z0-9._-]+$/.test(name);
   }
   isContentValid() {
-    return typeof this.content === 'string' && 
+    return typeof this.content === 'string' &&
            this.content.trim().length > 0;
   }
   getStats() {
@@ -156,7 +156,7 @@ export class ContentState {
       wordCount: this.wordCount,
       charCount: this.charCount,
       hasUnsavedChanges: this.hasUnsavedChanges,
-      lastSaveTime: this.lastSaveTime
+      lastSaveTime: this.lastSaveTime,
     };
   }
   loadFromStorage() {
@@ -179,9 +179,9 @@ export class ContentState {
     try {
       const contentData = {
         content: this.content,
-        lastSaveTime: new Date().toISOString()
+        lastSaveTime: new Date().toISOString(),
       };
-      
+
       localStorage.setItem('mdsg_content', JSON.stringify(contentData));
       this.markSaved();
       return true;
@@ -191,7 +191,7 @@ export class ContentState {
   }
   _scheduleAutoSave() {
     this._clearAutoSaveTimer();
-    
+
     this.autoSaveTimer = setTimeout(() => {
       this.saveToStorage();
     }, 2000);
@@ -209,7 +209,7 @@ export class ContentState {
     this.hasUnsavedChanges = false;
     this.lastSaveTime = null;
     this._clearAutoSaveTimer();
-    
+
     try {
       localStorage.removeItem('mdsg_content');
     } catch (error) {

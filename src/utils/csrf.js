@@ -1,5 +1,5 @@
 export class CSRFProtection {
-  
+
   static generateToken() {
     const array = new Uint8Array(32);
     if (typeof crypto !== 'undefined' && crypto.getRandomValues) {

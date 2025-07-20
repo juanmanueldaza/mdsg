@@ -29,7 +29,7 @@ export class DeploymentService {
       autoNaming: true,
       enablePages: true,
       maxNamingAttempts: 10,
-      ...options
+      ...options,
     };
 
     try {
@@ -47,7 +47,7 @@ export class DeploymentService {
       this.updateProgress('Deployment complete!', 100);
 
       const siteInfo = this.generateSiteInfo(repo);
-      
+
       return siteInfo;
     } catch (error) {
       throw this.enhanceDeploymentError(error);
@@ -56,12 +56,12 @@ export class DeploymentService {
 
   async createDeploymentRepository(baseName, options) {
     const sanitizedName = this.sanitizeRepositoryName(baseName);
-    
+
     if (options.autoNaming) {
       return await this.github.createRepositoryWithAutoNaming(
         sanitizedName,
         options.description,
-        options.maxNamingAttempts
+        options.maxNamingAttempts,
       );
     } else {
       return await this.github.createRepository(sanitizedName, options.description);
@@ -76,12 +76,12 @@ export class DeploymentService {
   }
   async uploadSiteContent(repoName, markdownContent) {
     const htmlContent = this.generateSiteHTML(markdownContent);
-    
+
     return await this.github.uploadContent(
       repoName,
       'index.html',
       htmlContent,
-      'Add site content via MDSG'
+      'Add site content via MDSG',
     );
   }
   generateSiteHTML(markdownContent) {
@@ -91,7 +91,7 @@ export class DeploymentService {
     }
 
     const siteTitle = this.extractSiteTitle(markdownContent);
-    
+
     const htmlContent = MarkdownProcessor.process(markdownContent);
 
     return this.buildHTMLDocument(siteTitle, htmlContent, user);
@@ -314,7 +314,7 @@ export class DeploymentService {
       user: user.login,
       createdAt: repo.created_at,
       deployedAt: new Date().toISOString(),
-      status: 'deployed'
+      status: 'deployed',
     };
   }
   enhanceDeploymentError(error) {
@@ -344,7 +344,7 @@ export class DeploymentService {
     const enhancedError = new Error(`${errorMessage}: ${errorDetails}`);
     enhancedError.originalError = error;
     enhancedError.category = this.categorizeError(error);
-    
+
     return enhancedError;
   }
   categorizeError(error) {
@@ -375,7 +375,7 @@ export class DeploymentService {
       maxNamingAttempts: 10,
       description: `My markdown site created with MDSG on ${new Date().toLocaleDateString()}`,
       public: true,
-      autoInit: true
+      autoInit: true,
     };
   }
   validateDeploymentOptions(options = {}) {
@@ -383,7 +383,7 @@ export class DeploymentService {
       ...this.getDefaultOptions(),
       ...options,
       public: true,
-      autoInit: true
+      autoInit: true,
     };
   }
 }

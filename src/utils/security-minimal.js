@@ -1,5 +1,5 @@
 export class MinimalSecurity {
-  
+
   static escapeText(text) {
     if (typeof text !== 'string') return '';
     return text
@@ -123,7 +123,7 @@ export class MinimalSecurity {
       const csrfData = {
         token,
         timestamp: Date.now(),
-        origin: window.location.origin
+        origin: window.location.origin,
       };
       sessionStorage.setItem('mdsg_csrf', JSON.stringify(csrfData));
       return true;
@@ -138,19 +138,19 @@ export class MinimalSecurity {
       if (!stored) return false;
 
       const csrfData = JSON.parse(stored);
-      
+
       if (Date.now() - csrfData.timestamp > 60 * 60 * 1000) {
         sessionStorage.removeItem('mdsg_csrf');
         return false;
       }
 
       if (csrfData.token.length !== providedToken.length) return false;
-      
+
       let result = 0;
       for (let i = 0; i < csrfData.token.length; i++) {
         result |= csrfData.token.charCodeAt(i) ^ providedToken.charCodeAt(i);
       }
-      
+
       return result === 0 && csrfData.origin === window.location.origin;
     } catch (e) {
       return false;
@@ -207,9 +207,9 @@ export class MinimalSecurity {
       const contentData = {
         content: content,
         timestamp: Date.now(),
-        checksum: this.generateChecksum(content)
+        checksum: this.generateChecksum(content),
       };
-      
+
       localStorage.setItem(key, JSON.stringify(contentData));
       localStorage.setItem('mdsg_last_save', new Date().toISOString());
       return true;
@@ -223,7 +223,7 @@ export class MinimalSecurity {
       if (!stored) return null;
 
       const contentData = JSON.parse(stored);
-      
+
       if (this.generateChecksum(contentData.content) !== contentData.checksum) {
         localStorage.removeItem(key);
         return null;
@@ -241,7 +241,7 @@ export class MinimalSecurity {
   }
   static generateChecksum(content) {
     if (typeof content !== 'string') return '';
-    
+
     let hash = 0;
     for (let i = 0; i < content.length; i++) {
       const char = content.charCodeAt(i);

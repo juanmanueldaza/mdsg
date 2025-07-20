@@ -1,5 +1,5 @@
 export class UIComponentBuilder {
-  
+
   static buildMainInterface() {
     return `
       <div class="container">
@@ -43,7 +43,7 @@ export class UIComponentBuilder {
     const features = [
       { icon: '✨', text: 'Live markdown preview' },
       { icon: '🔧', text: 'One-click deployment' },
-      { icon: '🌐', text: 'Your own GitHub Pages site' }
+      { icon: '🌐', text: 'Your own GitHub Pages site' },
     ];
 
     const featureItems = features
@@ -301,11 +301,11 @@ Write something interesting about yourself here...
     const date = new Date(dateString);
     const now = new Date();
     const diffDays = Math.floor((now - date) / (1000 * 60 * 60 * 24));
-    
+
     if (diffDays === 0) return 'today';
     if (diffDays === 1) return 'yesterday';
     if (diffDays < 7) return `${diffDays} days ago`;
-    
+
     return date.toLocaleDateString();
   }
   static buildLoadingSpinner(message = 'Loading...') {

@@ -24,7 +24,7 @@ export class GitHubAPIService {
   async fetchUser() {
     try {
       this.validateRequestOrigin();
-      
+
       const response = await fetch('https://api.github.com/user', {
         headers: this.getAPIHeaders(),
       });
@@ -34,7 +34,7 @@ export class GitHubAPIService {
       }
 
       const userData = await response.json();
-      
+
       if (!userData.login) {
         throw new Error('Invalid user data received from GitHub API');
       }
@@ -53,7 +53,7 @@ export class GitHubAPIService {
     }
 
     const sanitizedName = name.replace(/[^a-zA-Z0-9._-]/g, '-').toLowerCase();
-    
+
     const defaultOptions = {
       auto_init: true,
       public: true,
@@ -66,7 +66,7 @@ export class GitHubAPIService {
       name: sanitizedName,
       description: description || `My markdown site created with MDSG on ${new Date().toLocaleDateString()}`,
       ...defaultOptions,
-      ...options
+      ...options,
     };
 
     try {
@@ -84,7 +84,7 @@ export class GitHubAPIService {
       }
 
       const errorData = await response.json().catch(() => ({}));
-      
+
       if (response.status === 422) {
         if (this.isRepositoryExistsError(errorData)) {
           throw new Error(`Repository '${sanitizedName}' already exists`);
@@ -113,7 +113,7 @@ export class GitHubAPIService {
 
     while (attempt < maxAttempts) {
       const currentName = attempt === 0 ? baseName : `${baseName}-${attempt}`;
-      
+
       try {
         return await this.createRepository(currentName, description);
       } catch (error) {
@@ -130,7 +130,7 @@ export class GitHubAPIService {
   isRepositoryExistsError(errorData) {
     if (errorData.errors) {
       const nameError = errorData.errors.find(
-        err => err.resource === 'Repository' && err.field === 'name'
+        err => err.resource === 'Repository' && err.field === 'name',
       );
       return nameError && nameError.code === 'already_exists';
     }
@@ -166,7 +166,7 @@ export class GitHubAPIService {
               email: user.email || `${user.login}@users.noreply.github.com`,
             },
           }),
-        }
+        },
       );
 
       if (!response.ok) {
@@ -197,7 +197,7 @@ export class GitHubAPIService {
       source: {
         branch: 'main',
         path: '/',
-      }
+      },
     };
 
     const pagesConfig = { ...defaultOptions, ...options };
@@ -214,7 +214,7 @@ export class GitHubAPIService {
             Accept: 'application/vnd.github+json',
           },
           body: JSON.stringify(pagesConfig),
-        }
+        },
       );
 
       if (response.ok) {
@@ -241,8 +241,8 @@ export class GitHubAPIService {
         /%([0-9A-F]{2})/g,
         function toSolidBytes(match, p1) {
           return String.fromCharCode('0x' + p1);
-        }
-      )
+        },
+      ),
     );
   }
   async checkRateLimit() {
@@ -264,18 +264,18 @@ export class GitHubAPIService {
     try {
       const user = await this.fetchUser();
       const rateLimit = await this.checkRateLimit();
-      
+
       return {
         connected: true,
         authenticated: true,
         user: user.login,
-        rateLimit: rateLimit.rate || rateLimit.error
+        rateLimit: rateLimit.rate || rateLimit.error,
       };
     } catch (error) {
       return {
         connected: false,
         authenticated: false,
-        error: error.message
+        error: error.message,
       };
     }
   }
