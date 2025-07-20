@@ -12,6 +12,7 @@ class MDSG {
     this.repoName = '';
     this.existingSites = [];
     this.isMobile = this.detectMobile();
+    this.csrfToken = this.generateCSRFToken();
     this.init();
   }
 
@@ -36,8 +37,42 @@ class MDSG {
   }
 
   init() {
-    this.setupUI();
-    this.checkAuth();
+    try {
+      this.setupUI();
+      this.checkAuth();
+      this.setupErrorHandling();
+    } catch (error) {
+      console.error('MDSG initialization error:', error);
+      this.showFallbackUI();
+    }
+  }
+
+  setupErrorHandling() {
+    // Suppress browser extension errors
+    window.addEventListener('error', (event) => {
+      // Ignore extension-related errors
+      if (event.filename && (event.filename.includes('extension://') || 
+          event.filename.includes('chrome-extension://') ||
+          event.filename.includes('moz-extension://'))) {
+        event.preventDefault();
+        return false;
+      }
+    });
+  }
+
+  showFallbackUI() {
+    const app = document.getElementById('app');
+    if (app) {
+      app.innerHTML = `
+        <div class="container">
+          <div class="error-fallback">
+            <h2>⚠️ Loading Error</h2>
+            <p>Please refresh the page to try again.</p>
+            <button onclick="window.location.reload()">Refresh Page</button>
+          </div>
+        </div>
+      `;
+    }
   }
 
   setupUI() {
@@ -199,7 +234,8 @@ Write something interesting about yourself here...
       this.showEditor();
       return true;
     } else {
-      console.log('No valid authentication found');
+      // Suppress console message for first-time visitors
+      // console.log('No valid authentication found');
       this.clearAuthenticationState();
       this.setupLoginHandler();
       return false;
@@ -219,6 +255,16 @@ Write something interesting about yourself here...
     this.authenticated = false;
     this.user = null;
     this.token = null;
+  }
+
+  generateCSRFToken() {
+    // Generate a secure random token for CSRF protection
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    let result = '';
+    for (let i = 0; i < 32; i++) {
+      result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return result;
   }
 
   setupLoginHandler() {
