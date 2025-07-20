@@ -168,6 +168,57 @@ export class MinimalSecurity {
   }
 
   /**
+   * Enhanced CSRF token generation and validation
+   */
+  static generateCSRFToken() {
+    // Generate cryptographically secure random token
+    const array = new Uint8Array(32);
+    crypto.getRandomValues(array);
+    return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
+  }
+
+  static storeCSRFToken(token) {
+    try {
+      const csrfData = {
+        token,
+        timestamp: Date.now(),
+        origin: window.location.origin
+      };
+      sessionStorage.setItem('mdsg_csrf', JSON.stringify(csrfData));
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  static validateCSRFToken(providedToken) {
+    try {
+      const stored = sessionStorage.getItem('mdsg_csrf');
+      if (!stored) return false;
+
+      const csrfData = JSON.parse(stored);
+      
+      // Check expiration (1 hour)
+      if (Date.now() - csrfData.timestamp > 60 * 60 * 1000) {
+        sessionStorage.removeItem('mdsg_csrf');
+        return false;
+      }
+
+      // Timing-safe comparison
+      if (csrfData.token.length !== providedToken.length) return false;
+      
+      let result = 0;
+      for (let i = 0; i < csrfData.token.length; i++) {
+        result |= csrfData.token.charCodeAt(i) ^ providedToken.charCodeAt(i);
+      }
+      
+      return result === 0 && csrfData.origin === window.location.origin;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  /**
    * Secure token storage (minimal version)
    */
   static storeToken(token, userInfo) {
@@ -215,11 +266,83 @@ export class MinimalSecurity {
   static clearToken() {
     try {
       sessionStorage.removeItem('mdsg_auth');
+      sessionStorage.removeItem('mdsg_csrf');
       localStorage.removeItem('mdsg_token'); // Legacy cleanup
       localStorage.removeItem('mdsg_user'); // Legacy cleanup
     } catch (e) {
       // Silent fail
     }
+  }
+
+  /**
+   * Secure content storage with validation
+   */
+  static storeContent(content, key = 'mdsg_content') {
+    if (!this.validateContent(content)) {
+      console.warn('Content validation failed, not storing');
+      return false;
+    }
+
+    try {
+      const contentData = {
+        content: content,
+        timestamp: Date.now(),
+        checksum: this.generateChecksum(content)
+      };
+      
+      localStorage.setItem(key, JSON.stringify(contentData));
+      localStorage.setItem('mdsg_last_save', new Date().toISOString());
+      return true;
+    } catch (e) {
+      console.error('Failed to store content:', e);
+      return false;
+    }
+  }
+
+  /**
+   * Secure content retrieval with validation
+   */
+  static getStoredContent(key = 'mdsg_content') {
+    try {
+      const stored = localStorage.getItem(key);
+      if (!stored) return null;
+
+      const contentData = JSON.parse(stored);
+      
+      // Validate integrity
+      if (this.generateChecksum(contentData.content) !== contentData.checksum) {
+        console.warn('Content integrity check failed');
+        localStorage.removeItem(key);
+        return null;
+      }
+
+      // Check if content is still valid
+      if (!this.validateContent(contentData.content)) {
+        console.warn('Stored content failed validation');
+        localStorage.removeItem(key);
+        return null;
+      }
+
+      return contentData.content;
+    } catch (e) {
+      console.error('Failed to retrieve content:', e);
+      return null;
+    }
+  }
+
+  /**
+   * Generate simple checksum for content integrity
+   */
+  static generateChecksum(content) {
+    if (typeof content !== 'string') return '';
+    
+    let hash = 0;
+    for (let i = 0; i < content.length; i++) {
+      const char = content.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash; // Convert to 32-bit integer
+    }
+    return hash.toString(16);
   }
 }
 

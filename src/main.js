@@ -380,10 +380,10 @@ Write something interesting about yourself here...
       this.cancelAuthentication();
     });
 
-    // Render the token input UI
+    // Render the token input UI securely
     const mainContent = document.getElementById('main-content');
     if (mainContent) {
-      mainContent.innerHTML = tokenInputHTML;
+      MinimalSecurity.sanitizeAndRender(tokenInputHTML, mainContent);
     }
 
     // Setup event handlers after rendering
@@ -900,17 +900,20 @@ Add code: \`console.log('Hello World!')\`
 
   autoSave() {
     try {
-      localStorage.setItem('mdsg_content', this.content);
-      localStorage.setItem('mdsg_last_save', new Date().toISOString());
+      if (MinimalSecurity.storeContent(this.content)) {
+        localStorage.setItem('mdsg_last_save', new Date().toISOString());
 
-      const status = document.getElementById('auto-save-status');
-      if (status) {
-        status.textContent = 'Auto-save: Saved';
-        status.style.color = '#28a745';
-        setTimeout(() => {
-          status.textContent = 'Auto-save: Ready';
-          status.style.color = '#666';
-        }, 2000);
+        const status = document.getElementById('auto-save-status');
+        if (status) {
+          status.textContent = 'Auto-save: Saved';
+          status.style.color = '#28a745';
+          setTimeout(() => {
+            status.textContent = 'Auto-save: Ready';
+            status.style.color = '#666';
+          }, 2000);
+        }
+      } else {
+        throw new Error('Content validation failed');
       }
     } catch (error) {
       console.error('Auto-save failed:', error);
@@ -924,7 +927,7 @@ Add code: \`console.log('Hello World!')\`
 
   loadSavedContent() {
     try {
-      const savedContent = localStorage.getItem('mdsg_content');
+      const savedContent = MinimalSecurity.getStoredContent();
       if (savedContent && savedContent !== this.content) {
         this.content = savedContent;
         const editor = document.getElementById('markdown-editor');
@@ -933,6 +936,7 @@ Add code: \`console.log('Hello World!')\`
         }
         this.updatePreview();
         this.updateWordCount();
+        console.log('Content loaded and validated');
       }
     } catch (error) {
       console.error('Failed to load saved content:', error);
@@ -1729,10 +1733,10 @@ Start editing this content to create your own site. The preview updates as you t
       </div>
     `;
 
-    // Render the success UI
+    // Render the success UI securely
     const mainContent = document.getElementById('main-content');
     if (mainContent) {
-      mainContent.innerHTML = successHTML;
+      MinimalSecurity.sanitizeAndRender(successHTML, mainContent);
     }
 
     // Setup event handler after rendering
