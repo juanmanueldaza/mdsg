@@ -283,11 +283,26 @@ class MDSG {
   }
 
   togglePreviewMode() {
-    this.toggleMobilePreview();
+    const editorContainer = document.querySelector('.editor-container');
+    const previewModeBtn = document.getElementById('preview-mode');
+
+    if (editorContainer && previewModeBtn) {
+      editorContainer.classList.toggle('preview-only');
+      previewModeBtn.classList.toggle('active');
+    }
   }
 
   toggleFullscreenPreview() {
-    this.toggleFullscreen();
+    const preview = document.getElementById('preview');
+    if (preview) {
+      if (preview.requestFullscreen) {
+        preview.requestFullscreen();
+      } else if (preview.webkitRequestFullscreen) {
+        preview.webkitRequestFullscreen();
+      } else if (preview.msRequestFullscreen) {
+        preview.msRequestFullscreen();
+      }
+    }
   }
 
   resetForNewSite() {
@@ -899,29 +914,6 @@ Start editing this content to create your own site. The preview updates as you t
         editor.scrollTop / (editor.scrollHeight - editor.clientHeight);
       preview.scrollTop =
         scrollPercentage * (preview.scrollHeight - preview.clientHeight);
-    }
-  }
-
-  togglePreviewMode() {
-    const editorContainer = document.querySelector('.editor-container');
-    const previewModeBtn = document.getElementById('preview-mode');
-
-    if (editorContainer && previewModeBtn) {
-      editorContainer.classList.toggle('preview-only');
-      previewModeBtn.classList.toggle('active');
-    }
-  }
-
-  toggleFullscreenPreview() {
-    const preview = document.getElementById('preview');
-    if (preview) {
-      if (preview.requestFullscreen) {
-        preview.requestFullscreen();
-      } else if (preview.webkitRequestFullscreen) {
-        preview.webkitRequestFullscreen();
-      } else if (preview.msRequestFullscreen) {
-        preview.msRequestFullscreen();
-      }
     }
   }
 
