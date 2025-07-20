@@ -48,7 +48,7 @@ global.URL = class URL {
 // Mock crypto
 Object.defineProperty(global, 'crypto', {
   value: {
-    randomUUID: () => 'mock-uuid-' + Math.random().toString(36).substr(2, 9),
+    randomUUID: () => `mock-uuid-${Math.random().toString(36).substr(2, 9)}`,
   },
 });
 

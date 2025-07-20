@@ -302,24 +302,28 @@ describe('MDSG Basic Functionality', () => {
   describe('Input Validation', () => {
     it('should validate GitHub tokens correctly', () => {
       // Valid token
-      expect(mdsg.isValidToken('ghp_1234567890abcdefghijklmnopqrstuvwxyz')).toBe(true);
-      
+      expect(
+        mdsg.isValidToken('ghp_1234567890abcdefghijklmnopqrstuvwxyz'),
+      ).toBe(true);
+
       // Invalid tokens
       expect(mdsg.isValidToken('')).toBe(false);
       expect(mdsg.isValidToken(null)).toBe(false);
       expect(mdsg.isValidToken('short')).toBe(false);
-      expect(mdsg.isValidToken('invalid<script>alert("xss")</script>')).toBe(false);
+      expect(mdsg.isValidToken('invalid<script>alert("xss")</script>')).toBe(
+        false,
+      );
     });
 
     it('should validate content with size limits', () => {
       // Small valid content
       mdsg.content = '# Hello World\n\nThis is a test.';
       expect(mdsg.validateContent()).toBe(true);
-      
+
       // Empty content
       mdsg.content = '';
       expect(mdsg.validateContent()).toBe(true); // Should still return true but show info message
-      
+
       // Very large content (simulate > 1MB)
       const largeContent = 'x'.repeat(1024 * 1024 + 1);
       mdsg.content = largeContent;
@@ -330,7 +334,7 @@ describe('MDSG Basic Functionality', () => {
       // Test content with suspicious patterns
       const suspiciousContent = '# Test\n\n<script>alert("xss")</script>';
       mdsg.content = suspiciousContent;
-      
+
       // Should still validate (DOMPurify will sanitize) but with warnings
       expect(mdsg.validateContent()).toBe(true);
     });
@@ -346,7 +350,7 @@ describe('MDSG Basic Functionality', () => {
     it('should validate origins correctly', () => {
       // Import the CSRFProtection class for testing
       const { CSRFProtection } = require('../src/utils/csrf.js');
-      
+
       // Should allow expected origins (in test environment, allows localhost)
       expect(CSRFProtection.validateOrigin('https://mdsg.daza.ar')).toBe(true);
       expect(CSRFProtection.validateOrigin('http://localhost:3000')).toBe(true);
@@ -355,10 +359,10 @@ describe('MDSG Basic Functionality', () => {
     it('should generate secure CSRF tokens', () => {
       // Import the CSRFProtection class for testing
       const { CSRFProtection } = require('../src/utils/csrf.js');
-      
+
       const token1 = CSRFProtection.generateToken();
       const token2 = CSRFProtection.generateToken();
-      
+
       expect(token1).toBeDefined();
       expect(token2).toBeDefined();
       expect(token1).not.toBe(token2); // Should be unique

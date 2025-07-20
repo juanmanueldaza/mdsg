@@ -43,7 +43,7 @@ export class EventHandlerService {
     this.stats.eventsRegistered = this.subscriptions.size;
   }
 
-  setupAuthenticationEvents(_container) {
+  setupAuthenticationEvents(container) {
     const loginBtn = container.querySelector('#login-btn');
     if (loginBtn) {
       const loginStream = fromClick(loginBtn).map(() => ({
@@ -52,7 +52,7 @@ export class EventHandlerService {
       }));
 
       this.subscriptions.add(
-        loginStream.subscribe(_event => {
+        loginStream.subscribe(event => {
           this.trackEvent(event.type);
           eventBus.emit('auth.login.start', event);
           this.authService.initiateGitHubOAuth();
@@ -68,7 +68,7 @@ export class EventHandlerService {
       }));
 
       this.subscriptions.add(
-        demoStream.subscribe(_event => {
+        demoStream.subscribe(event => {
           this.trackEvent(event.type);
           eventBus.emit('auth.demo.start', event);
           this.authService.setDemoMode();
@@ -88,7 +88,7 @@ export class EventHandlerService {
         }));
 
       this.subscriptions.add(
-        tokenStream.subscribe(_event => {
+        tokenStream.subscribe(event => {
           this.trackEvent(event.type);
           eventBus.emit('auth.token.validate', event);
         }),
@@ -127,7 +127,7 @@ export class EventHandlerService {
         .map(_e => ({ type: 'auth.token.enter', timestamp: Date.now() }));
 
       this.subscriptions.add(
-        enterKeyStream.subscribe(__event => {
+        enterKeyStream.subscribe(_event => {
           this.trackEvent('auth.token.enter');
           const token = tokenInput.value?.trim();
           if (token) {
@@ -150,7 +150,7 @@ export class EventHandlerService {
     }
   }
 
-  setupEditorEvents(_container) {
+  setupEditorEvents(container) {
     const editor = container.querySelector('#markdown-editor');
     if (!editor) return;
 
@@ -162,7 +162,7 @@ export class EventHandlerService {
     }));
 
     this.subscriptions.add(
-      contentStream.subscribe(_event => {
+      contentStream.subscribe(event => {
         this.trackEvent(event.type);
         this.contentState.setContent(event.content);
         eventBus.emit('content.updated', event);
@@ -174,10 +174,10 @@ export class EventHandlerService {
 
     const validationStream = contentStream
       .debounce(500)
-      .map(_event => ({ ...event, type: 'editor.validation.requested' }));
+      .map(event => ({ ...event, type: 'editor.validation.requested' }));
 
     this.subscriptions.add(
-      validationStream.subscribe(_event => {
+      validationStream.subscribe(event => {
         this.trackEvent(event.type);
         eventBus.emit('content.validate', event);
       }),
@@ -192,7 +192,7 @@ export class EventHandlerService {
     }));
 
     this.subscriptions.add(
-      shortcutStream.subscribe(_event => {
+      shortcutStream.subscribe(event => {
         this.trackEvent(event.type);
         this.handleEditorShortcut(event);
       }),
@@ -207,60 +207,63 @@ export class EventHandlerService {
       }));
 
     this.subscriptions.add(
-      tabStream.subscribe(_event => {
+      tabStream.subscribe(event => {
         this.trackEvent(event.type);
         this.handleTabInsertion(event.event);
       }),
     );
   }
 
-  setupNavigationEvents(_container) {
+  setupNavigationEvents(container) {
     const navButtons = container.querySelectorAll('[data-nav]');
 
-    const navStream = from(Array.from(navButtons)).flatMap(button =>
-      fromClick(button).map(e => ({
-        type: 'navigation.tab.clicked',
-        tab: button.dataset.nav,
-        timestamp: Date.now(),
-        event: e,
-      })),
+    const navStream = Observable.fromArray(Array.from(navButtons)).flatMap(
+      button =>
+        fromClick(button).map(e => ({
+          type: 'navigation.tab.clicked',
+          tab: button.dataset.nav,
+          timestamp: Date.now(),
+          event: e,
+        })),
     );
 
     this.subscriptions.add(
-      navStream.subscribe(_event => {
+      navStream.subscribe(event => {
         this.trackEvent(event.type);
         this.handleTabNavigation(event.tab);
       }),
     );
 
-    const hashStream = fromEvent(window, 'hashchange').map(() => ({
+    const hashStream = Observable.fromEvent(window, 'hashchange').map(() => ({
       type: 'navigation.hash.changed',
       hash: window.location.hash,
       timestamp: Date.now(),
     }));
 
     this.subscriptions.add(
-      hashStream.subscribe(_event => {
+      hashStream.subscribe(event => {
         this.trackEvent(event.type);
         this.handleHashNavigation(event.hash);
       }),
     );
 
-    const backButtonStream = fromEvent(window, 'popstate').map(e => ({
-      type: 'navigation.back.pressed',
-      state: e.state,
-      timestamp: Date.now(),
-    }));
+    const backButtonStream = Observable.fromEvent(window, 'popstate').map(
+      e => ({
+        type: 'navigation.back.pressed',
+        state: e.state,
+        timestamp: Date.now(),
+      }),
+    );
 
     this.subscriptions.add(
-      backButtonStream.subscribe(_event => {
+      backButtonStream.subscribe(event => {
         this.trackEvent(event.type);
         this.handleBackNavigation(event.state);
       }),
     );
   }
 
-  setupDeploymentEvents(_container) {
+  setupDeploymentEvents(container) {
     const deployBtn = container.querySelector('#deploy-btn');
     if (!deployBtn) return;
 
@@ -271,7 +274,7 @@ export class EventHandlerService {
         authenticated: this.authService.isAuthenticated(),
         timestamp: Date.now(),
       }))
-      .filter(_event => {
+      .filter(event => {
         if (!event.content.trim()) {
           eventBus.emit('deployment.error', {
             error: 'No content to deploy',
@@ -292,7 +295,7 @@ export class EventHandlerService {
       });
 
     this.subscriptions.add(
-      deployStream.subscribe(_event => {
+      deployStream.subscribe(event => {
         this.trackEvent(event.type);
         eventBus.emit('deployment.start', event);
         this.deploymentService.deployToGitHubPages(event.content);
@@ -321,7 +324,7 @@ export class EventHandlerService {
     }));
 
     this.subscriptions.add(
-      globalShortcuts.subscribe(_event => {
+      globalShortcuts.subscribe(event => {
         this.handleGlobalShortcut(event);
       }),
     );
@@ -329,7 +332,7 @@ export class EventHandlerService {
 
   setupGlobalEvents() {
     const errorStream = Observable.fromEvent(window, 'error')
-      .map(_event => ({
+      .map(event => ({
         type: 'global.error',
         message: event.message,
         filename: event.filename,
@@ -337,7 +340,7 @@ export class EventHandlerService {
         error: event.error,
         timestamp: Date.now(),
       }))
-      .filter(_event => {
+      .filter(event => {
         return (
           !event.filename?.includes('extension://') &&
           !event.filename?.includes('chrome-extension://') &&
@@ -346,7 +349,7 @@ export class EventHandlerService {
       });
 
     this.subscriptions.add(
-      errorStream.subscribe(_event => {
+      errorStream.subscribe(event => {
         this.trackEvent(event.type);
         eventBus.emit('global.error', event);
         this.handleGlobalError(event);
@@ -396,8 +399,7 @@ export class EventHandlerService {
     const start = editor.selectionStart;
     const end = editor.selectionEnd;
 
-    editor.value =
-      editor.value.substring(0, start) + '    ' + editor.value.substring(end);
+    editor.value = `${editor.value.substring(0, start)}    ${editor.value.substring(end)}`;
 
     editor.selectionStart = editor.selectionEnd = start + 4;
 

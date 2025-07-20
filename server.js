@@ -207,7 +207,7 @@ app.get('/auth/github/callback', rateLimit(), async (req, res) => {
         body: JSON.stringify({
           client_id: GITHUB_CLIENT_ID,
           client_secret: GITHUB_CLIENT_SECRET,
-          code: code,
+          code,
         }),
       },
     );

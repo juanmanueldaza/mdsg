@@ -22,7 +22,9 @@ export class Observable {
       return this.subscribe(value => {
         try {
           observer(mapper(value));
-        } catch (__error) {}
+        } catch {
+          // Silently ignore mapping errors
+        }
       });
     });
   }
@@ -102,10 +104,11 @@ export class EventBus {
     const subject = this.getSubject(eventName);
     try {
       subject.next(data);
-    } catch (__error) {
+    } catch (_error) {
       if (this.globalErrorHandler) {
-        this.globalErrorHandler(error, eventName, data);
+        this.globalErrorHandler(_error, eventName, data);
       } else {
+        // Silent error handling
       }
     }
   }
@@ -156,7 +159,9 @@ export class Subject extends Observable {
     this.observers.forEach(observer => {
       try {
         observer(value);
-      } catch (__error) {}
+      } catch {
+        // Silently ignore observer errors
+      }
     });
   }
   complete() {
@@ -197,7 +202,9 @@ export class EventManager {
     this.subscriptions.forEach(unsubscribe => {
       try {
         unsubscribe();
-      } catch (__error) {}
+      } catch {
+        // Silently ignore cleanup errors
+      }
     });
     this.subscriptions.clear();
   }

@@ -106,7 +106,7 @@ export class MarkdownProcessor {
       .replace(/<p>(<hr>)<\/p>/g, '$1')
       .replace(/(<img[^>]+)(?=\s)/g, match => {
         if (!match.includes('loading=')) {
-          return match + ' loading="lazy"';
+          return `${match} loading="lazy"`;
         }
         return match;
       });

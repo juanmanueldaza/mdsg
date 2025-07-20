@@ -136,7 +136,7 @@ export class AuthenticationService {
 
     return {
       authenticated: isAuth,
-      user: user,
+      user,
       hasToken: !!token,
       tokenValid: token ? this.isValidToken(token) : false,
       demoMode: user?.demoMode || false,

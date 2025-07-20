@@ -5,7 +5,8 @@
 [![Bundle Size](https://img.shields.io/badge/bundle%20size-10.73KB%20gzipped-brightgreen)](https://bundlephobia.com/)
 [![Performance](https://img.shields.io/badge/lighthouse-95%2B-brightgreen)](https://developers.google.com/web/tools/lighthouse)
 
-> A powerful, lightweight frontend-only tool to create beautiful GitHub Pages sites from markdown content. Pure static site - no backend server required!
+> A powerful, lightweight frontend-only tool to create beautiful GitHub Pages
+> sites from markdown content. Pure static site - no backend server required!
 
 🌐 **[Try it live at mdsg.daza.ar](https://mdsg.daza.ar/)**
 
@@ -17,7 +18,8 @@ Transform your markdown into stunning websites in under 5 minutes:
 
 1. 🔐 **Authenticate** with GitHub (no OAuth setup required)
 2. ✏️ **Write** markdown with live preview and syntax highlighting
-3. 🎨 **Customize** with enhanced markdown features (tables, code blocks, emojis)
+3. 🎨 **Customize** with enhanced markdown features (tables, code blocks,
+   emojis)
 4. 🚀 **Deploy** to GitHub Pages with one click
 5. 🌐 **Share** your live website instantly!
 
@@ -25,7 +27,8 @@ Transform your markdown into stunning websites in under 5 minutes:
 
 ### For Users (No Setup Required!)
 
-🚀 **Visit [mdsg.daza.ar](https://mdsg.daza.ar)** and start creating immediately:
+🚀 **Visit [mdsg.daza.ar](https://mdsg.daza.ar)** and start creating
+immediately:
 
 1. Click "Login with GitHub"
 2. Create a Personal Access Token (guided process)
@@ -50,7 +53,9 @@ npm run dev
 npm run build
 ```
 
-**Frontend-only application!** MDSG is a static site deployed at **https://mdsg.daza.ar/** that works entirely in the browser with direct GitHub API integration.
+**Frontend-only application!** MDSG is a static site deployed at
+**https://mdsg.daza.ar/** that works entirely in the browser with direct GitHub
+API integration.
 
 ## 🌟 Features
 
@@ -58,7 +63,8 @@ npm run build
 
 - 🔐 **GitHub Personal Access Token Auth** - No OAuth app setup required
 - ✏️ **Live Markdown Editor** - Real-time preview with syntax highlighting
-- 🚀 **One-Click Deployment** - Creates repository + enables GitHub Pages instantly
+- 🚀 **One-Click Deployment** - Creates repository + enables GitHub Pages
+  instantly
 - 📁 **Site Management** - Edit existing sites, manage multiple projects
 - 🎨 **Enhanced Markdown** - Tables, code blocks, emojis, images, and more
 
@@ -82,7 +88,8 @@ npm run build
 ### Simple 5-Step Process
 
 1. **🔐 Authentication**: Secure login with GitHub Personal Access Token
-2. **✏️ Content Creation**: Write markdown with live preview and enhanced features
+2. **✏️ Content Creation**: Write markdown with live preview and enhanced
+   features
 3. **🎨 Site Generation**: Advanced markdown parsing with syntax highlighting
 4. **📤 GitHub Integration**: Creates repository and uploads optimized HTML
 5. **🌐 Live Deployment**: Enables GitHub Pages and provides instant live URL
@@ -102,7 +109,8 @@ graph TD
     H --> I[Offline Support]
 ```
 
-**Frontend-Only Design**: No backend servers, databases, or complex deployments required!
+**Frontend-Only Design**: No backend servers, databases, or complex deployments
+required!
 
 ## 📁 Project Structure
 
@@ -136,9 +144,12 @@ mdsg/
 
 ### 👤 User Guides
 
-- **[Getting Started Guide](docs/user-guide.md)** - Complete beginner tutorial with screenshots
-- **[Markdown Reference](docs/markdown-guide.md)** - All supported markdown features
-- **[Site Management](docs/site-management.md)** - Managing multiple sites and editing
+- **[Getting Started Guide](docs/user-guide.md)** - Complete beginner tutorial
+  with screenshots
+- **[Markdown Reference](docs/markdown-guide.md)** - All supported markdown
+  features
+- **[Site Management](docs/site-management.md)** - Managing multiple sites and
+  editing
 - **[Troubleshooting](docs/troubleshooting.md)** - Common issues and solutions
 
 ### 👨‍💻 Developer Documentation
@@ -182,7 +193,8 @@ MDSG demonstrates that **simple solutions often work better than complex ones**:
 - 🔧 **Zero configuration** required for end users
 - 💝 **Actually delivers value** instead of just impressive architecture
 
-> _"Perfection is achieved, not when there is nothing more to add, but when there is nothing left to take away."_ - Antoine de Saint-Exupéry
+> _"Perfection is achieved, not when there is nothing more to add, but when
+> there is nothing left to take away."_ - Antoine de Saint-Exupéry
 
 ## 🛠️ Tech Stack
 
@@ -290,7 +302,8 @@ We welcome contributions! MDSG follows a simple, GitHub-native workflow:
 
 ### Quick Start for Contributors
 
-1. **🔍 Browse Issues**: Check [open issues](https://github.com/juanmanueldaza/mdsg/issues)
+1. **🔍 Browse Issues**: Check
+   [open issues](https://github.com/juanmanueldaza/mdsg/issues)
 2. **💬 Join Discussion**: Comment on issues you'd like to work on
 3. **🍴 Fork & Clone**: Fork the repo and clone your fork
 4. **🌱 Create Branch**: `git checkout -b feature/your-feature-name`
@@ -399,7 +412,8 @@ See **[Contributing Guide](docs/contributing.md)** for detailed guidelines.
 - 🔄 **Content Management** - Advanced content workflows
 - 🚀 **Enterprise Features** - Advanced team management
 
-See **[Project Roadmap](https://github.com/juanmanueldaza/mdsg/projects)** for detailed timeline and progress tracking.
+See **[Project Roadmap](https://github.com/juanmanueldaza/mdsg/projects)** for
+detailed timeline and progress tracking.
 
 ## 🎯 Philosophy & Design Principles
 
@@ -407,7 +421,8 @@ See **[Project Roadmap](https://github.com/juanmanueldaza/mdsg/projects)** for d
 
 **"Simplicity is the ultimate sophistication"** - Leonardo da Vinci
 
-MDSG embodies the philosophy that **simple solutions often work better than complex ones**:
+MDSG embodies the philosophy that **simple solutions often work better than
+complex ones**:
 
 #### Development Principles
 
@@ -442,7 +457,8 @@ The entire application demonstrates these principles in action:
 - **11.7KB total bundle** (vs typical 500KB+)
 - **Actually solves real problems** for thousands of users
 
-> _This isn't just theory - it's proven in production with real users and measurable results._
+> _This isn't just theory - it's proven in production with real users and
+> measurable results._
 
 ## 📜 License
 
@@ -460,16 +476,24 @@ This means you can:
 ### Getting Help
 
 - 📖 **Documentation**: Complete guides in the [docs/](docs/) folder
-- 🐛 **Bug Reports**: [Create an issue](https://github.com/juanmanueldaza/mdsg/issues/new) with reproduction steps
-- 💡 **Feature Requests**: [Discuss ideas](https://github.com/juanmanueldaza/mdsg/discussions) with the community
-- ❓ **Questions**: [GitHub Discussions](https://github.com/juanmanueldaza/mdsg/discussions) for help and tips
+- 🐛 **Bug Reports**:
+  [Create an issue](https://github.com/juanmanueldaza/mdsg/issues/new) with
+  reproduction steps
+- 💡 **Feature Requests**:
+  [Discuss ideas](https://github.com/juanmanueldaza/mdsg/discussions) with the
+  community
+- ❓ **Questions**:
+  [GitHub Discussions](https://github.com/juanmanueldaza/mdsg/discussions) for
+  help and tips
 
 ### Live Resources
 
 - 🌐 **Live Demo**: [mdsg.daza.ar](https://mdsg.daza.ar)
-- 📹 **Video Tutorials**: [YouTube Playlist](https://youtube.com/playlist?list=MDSGTutorials)
+- 📹 **Video Tutorials**:
+  [YouTube Playlist](https://youtube.com/playlist?list=MDSGTutorials)
 - 📱 **Status Page**: [status.mdsg.daza.ar](https://status.mdsg.daza.ar)
-- 📊 **Analytics**: [analytics.mdsg.daza.ar](https://analytics.mdsg.daza.ar) (public)
+- 📊 **Analytics**: [analytics.mdsg.daza.ar](https://analytics.mdsg.daza.ar)
+  (public)
 
 ### Community
 
@@ -483,7 +507,8 @@ If MDSG saves you time or helps your projects, consider:
 
 - ⭐ **Star this repository** to show support
 - 🤝 **Contribute** to the codebase or documentation
-- ☕ **Buy me a coffee** via [GitHub Sponsors](https://github.com/sponsors/juanmanueldaza)
+- ☕ **Buy me a coffee** via
+  [GitHub Sponsors](https://github.com/sponsors/juanmanueldaza)
 
 ---
 
@@ -499,6 +524,7 @@ Special thanks to:
 - 🌟 **Open source community** for inspiration and feedback
 - 👥 **Early adopters** who provided valuable feedback
 
-> _"Simple solutions for complex problems. Sometimes the best architecture is no architecture at all."_
+> _"Simple solutions for complex problems. Sometimes the best architecture is no
+> architecture at all."_
 
 **[⬆ Back to top](#-mdsg---markdown-site-generator)**

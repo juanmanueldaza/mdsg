@@ -47,7 +47,7 @@ jobs:
     strategy:
       matrix:
         node-version: [18.x, 20.x, 22.x]
-        test-suite:
+        test-suite: 
           - basic
           - security
           - advanced
@@ -123,7 +123,7 @@ jobs:
           test -f dist/index.html || exit 1
           test -f dist/assets/*.js || exit 1
           test -f dist/assets/*.css || exit 1
-
+          
           # Check bundle size (target: <20KB)
           BUNDLE_SIZE=$(find dist/assets -name "*.js" -exec wc -c {} + | tail -1 | awk '{print $1}')
           echo "Bundle size: $BUNDLE_SIZE bytes"
@@ -166,10 +166,10 @@ jobs:
           npm run preview &
           PREVIEW_PID=$!
           sleep 5
-
+          
           # Basic performance checks
           curl -f http://localhost:3001 > /dev/null || exit 1
-
+          
           # Kill preview server
           kill $PREVIEW_PID
 

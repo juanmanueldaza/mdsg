@@ -137,9 +137,9 @@ export class ContentState {
     this.charCount = this.content.length;
     this.wordCount = this.content.trim()
       ? this.content
-        .trim()
-        .split(/\s+/)
-        .filter(word => word.length > 0).length
+          .trim()
+          .split(/\s+/)
+          .filter(word => word.length > 0).length
       : 0;
   }
   markSaved() {

@@ -1,7 +1,9 @@
 # 🚀 MDSG DEPLOYMENT REFERENCE
-*Essential deployment patterns for GitHub Copilot*
+
+_Essential deployment patterns for GitHub Copilot_
 
 ## 🎯 **CURRENT DEPLOYMENT STATUS**
+
 - **Live Site**: https://mdsg.daza.ar/ ✅
 - **Platform**: GitHub Pages (static hosting)
 - **Domain**: Custom domain configured
@@ -10,11 +12,12 @@
 ## 🚀 **DEPLOYMENT ARCHITECTURE**
 
 ### **⚡ Automated Workflow Monitoring** (NEW!)
+
 ```bash
 # Check CI/CD status after push
 ./.github/scripts/check-workflows.sh
 
-# Smart push with auto-monitoring  
+# Smart push with auto-monitoring
 ./.github/scripts/smart-push.sh "commit message"
 
 # Git push auto-triggers workflow checking
@@ -22,6 +25,7 @@ git push origin main  # Auto-monitors via hook
 ```
 
 ### **GitHub Pages Pipeline**
+
 ```
 Code Push → GitHub Actions → Build → GitHub Pages → Live Site
           ↓
@@ -35,31 +39,33 @@ Code Push → GitHub Actions → Build → GitHub Pages → Live Site
 ## ⚡ **DEPLOYMENT PATTERNS**
 
 ### **GitHub Pages Deployment**
+
 ```javascript
 // Service pattern (deployment.js)
 export class DeploymentService {
   async deployToGitHubPages(content, repoName, options = {}) {
     if (!content) throw new Error('Content required');
-    
+
     const deployData = {
       message: options.message || 'Deploy MDSG site',
       content: btoa(this.generateSiteHTML(content)),
-      branch: 'gh-pages'
+      branch: 'gh-pages',
     };
-    
+
     return this.github.createOrUpdateFile(repoName, 'index.html', deployData);
   }
 }
 ```
 
 ### **Site Generation**
+
 ```javascript
 // HTML generation with security
 generateSiteHTML(markdownContent) {
   const safeHTML = MinimalSecurity.sanitizeHTML(
     this.markdownToHTML(markdownContent)
   );
-  
+
   return this.buildTemplate({
     title: this.extractTitle(markdownContent),
     content: safeHTML,
@@ -69,6 +75,7 @@ generateSiteHTML(markdownContent) {
 ```
 
 ## 🔧 **DEPLOYMENT COMMANDS**
+
 ```bash
 # Local build & test
 npm run build                    # Create dist/
@@ -85,6 +92,7 @@ gh workflow view deploy-pages    # View deployment details
 ```
 
 ## 🎯 **DEPLOYMENT VALIDATION**
+
 ```bash
 # Pre-deployment checklist
 npm run test tests/basic.test.js | grep "31 passed"
@@ -93,15 +101,17 @@ curl -s -f https://mdsg.daza.ar/ > /dev/null && echo "✅ Site live"
 ```
 
 ## 🚨 **DEPLOYMENT RULES**
+
 1. **31/31 tests** must pass before deployment
 2. **Bundle ≤20KB** validated before push
 3. **Live site** verified after deployment
 4. **No manual** GitHub Pages config changes
 
 ## 🌐 **ENVIRONMENT STATUS**
+
 - **Production**: https://mdsg.daza.ar/ (GitHub Pages)
 - **Development**: http://localhost:3000/ (npm run dev)
 - **Testing**: Automated in CI/CD pipeline
 - **Staging**: Not needed (direct deploy from main)
 
-*Condensed from 739-line deployment.md*
+_Condensed from 739-line deployment.md_

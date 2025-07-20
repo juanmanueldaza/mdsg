@@ -1,5 +1,5 @@
 // Security tests for MDSG XSS prevention and input validation
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { MinimalSecurity } from '../src/utils/security-minimal.js';
 
 // Use MinimalSecurity as SecureHTML for compatibility with tests
@@ -42,7 +42,8 @@ describe('Security Features', () => {
     });
 
     it('should remove data: URLs with HTML content', () => {
-      const malicious = '<iframe src="data:text/html,<script>alert(1)</script>"></iframe>';
+      const malicious =
+        '<iframe src="data:text/html,<script>alert(1)</script>"></iframe>';
       const cleaned = SecureHTML.sanitize(malicious);
 
       expect(cleaned).not.toContain('data:text/html');
@@ -50,7 +51,8 @@ describe('Security Features', () => {
     });
 
     it('should preserve safe HTML elements and attributes', () => {
-      const safe = '<h1 id="title" class="heading">Title</h1><p><strong>Bold</strong> and <em>italic</em> text with <code>code</code></p>';
+      const safe =
+        '<h1 id="title" class="heading">Title</h1><p><strong>Bold</strong> and <em>italic</em> text with <code>code</code></p>';
       const cleaned = SecureHTML.sanitize(safe);
 
       expect(cleaned).toContain('<h1');
@@ -70,7 +72,8 @@ describe('Security Features', () => {
     });
 
     it('should handle nested XSS attempts', () => {
-      const malicious = '<div><p>Safe content</p><script>alert("nested")</script><strong>More safe content</strong></div>';
+      const malicious =
+        '<div><p>Safe content</p><script>alert("nested")</script><strong>More safe content</strong></div>';
       const cleaned = SecureHTML.sanitize(malicious);
 
       expect(cleaned).not.toContain('<script>');
@@ -80,7 +83,8 @@ describe('Security Features', () => {
     });
 
     it('should remove iframe elements completely', () => {
-      const malicious = '<p>Safe content</p><iframe src="https://evil.com"></iframe><p>More content</p>';
+      const malicious =
+        '<p>Safe content</p><iframe src="https://evil.com"></iframe><p>More content</p>';
       const cleaned = SecureHTML.sanitize(malicious);
 
       expect(cleaned).not.toContain('<iframe');
@@ -116,7 +120,8 @@ describe('Security Features', () => {
 
   describe('Markdown Content Validation', () => {
     it('should detect suspicious markdown patterns', () => {
-      const suspiciousMarkdown = '# Title\n<script>alert("xss")</script>\nSafe content';
+      const suspiciousMarkdown =
+        '# Title\n<script>alert("xss")</script>\nSafe content';
       const result = SecureHTML.sanitizeMarkdown(suspiciousMarkdown);
 
       // Should escape the entire content when suspicious patterns are found
@@ -125,7 +130,8 @@ describe('Security Features', () => {
     });
 
     it('should allow safe markdown content', () => {
-      const safeMarkdown = '# Title\n\n**Bold text** and *italic text*\n\n[Link](https://example.com)';
+      const safeMarkdown =
+        '# Title\n\n**Bold text** and *italic text*\n\n[Link](https://example.com)';
       const result = SecureHTML.sanitizeMarkdown(safeMarkdown);
 
       expect(result).toBe(safeMarkdown);
@@ -165,7 +171,9 @@ describe('Security Features', () => {
     it('should reject dangerous URL schemes', () => {
       expect(SecureHTML.isValidURL('javascript:alert(1)')).toBe(false);
       expect(SecureHTML.isValidURL('vbscript:msgbox(1)')).toBe(false);
-      expect(SecureHTML.isValidURL('data:text/html,<script>alert(1)</script>')).toBe(false);
+      expect(
+        SecureHTML.isValidURL('data:text/html,<script>alert(1)</script>'),
+      ).toBe(false);
     });
 
     it('should handle invalid URL inputs', () => {
@@ -182,7 +190,7 @@ describe('Security Features', () => {
         class: 'safe-class',
         id: 'safe-id',
         href: 'https://example.com',
-        alt: 'Image description'
+        alt: 'Image description',
       };
 
       const sanitized = SecureHTML.sanitizeAttributes(attributes);
@@ -195,7 +203,7 @@ describe('Security Features', () => {
         class: 'safe-class',
         onclick: 'alert("xss")',
         onmouseover: 'steal()',
-        onerror: 'attack()'
+        onerror: 'attack()',
       };
 
       const sanitized = SecureHTML.sanitizeAttributes(attributes);
@@ -210,7 +218,7 @@ describe('Security Features', () => {
       const attributes = {
         href: 'javascript:alert("xss")',
         src: 'https://example.com/image.jpg',
-        alt: 'Image'
+        alt: 'Image',
       };
 
       const sanitized = SecureHTML.sanitizeAttributes(attributes);
@@ -223,12 +231,14 @@ describe('Security Features', () => {
     it('should escape string values in attributes', () => {
       const attributes = {
         alt: 'Image with "quotes" and <tags>',
-        title: 'Title with & ampersand'
+        title: 'Title with & ampersand',
       };
 
       const sanitized = SecureHTML.sanitizeAttributes(attributes);
 
-      expect(sanitized.alt).toBe('Image with &quot;quotes&quot; and &lt;tags&gt;');
+      expect(sanitized.alt).toBe(
+        'Image with &quot;quotes&quot; and &lt;tags&gt;',
+      );
       expect(sanitized.title).toBe('Title with &amp; ampersand');
     });
   });
@@ -238,11 +248,13 @@ describe('Security Features', () => {
       const dangerous = '<script>alert("xss")</script>';
       const escaped = SecureHTML.escapeText(dangerous);
 
-      expect(escaped).toBe('&lt;script&gt;alert(&quot;xss&quot;)&lt;&#x2F;script&gt;');
+      expect(escaped).toBe(
+        '&lt;script&gt;alert(&quot;xss&quot;)&lt;&#x2F;script&gt;',
+      );
     });
 
     it('should escape all dangerous characters', () => {
-      const text = '<>&"\'\/';
+      const text = '<>&"\'/';
       const escaped = SecureHTML.escapeText(text);
 
       expect(escaped).toBe('&lt;&gt;&amp;&quot;&#39;&#x2F;');
@@ -264,7 +276,7 @@ describe('Security Features', () => {
       container = {
         innerHTML: '',
         querySelectorAll: vi.fn().mockReturnValue([]),
-        querySelector: vi.fn().mockReturnValue(null)
+        querySelector: vi.fn().mockReturnValue(null),
       };
     });
 
@@ -321,7 +333,9 @@ describe('Security Features', () => {
       // This test ensures the fallback works if DOMPurify ever fails
       const result = SecureHTML.escapeText('<script>alert("xss")</script>');
 
-      expect(result).toBe('&lt;script&gt;alert(&quot;xss&quot;)&lt;&#x2F;script&gt;');
+      expect(result).toBe(
+        '&lt;script&gt;alert(&quot;xss&quot;)&lt;&#x2F;script&gt;',
+      );
     });
 
     it('should handle non-string inputs to sanitize method', () => {

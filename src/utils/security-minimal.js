@@ -223,7 +223,7 @@ export class MinimalSecurity {
 
     try {
       const contentData = {
-        content: content,
+        content,
         timestamp: Date.now(),
         checksum: this.generateChecksum(content),
       };
@@ -287,9 +287,7 @@ SecureHTML.sanitizeMarkdown = function (markdown) {
     if (markdown.includes('javascript:') || markdown.includes('vbscript:')) {
       escaped = escaped.replace(/javascript:/gi, 'javascript&#58;');
       escaped = escaped.replace(/vbscript:/gi, 'vbscript&#58;');
-      return (
-        '&lt;span class="dangerous-content"&gt;' + escaped + '&lt;/span&gt;'
-      );
+      return `&lt;span class="dangerous-content"&gt;${escaped}&lt;/span&gt;`;
     }
     return escaped;
   }

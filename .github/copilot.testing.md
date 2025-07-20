@@ -1,14 +1,16 @@
-# 🧪 TESTING QUICK REFERENCE  
-*Essential testing patterns for MDSG*
+# 🧪 TESTING QUICK REFERENCE
+
+_Essential testing patterns for MDSG_
 
 ## ✅ **CURRENT STATUS: 31/31 CORE TESTS PASSING**
 
 ## 🎯 **INSTANT TEST COMMANDS**
+
 ```bash
 # CORE TESTS (MUST ALWAYS PASS)
 npm run test tests/basic.test.js --run    # 31/31 ✅
 
-# SECURITY TESTS (Import issues - needs fix)  
+# SECURITY TESTS (Import issues - needs fix)
 npm run test tests/security.test.js --run
 
 # CSP TESTS (Working)
@@ -19,15 +21,16 @@ npm run build && echo "✅ Build successful"
 ```
 
 ## 🧪 **TEST PATTERNS**
+
 ```javascript
 // AAA Pattern (Arrange, Act, Assert)
 it('should sanitize malicious HTML', () => {
   // Arrange
   const maliciousInput = '<script>alert("xss")</script>';
-  
-  // Act  
+
+  // Act
   const result = MinimalSecurity.sanitizeHTML(maliciousInput);
-  
+
   // Assert
   expect(result).not.toContain('<script>');
 });
@@ -43,6 +46,7 @@ it('should debounce input events', async () => {
 ## 🎯 **TEST CATEGORIES**
 
 ### **Core Tests** (31/31 ✅)
+
 - MDSG class initialization
 - Markdown processing
 - Authentication flow
@@ -50,23 +54,27 @@ it('should debounce input events', async () => {
 - GitHub API integration
 
 ### **Security Tests** (Import issues ❌)
-- XSS prevention  
+
+- XSS prevention
 - Input validation
 - Token security
 - CSP compliance
 
 ### **Advanced Tests** (Planned)
+
 - Performance benchmarks
 - Integration scenarios
 - Error handling
 
 ## 🚨 **TEST REQUIREMENTS**
+
 - **31/31 core tests** must pass before ANY commit
 - **No regressions** allowed in basic functionality
 - **Security tests** must pass after import fixes
 - **Bundle size** verified after changes
 
 ## ⚡ **QUICK TEST DEBUGGING**
+
 ```bash
 # Find failing tests
 npm run test tests/basic.test.js | grep -E "(FAIL|✗)"
@@ -78,4 +86,4 @@ npm run test tests/basic.test.js --reporter=verbose
 npm run test tests/basic.test.js -t "should process markdown"
 ```
 
-*Condensed from 900+ lines of testing docs*
+_Condensed from 900+ lines of testing docs_

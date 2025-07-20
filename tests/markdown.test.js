@@ -143,7 +143,8 @@ describe('Markdown Parsing', () => {
     });
 
     it('should parse JavaScript code blocks with highlighting', () => {
-      const markdown = '```javascript\nfunction hello() {\n  console.log("Hello");\n}\n```';
+      const markdown =
+        '```javascript\nfunction hello() {\n  console.log("Hello");\n}\n```';
       const html = mdsg.markdownToHTML(markdown);
       expect(html).toContain('<div class="code-block">');
       expect(html).toContain('<span class="code-language">javascript</span>');
@@ -153,7 +154,8 @@ describe('Markdown Parsing', () => {
     });
 
     it('should parse HTML code blocks with highlighting', () => {
-      const markdown = '```html\n<div class="container">\n  <p>Hello</p>\n</div>\n```';
+      const markdown =
+        '```html\n<div class="container">\n  <p>Hello</p>\n</div>\n```';
       const html = mdsg.markdownToHTML(markdown);
       expect(html).toContain('<span class="code-language">html</span>');
       expect(html).toContain('<span class="tag">');
@@ -168,7 +170,8 @@ describe('Markdown Parsing', () => {
     });
 
     it('should parse JSON code blocks with highlighting', () => {
-      const markdown = '```json\n{\n  "name": "test",\n  "value": 123,\n  "active": true\n}\n```';
+      const markdown =
+        '```json\n{\n  "name": "test",\n  "value": 123,\n  "active": true\n}\n```';
       const html = mdsg.markdownToHTML(markdown);
       expect(html).toContain('<span class="code-language">json</span>');
       expect(html).toContain('<span class="property">"name"</span>');
@@ -192,7 +195,8 @@ describe('Markdown Parsing', () => {
     });
 
     it('should parse simple tables', () => {
-      const markdown = '| Name | Age |\n|------|-----|\n| John | 25 |\n| Jane | 30 |';
+      const markdown =
+        '| Name | Age |\n|------|-----|\n| John | 25 |\n| Jane | 30 |';
       const html = mdsg.markdownToHTML(markdown);
       expect(html).toContain('<table class="markdown-table">');
       expect(html).toContain('<thead>');
@@ -206,7 +210,8 @@ describe('Markdown Parsing', () => {
     });
 
     it('should handle tables with multiple columns', () => {
-      const markdown = '| Col1 | Col2 | Col3 | Col4 |\n|------|------|------|------|\n| A | B | C | D |';
+      const markdown =
+        '| Col1 | Col2 | Col3 | Col4 |\n|------|------|------|------|\n| A | B | C | D |';
       const html = mdsg.markdownToHTML(markdown);
       expect(html).toContain('<th>Col1</th>');
       expect(html).toContain('<th>Col2</th>');
@@ -219,7 +224,8 @@ describe('Markdown Parsing', () => {
     });
 
     it('should handle tables with formatted content', () => {
-      const markdown = '| Name | Description |\n|------|-------------|\n| **Bold** | *Italic* text |\n| `Code` | Normal text |';
+      const markdown =
+        '| Name | Description |\n|------|-------------|\n| **Bold** | *Italic* text |\n| `Code` | Normal text |';
       const html = mdsg.markdownToHTML(markdown);
       expect(html).toContain('<td>**Bold**</td>');
       expect(html).toContain('<td>*Italic* text</td>');
@@ -237,19 +243,26 @@ describe('Markdown Parsing', () => {
     it('should parse links correctly', () => {
       const markdown = '[GitHub](https://github.com)';
       const html = mdsg.markdownToHTML(markdown);
-      expect(html).toContain('<a href="https://github.com" target="_blank" rel="noopener noreferrer">GitHub</a>');
+      expect(html).toContain(
+        '<a href="https://github.com" target="_blank" rel="noopener noreferrer">GitHub</a>',
+      );
     });
 
     it('should parse images correctly', () => {
       const markdown = '![Alt text](https://example.com/image.jpg)';
       const html = mdsg.markdownToHTML(markdown);
-      expect(html).toContain('<img src="https://example.com/image.jpg" alt="Alt text" class="markdown-image" loading="lazy" />');
+      expect(html).toContain(
+        '<img src="https://example.com/image.jpg" alt="Alt text" class="markdown-image" loading="lazy" />',
+      );
     });
 
     it('should handle links with complex URLs', () => {
-      const markdown = '[Complex Link](https://example.com/path?param=value&other=123#anchor)';
+      const markdown =
+        '[Complex Link](https://example.com/path?param=value&other=123#anchor)';
       const html = mdsg.markdownToHTML(markdown);
-      expect(html).toContain('href="https://example.com/path?param=value&other=123#anchor"');
+      expect(html).toContain(
+        'href="https://example.com/path?param=value&other=123#anchor"',
+      );
     });
 
     it('should handle images with empty alt text', () => {
@@ -399,7 +412,8 @@ That's all! :rocket:`;
     });
 
     it('should handle markdown with mixed line endings', () => {
-      const markdown = '# Title\r\n\r\nParagraph 1\r\n\r\nParagraph 2\n\nParagraph 3';
+      const markdown =
+        '# Title\r\n\r\nParagraph 1\r\n\r\nParagraph 2\n\nParagraph 3';
       const html = mdsg.markdownToHTML(markdown);
       expect(html).toContain('<h1 id="title">Title</h1>');
       expect(html).toContain('Paragraph 1');
@@ -435,14 +449,18 @@ That's all! :rocket:`;
     it('should highlight JavaScript strings and numbers', () => {
       const code = 'const message = "Hello World"; const count = 42;';
       const highlighted = mdsg.highlightJavaScript(code);
-      expect(highlighted).toContain('<span class="string">"Hello World"</span>');
+      expect(highlighted).toContain(
+        '<span class="string">"Hello World"</span>',
+      );
       expect(highlighted).toContain('<span class="number">42</span>');
     });
 
     it('should highlight JavaScript comments', () => {
       const code = '// This is a comment\nconst x = 1;';
       const highlighted = mdsg.highlightJavaScript(code);
-      expect(highlighted).toContain('<span class="comment">// This is a comment</span>');
+      expect(highlighted).toContain(
+        '<span class="comment">// This is a comment</span>',
+      );
     });
 
     it('should highlight HTML tags', () => {
@@ -455,11 +473,14 @@ That's all! :rocket:`;
       const code = '.class { color: red; background-color: blue; }';
       const highlighted = mdsg.highlightCSS(code);
       expect(highlighted).toContain('<span class="property">color</span>');
-      expect(highlighted).toContain('<span class="property">background-color</span>');
+      expect(highlighted).toContain(
+        '<span class="property">background-color</span>',
+      );
     });
 
     it('should highlight JSON properly', () => {
-      const code = '{ "name": "test", "count": 123, "active": true, "data": null }';
+      const code =
+        '{ "name": "test", "count": 123, "active": true, "data": null }';
       const highlighted = mdsg.highlightJSON(code);
       expect(highlighted).toContain('<span class="property">"name"</span>');
       expect(highlighted).toContain('<span class="string">"test"</span>');
@@ -489,13 +510,17 @@ That's all! :rocket:`;
     it('should handle markdown with special characters', () => {
       const markdown = '# Title with "quotes" and \'apostrophes\' & ampersands';
       const html = mdsg.markdownToHTML(markdown);
-      expect(html).toContain('<h1 id="title-with-quotes-and-apostrophes-ampersands">');
+      expect(html).toContain(
+        '<h1 id="title-with-quotes-and-apostrophes-ampersands">',
+      );
     });
 
     it('should handle nested formatting edge cases', () => {
       const markdown = '**Bold with *italic* inside**';
       const html = mdsg.markdownToHTML(markdown);
-      expect(html).toContain('<strong>Bold with <em>italic</em> inside</strong>');
+      expect(html).toContain(
+        '<strong>Bold with <em>italic</em> inside</strong>',
+      );
     });
 
     it('should handle malformed tables gracefully', () => {
@@ -506,7 +531,8 @@ That's all! :rocket:`;
     });
 
     it('should handle unclosed code blocks', () => {
-      const markdown = '```javascript\nfunction test() {\n  console.log("test");';
+      const markdown =
+        '```javascript\nfunction test() {\n  console.log("test");';
       const html = mdsg.markdownToHTML(markdown);
       // Should handle gracefully
       expect(html).toBeDefined();

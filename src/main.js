@@ -2,7 +2,12 @@ import { MinimalSecurity } from '@security';
 import { MarkdownProcessor } from '@markdown';
 import { UIComponentBuilder } from '@ui';
 import { AuthenticationState, ContentState } from '@state';
-import { serviceRegistry, getAuthService, getGitHubService, getDeploymentService } from '@registry';
+import {
+  serviceRegistry,
+  getAuthService,
+  getGitHubService,
+  getDeploymentService,
+} from '@registry';
 import { EventHandlerService, eventBus, MDSG_EVENTS } from '@handlers';
 
 class MDSG {
@@ -28,14 +33,25 @@ class MDSG {
     this.init();
   }
 
-  get authenticated() { return this.auth.authenticated; }
-  get user() { return this.auth.user; }
-  get token() { return this.auth.token; }
-  get content() { return this.contentState.content; }
-  get repoName() { return this.contentState.repoName; }
+  get authenticated() {
+    return this.auth.authenticated;
+  }
+  get user() {
+    return this.auth.user;
+  }
+  get token() {
+    return this.auth.token;
+  }
+  get content() {
+    return this.contentState.content;
+  }
+  get repoName() {
+    return this.contentState.repoName;
+  }
 
   set authenticated(value) {
     if (value) {
+      // Authentication state already handled by auth service
     } else {
       this.auth.clearAuthentication();
     }
@@ -46,8 +62,12 @@ class MDSG {
   set token(value) {
     this.auth.token = value;
   }
-  set content(value) { this.contentState.setContent(value); }
-  set repoName(value) { this.contentState.setRepoName(value); }
+  set content(value) {
+    this.contentState.setContent(value);
+  }
+  set repoName(value) {
+    this.contentState.setRepoName(value);
+  }
 
   detectMobile() {
     if (
@@ -90,10 +110,13 @@ class MDSG {
   }
 
   setupErrorHandling() {
-    window.addEventListener('error', (event) => {
-      if (event.filename && (event.filename.includes('extension://') ||
+    window.addEventListener('error', event => {
+      if (
+        event.filename &&
+        (event.filename.includes('extension://') ||
           event.filename.includes('chrome-extension://') ||
-          event.filename.includes('moz-extension://'))) {
+          event.filename.includes('moz-extension://'))
+      ) {
         event.preventDefault();
         return false;
       }
@@ -144,7 +167,6 @@ class MDSG {
       this.eventHandler.initialize();
 
       this.setupEventBusSubscriptions();
-
     } catch (error) {
       this.setupFallbackEventHandlers();
     }
@@ -165,39 +187,39 @@ class MDSG {
       return;
     }
 
-    eventBus.on(MDSG_EVENTS.AUTH_LOGIN_SUCCESS, (event) => {
+    eventBus.on(MDSG_EVENTS.AUTH_LOGIN_SUCCESS, event => {
       this.handleAuthenticationSuccess(event);
     });
 
-    eventBus.on(MDSG_EVENTS.AUTH_LOGOUT, (event) => {
+    eventBus.on(MDSG_EVENTS.AUTH_LOGOUT, event => {
       this.handleLogout(event);
     });
 
-    eventBus.on(MDSG_EVENTS.CONTENT_UPDATED, (event) => {
+    eventBus.on(MDSG_EVENTS.CONTENT_UPDATED, event => {
       this.handleContentUpdate(event);
     });
 
-    eventBus.on(MDSG_EVENTS.PREVIEW_UPDATE, (_event) => {
+    eventBus.on(MDSG_EVENTS.PREVIEW_UPDATE, _event => {
       this.updatePreview();
     });
 
-    eventBus.on(MDSG_EVENTS.AUTOSAVE_REQUESTED, (_event) => {
+    eventBus.on(MDSG_EVENTS.AUTOSAVE_REQUESTED, _event => {
       this.autoSave();
     });
 
-    eventBus.on(MDSG_EVENTS.DEPLOYMENT_START, (event) => {
+    eventBus.on(MDSG_EVENTS.DEPLOYMENT_START, event => {
       this.handleDeploymentStart(event);
     });
 
-    eventBus.on(MDSG_EVENTS.DEPLOYMENT_SUCCESS, (event) => {
+    eventBus.on(MDSG_EVENTS.DEPLOYMENT_SUCCESS, event => {
       this.handleDeploymentSuccess(event);
     });
 
-    eventBus.on(MDSG_EVENTS.DEPLOYMENT_ERROR, (event) => {
+    eventBus.on(MDSG_EVENTS.DEPLOYMENT_ERROR, event => {
       this.handleDeploymentError(event);
     });
 
-    eventBus.on(MDSG_EVENTS.GLOBAL_ERROR, (event) => {
+    eventBus.on(MDSG_EVENTS.GLOBAL_ERROR, event => {
       this.handleGlobalError(event);
     });
   }
@@ -283,7 +305,10 @@ class MDSG {
   }
 
   getEditorUI() {
-    return UIComponentBuilder.buildEditorInterface(this.auth.user, this.contentState.content);
+    return UIComponentBuilder.buildEditorInterface(
+      this.auth.user,
+      this.contentState.content,
+    );
   }
 
   checkAuth() {
@@ -321,7 +346,8 @@ class MDSG {
   }
 
   generateCSRFToken() {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    const chars =
+      'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
     let result = '';
     for (let i = 0; i < 32; i++) {
       result += chars.charAt(Math.floor(Math.random() * chars.length));
@@ -329,8 +355,7 @@ class MDSG {
     return result;
   }
 
-  setupLoginHandler() {
-  }
+  setupLoginHandler() {}
 
   loginWithGitHub() {
     if (this.authenticated) {
@@ -697,8 +722,7 @@ Create lists:
         this.updatePreview();
         this.updateWordCount();
       }
-    } catch (error) {
-    }
+    } catch (error) {}
   }
 
   validateContent() {
@@ -718,7 +742,10 @@ Create lists:
     if (this.content.length === 0) {
       this.showValidationStatus('Write some content to get started', 'info');
     } else if (this.content.length > 500000) {
-      this.showValidationStatus('Large content - may take time to deploy', 'warning');
+      this.showValidationStatus(
+        'Large content - may take time to deploy',
+        'warning',
+      );
     } else {
       this.showValidationStatus(
         `Content looks good! (${(this.content.length / 1024).toFixed(1)}KB)`,
@@ -932,7 +959,9 @@ Start editing this content to create your own site. The preview updates as you t
       }
 
       if (!MinimalSecurity.validateRepoName(repoName)) {
-        this.showError('Repository name validation failed: Invalid characters or length');
+        this.showError(
+          'Repository name validation failed: Invalid characters or length',
+        );
         return;
       }
 
@@ -961,7 +990,6 @@ Start editing this content to create your own site. The preview updates as you t
       setTimeout(() => {
         this.showSuccessFromSiteInfo(siteInfo);
       }, 1000);
-
     } catch (error) {
       this.hideDeploymentProgress();
 
@@ -1008,12 +1036,9 @@ ${this.markdownToHTML(this.content)}
 
   encodeBase64Unicode(str) {
     return btoa(
-      encodeURIComponent(str).replace(
-        /%([0-9A-F]{2})/g,
-        function toSolidBytes(match, p1) {
-          return String.fromCharCode('0x' + p1);
-        },
-      ),
+      encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, (match, p1) => {
+        return String.fromCharCode(`0x${p1}`);
+      }),
     );
   }
   showDeploymentProgress(message) {
@@ -1069,8 +1094,7 @@ ${this.markdownToHTML(this.content)}
     }
   }
 
-  hideDeploymentProgress() {
-  }
+  hideDeploymentProgress() {}
 
   showSuccess(repo) {
     const successHTML = `
@@ -1247,8 +1271,7 @@ ${this.markdownToHTML(this.content)}
           }
         }, 10000);
       }
-    } catch (error) {
-    }
+    } catch (error) {}
   }
 
   showErrorWithRetry(message, retryCallback) {
@@ -1337,17 +1360,14 @@ ${this.markdownToHTML(this.content)}
   }
 
   logout() {
-
     this.clearAuthenticationState();
 
     this.content = '';
 
     this.setupUI();
-
   }
 
   handleAuthError(message = 'Authentication failed') {
-
     this.clearAuthenticationState();
 
     if (typeof document !== 'undefined') {
@@ -1358,7 +1378,6 @@ ${this.markdownToHTML(this.content)}
   }
 
   cleanup() {
-
     if (this.eventHandler) {
       this.eventHandler.cleanup();
       this.eventHandler = null;
@@ -1366,7 +1385,6 @@ ${this.markdownToHTML(this.content)}
 
     if (this.inputTimer) clearTimeout(this.inputTimer);
     if (this.validationTimer) clearTimeout(this.validationTimer);
-
   }
 
   getSystemStats() {

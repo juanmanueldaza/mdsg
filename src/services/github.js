@@ -19,6 +19,7 @@ export class GitHubAPIService {
   }
   validateRequestOrigin(expectedOrigin = 'https://mdsg.daza.ar') {
     if (!MinimalSecurity.validateOrigin(expectedOrigin)) {
+      throw new Error('Invalid request origin');
     }
   }
   async fetchUser() {
@@ -258,12 +259,9 @@ export class GitHubAPIService {
   }
   encodeBase64Unicode(str) {
     return btoa(
-      encodeURIComponent(str).replace(
-        /%([0-9A-F]{2})/g,
-        function toSolidBytes(match, p1) {
-          return String.fromCharCode('0x' + p1);
-        },
-      ),
+      encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, (match, p1) => {
+        return String.fromCharCode(`0x${p1}`);
+      }),
     );
   }
   async checkRateLimit() {

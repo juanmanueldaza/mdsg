@@ -40,7 +40,7 @@ describe('Content Security Policy Validation', () => {
 
     it('should use safe default source', () => {
       expect(cspPolicy).toContain("default-src 'self'");
-      expect(cspPolicy).not.toContain("default-src *");
+      expect(cspPolicy).not.toContain('default-src *');
     });
 
     it('should prevent frame embedding attacks', () => {
@@ -53,7 +53,7 @@ describe('Content Security Policy Validation', () => {
   describe('Script Security', () => {
     it('should only allow self-hosted scripts', () => {
       expect(cspPolicy).toContain("script-src 'self'");
-      expect(cspPolicy).not.toContain("script-src *");
+      expect(cspPolicy).not.toContain('script-src *');
       expect(cspPolicy).not.toContain("'unsafe-eval'");
       expect(cspPolicy).not.toContain("'unsafe-inline'");
     });
@@ -62,9 +62,9 @@ describe('Content Security Policy Validation', () => {
       const dangerousSources = [
         "'unsafe-eval'",
         "'unsafe-inline'",
-        "data:",
-        "javascript:",
-        "*",
+        'data:',
+        'javascript:',
+        '*',
       ];
 
       dangerousSources.forEach(source => {
@@ -82,7 +82,9 @@ describe('Content Security Policy Validation', () => {
 
     it('should allow GitHub markdown CSS from CDN', () => {
       expect(cspPolicy).toContain('https://cdnjs.cloudflare.com');
-      expect(cspPolicy).toContain("style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com");
+      expect(cspPolicy).toContain(
+        "style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com",
+      );
     });
 
     it('should allow necessary image sources', () => {
@@ -91,12 +93,12 @@ describe('Content Security Policy Validation', () => {
 
     it('should restrict form actions', () => {
       expect(cspPolicy).toContain("form-action 'self' https://github.com");
-      expect(cspPolicy).not.toContain("form-action *");
+      expect(cspPolicy).not.toContain('form-action *');
     });
   });
 
   describe('CSP Policy Validation Functions', () => {
-    const parseCSPPolicy = (policy) => {
+    const parseCSPPolicy = policy => {
       const directives = {};
       policy.split(';').forEach(directive => {
         const [key, ...values] = directive.trim().split(/\s+/);
@@ -199,7 +201,7 @@ describe('Content Security Policy Validation', () => {
       expect(cspPolicy).not.toContain("'unsafe-eval'");
 
       // No arbitrary external scripts
-      expect(cspPolicy).not.toContain("script-src *");
+      expect(cspPolicy).not.toContain('script-src *');
 
       // No object/embed tags
       expect(cspPolicy).toContain("object-src 'none'");
@@ -246,7 +248,8 @@ describe('Content Security Policy Validation', () => {
     });
 
     it('should block external script injection', () => {
-      const maliciousScript = "<script src='https://evil.com/malware.js'></script>";
+      const maliciousScript =
+        "<script src='https://evil.com/malware.js'></script>";
       const scriptPolicy = "script-src 'self'";
 
       // Only allows self-hosted scripts

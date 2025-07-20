@@ -1,5 +1,5 @@
 // Basic security validation tests for MDSG
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { SecureHTML } from '../src/utils/security-minimal.js';
 
 describe('Basic Security Functions', () => {
@@ -17,7 +17,7 @@ describe('Basic Security Functions', () => {
     });
 
     it('should escape all dangerous characters', () => {
-      const text = '<>&"\'\/';
+      const text = '<>&"\'/';
       const escaped = SecureHTML.escapeText(text);
 
       expect(escaped).toBe('&lt;&gt;&amp;&quot;&#39;&#x2F;');
