@@ -1,8 +1,7 @@
 // MDSG - Markdown Site Generator
-// Simple entry point
+// Simple entry point - Optimized for bundle size
 
-import { SecureHTML } from './utils/security.js';
-import { tokenManager } from './utils/token-manager.js';
+import { MinimalSecurity } from './security-minimal.js';
 
 class MDSG {
   constructor() {
@@ -54,7 +53,7 @@ class MDSG {
         </main>
       </div>
     `;
-    SecureHTML.sanitizeAndRender(safeHTML, app);
+    MinimalSecurity.sanitizeAndRender(safeHTML, app);
   }
 
   getLoginUI() {
@@ -106,7 +105,7 @@ class MDSG {
         </div>
       </div>
     `;
-    SecureHTML.sanitizeAndRender(successHTML, mainContent);
+    MinimalSecurity.sanitizeAndRender(successHTML, mainContent);
   }
 
   getEditorUI() {
@@ -185,36 +184,19 @@ Write something interesting about yourself here...
         </div>
       </div>
     `;
-    SecureHTML.sanitizeAndRender(tokenInputHTML, mainContent);
+    MinimalSecurity.sanitizeAndRender(tokenInputHTML, mainContent);
   }
 
   checkAuth() {
     // Enhanced authentication check with secure token storage
-    // First, try to migrate any old localStorage tokens
-    tokenManager.migrateFromLocalStorage();
+    const authData = MinimalSecurity.getToken();
 
-    const token = tokenManager.getTokenString();
-    const userInfo = tokenManager.getUserInfo();
-
-    if (token && this.isValidToken(token)) {
+    if (authData && authData.token && this.isValidToken(authData.token)) {
       console.log('Valid secure authentication token found');
-      this.token = token;
-      this.user = userInfo; // Use cached user info if available
-
-      // Check if token is expiring soon
-      if (tokenManager.isTokenExpiringSoon()) {
-        console.warn('Token expires soon, consider refreshing');
-        this.showExpiryWarning();
-      }
-
-      if (userInfo) {
-        // Use cached user info
-        this.authenticated = true;
-        this.showEditor();
-      } else {
-        // Fetch fresh user info
-        this.fetchUser(token);
-      }
+      this.token = authData.token;
+      this.user = authData.user; // Use cached user info if available
+      this.authenticated = true;
+      this.showEditor();
       return true;
     } else {
       console.log('No valid authentication found');
@@ -225,37 +207,13 @@ Write something interesting about yourself here...
   }
 
   isValidToken(token) {
-    // Basic token validation
-    if (!token || typeof token !== 'string') {
-      return false;
-    }
-
-    // Check token format (GitHub tokens are typically 40 characters)
-    if (token.length < 20 || token.length > 255) {
-      return false;
-    }
-
-    // Check for basic token format
-    if (!/^[a-zA-Z0-9_]+$/.test(token)) {
-      return false;
-    }
-
-    return true;
+    // Use minimal token validation
+    return MinimalSecurity.validateToken(token);
   }
 
   clearAuthenticationState() {
-    // Clear all authentication-related data using secure token manager
-    tokenManager.clearToken();
-
-    // Also clear any remaining localStorage items (migration cleanup)
-    try {
-      localStorage.removeItem('github_token');
-      localStorage.removeItem('github_token_type');
-      localStorage.removeItem('github_token_scope');
-      localStorage.removeItem('oauth_state');
-    } catch (e) {
-      // Ignore localStorage errors
-    }
+    // Clear all authentication-related data
+    MinimalSecurity.clearToken();
 
     // Reset internal state
     this.authenticated = false;
@@ -430,7 +388,7 @@ Write something interesting about yourself here...
       const userData = await response.json();
 
       // Store token securely with user info
-      const stored = tokenManager.storeToken(token, userData);
+      const stored = MinimalSecurity.storeToken(token, userData);
       if (!stored) {
         throw new Error('Failed to store authentication token securely');
       }
@@ -441,7 +399,7 @@ Write something interesting about yourself here...
       this.showEditor();
     } catch (error) {
       // Clear any potentially stored token on error
-      tokenManager.clearToken();
+      MinimalSecurity.clearToken();
 
       // Enhanced error handling with retry option
       const errorMsg = this.getTokenErrorMessage(error);
@@ -592,7 +550,7 @@ Add code: \`console.log('Hello World!')\`
 
   showEditor() {
     const mainContent = document.getElementById('main-content');
-    SecureHTML.sanitizeAndRender(this.getEditorUI(), mainContent);
+    MinimalSecurity.sanitizeAndRender(this.getEditorUI(), mainContent);
     this.setupEditorHandlers();
     this.updatePreview();
   }
@@ -721,9 +679,9 @@ Add code: \`console.log('Hello World!')\`
             </ul>
           </div>
         `;
-        SecureHTML.sanitizeAndRender(emptyHTML, preview);
+        MinimalSecurity.sanitizeAndRender(emptyHTML, preview);
       } else {
-        const sanitizedHTML = SecureHTML.sanitize(
+        const sanitizedHTML = MinimalSecurity.sanitizeHTML(
           this.markdownToHTML(this.content),
         );
         preview.innerHTML = sanitizedHTML;
@@ -796,11 +754,23 @@ Add code: \`console.log('Hello World!')\`
     // Links and images (process before paragraphs to avoid nesting)
     html = html.replace(
       /!\[([^\]]*)\]\(([^)]+)\)/g,
-      '<img src="$2" alt="$1" />',
+      (match, alt, src) => {
+        // Validate image URLs for security
+        if (src.match(/^(javascript:|vbscript:|data:)/i)) {
+          return `![${alt}](#invalid-url)`;
+        }
+        return `<img src="${src}" alt="${alt}" />`;
+      }
     );
     html = html.replace(
       /\[([^\]]+)\]\(([^)]+)\)/g,
-      '<a href="$2" target="_blank" rel="noopener">$1</a>',
+      (match, text, href) => {
+        // Validate link URLs for security
+        if (href.match(/^(javascript:|vbscript:|data:)/i)) {
+          return text; // Just return the text without the link
+        }
+        return `<a href="${href}" target="_blank" rel="noopener">${text}</a>`;
+      }
     );
 
     // Auto-link standalone URLs (simple approach)
@@ -909,39 +879,30 @@ Add code: \`console.log('Hello World!')\`
     const statusElement = document.getElementById('auto-save-status');
     if (!statusElement) return true;
 
-    // Basic content validation
-    if (typeof this.content !== 'string') {
-      return false;
-    }
-
-    // Check for minimum content length
-    if (this.content.trim().length === 0) {
-      return false;
-    }
-
-    return true;
-
-    const contentLength = this.content.length;
-    const wordCount = this.content
-      .trim()
-      .split(/\s+/)
-      .filter(word => word.length > 0).length;
-
-    // Content validation
-    if (contentLength === 0) {
-      this.showValidationStatus('Write some content to get started', 'info');
-    } else if (contentLength > 100000) {
-      this.showValidationStatus('Content too large (>100KB)', 'warning');
-    } else if (wordCount < 10) {
-      this.showValidationStatus('Consider adding more content', 'info');
-    } else if (wordCount > 10000) {
+    // Use minimal content validation
+    const isValid = MinimalSecurity.validateContent(this.content);
+    
+    if (!isValid) {
       this.showValidationStatus(
-        'Very long content - may take time to deploy',
-        'warning',
+        'Content validation failed: Content contains dangerous patterns',
+        'error'
       );
-    } else {
-      this.showValidationStatus('Content looks good!', 'success');
+      return false;
     }
+    
+    // Show appropriate status based on content length
+    if (this.content.length === 0) {
+      this.showValidationStatus('Write some content to get started', 'info');
+    } else if (this.content.length > 500000) { // 500KB
+      this.showValidationStatus('Large content - may take time to deploy', 'warning');
+    } else {
+      this.showValidationStatus(
+        `Content looks good! (${(this.content.length / 1024).toFixed(1)}KB)`,
+        'success'
+      );
+    }
+    
+    return true;
   }
 
   showValidationStatus(message, type) {
@@ -955,6 +916,7 @@ Add code: \`console.log('Hello World!')\`
       'validation-info',
       'validation-warning',
       'validation-success',
+      'validation-error',
     );
 
     // Add appropriate class
@@ -968,9 +930,13 @@ Add code: \`console.log('Hello World!')\`
       case 'success':
         statusElement.classList.add('validation-success');
         break;
+      case 'error':
+        statusElement.classList.add('validation-error');
+        break;
     }
 
-    // Reset to auto-save status after 3 seconds
+    // Reset to auto-save status after 5 seconds for errors, 3 seconds for others
+    const resetTime = type === 'error' ? 5000 : 3000;
     setTimeout(() => {
       if (statusElement.textContent === message) {
         statusElement.textContent = 'Auto-save: Ready';
@@ -978,9 +944,10 @@ Add code: \`console.log('Hello World!')\`
           'validation-info',
           'validation-warning',
           'validation-success',
+          'validation-error',
         );
       }
-    }, 3000);
+    }, resetTime);
   }
 
   loadSampleContent() {
@@ -1147,15 +1114,13 @@ Start editing this content to create your own site. The preview updates as you t
         return; // User cancelled
       }
 
-      // Validate repository name
-      if (!/^[a-zA-Z0-9._-]+$/.test(repoName)) {
-        this.showError(
-          'Repository name can only contain letters, numbers, dots, underscores, and hyphens.',
-        );
+      // Validate repository name using minimal validator
+      if (!MinimalSecurity.validateRepoName(repoName)) {
+        this.showError('Repository name validation failed: Invalid characters or length');
         return;
       }
 
-      this.repoName = repoName.trim();
+      this.repoName = repoName;
     }
 
     const deployBtn = document.getElementById('deploy-btn');
@@ -1224,7 +1189,7 @@ Start editing this content to create your own site. The preview updates as you t
   }
 
   async createRepository() {
-    const token = tokenManager.getTokenString();
+    const token = MinimalSecurity.getToken()?.token;
     if (!token) {
       throw new Error('No authentication token available');
     }
@@ -1237,6 +1202,11 @@ Start editing this content to create your own site. The preview updates as you t
         attempt === 0 ? baseRepoName : `${baseRepoName}-${attempt}`;
 
       console.log(`Attempting to create repository: ${currentRepoName}`);
+
+      // Validate origin for security (CSRF protection)
+      if (!MinimalSecurity.validateOrigin('https://mdsg.daza.ar')) {
+        console.warn('Invalid origin detected for repository creation');
+      }
 
       const response = await fetch('https://api.github.com/user/repos', {
         method: 'POST',
@@ -1330,7 +1300,7 @@ Start editing this content to create your own site. The preview updates as you t
   }
 
   async uploadContent(repoName) {
-    const token = tokenManager.getTokenString();
+    const token = MinimalSecurity.getToken()?.token;
     if (!token) {
       throw new Error('No authentication token available');
     }
@@ -1339,6 +1309,11 @@ Start editing this content to create your own site. The preview updates as you t
     const htmlContent = this.generateSiteHTML();
 
     console.log(`Uploading content to repository: ${repoName}`);
+
+    // Validate origin for security (CSRF protection)
+    if (!MinimalSecurity.validateOrigin('https://mdsg.daza.ar')) {
+      console.warn('Invalid origin detected for content upload');
+    }
 
     const response = await fetch(
       `https://api.github.com/repos/${this.user.login}/${repoName}/contents/index.html`,
@@ -1396,7 +1371,7 @@ Start editing this content to create your own site. The preview updates as you t
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>${SecureHTML.escapeText(siteTitle)}</title>
+<title>${MinimalSecurity.escapeText(siteTitle)}</title>
     <meta name="description" content="A beautiful site created with MDSG">
     <meta name="generator" content="MDSG - Markdown Site Generator">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.2.0/github-markdown-light.min.css">
@@ -1478,7 +1453,7 @@ Start editing this content to create your own site. The preview updates as you t
 </head>
 <body>
     <div class="site-header">
-        <h1>${SecureHTML.escapeText(siteTitle)}</h1>
+        <h1>${MinimalSecurity.escapeText(siteTitle)}</h1>
         <p>Created with ❤️ using MDSG</p>
     </div>
 
@@ -1497,9 +1472,9 @@ Start editing this content to create your own site. The preview updates as you t
 </html>`;
   }
 
-  // Legacy escapeHtml method - now using SecureHTML.escapeText
+  // Legacy escapeHtml method - now using MinimalSecurity.escapeText
   escapeHtml(text) {
-    return SecureHTML.escapeText(text);
+    return MinimalSecurity.escapeText(text);
   }
 
   encodeBase64Unicode(str) {
@@ -1515,10 +1490,16 @@ Start editing this content to create your own site. The preview updates as you t
   }
 
   async enableGitHubPages(repoName) {
-    const token = tokenManager.getTokenString();
+    const token = MinimalSecurity.getToken()?.token;
     if (!token) {
       throw new Error('No authentication token available');
     }
+    
+    // Validate origin for security (CSRF protection)
+    if (!MinimalSecurity.validateOrigin('https://mdsg.daza.ar')) {
+      console.warn('Invalid origin detected for GitHub Pages operation');
+    }
+    
     const response = await fetch(
       `https://api.github.com/repos/${this.user.login}/${repoName}/pages`,
       {
@@ -1580,7 +1561,7 @@ Start editing this content to create your own site. The preview updates as you t
         </div>
       </div>
     `;
-    SecureHTML.sanitizeAndRender(progressHTML, mainContent);
+    MinimalSecurity.sanitizeAndRender(progressHTML, mainContent);
   }
 
   updateDeploymentProgress(message, percentage) {
@@ -1700,10 +1681,10 @@ Start editing this content to create your own site. The preview updates as you t
       const errorBanner = document.createElement('div');
       errorBanner.className = bannerClass;
       const bannerHTML = `
-      <span>${SecureHTML.escapeText(icon)} ${SecureHTML.escapeText(message)}</span>
+      <span>${MinimalSecurity.escapeText(icon)} ${MinimalSecurity.escapeText(message)}</span>
       <button onclick="this.parentElement.remove()">×</button>
     `;
-      SecureHTML.sanitizeAndRender(bannerHTML, errorBanner);
+      MinimalSecurity.sanitizeAndRender(bannerHTML, errorBanner);
 
       if (
         mainContent.insertBefore &&
@@ -1748,14 +1729,14 @@ Start editing this content to create your own site. The preview updates as you t
     errorBanner.className = 'error-banner';
     const retryHTML = `
       <div class="error-content">
-        <span>⚠️ ${SecureHTML.escapeText(message)}</span>
+        <span>⚠️ ${MinimalSecurity.escapeText(message)}</span>
         <div class="error-actions">
           <button class="retry-btn" onclick="this.closest('.error-banner').remove()">Try Again</button>
           <button onclick="this.closest('.error-banner').remove()">×</button>
         </div>
       </div>
     `;
-    SecureHTML.sanitizeAndRender(retryHTML, errorBanner);
+    MinimalSecurity.sanitizeAndRender(retryHTML, errorBanner);
 
     // Add retry functionality
     const retryBtn = errorBanner.querySelector('.retry-btn');
@@ -1781,7 +1762,7 @@ Start editing this content to create your own site. The preview updates as you t
     const loadingHTML = `
       <div class="loading-section">
         <div class="spinner"></div>
-        <p>${SecureHTML.escapeText(message)}</p>
+        <p>${MinimalSecurity.escapeText(message)}</p>
         <div class="loading-progress">
           <div class="progress-dots">
             <span class="dot active"></span>
@@ -1791,17 +1772,7 @@ Start editing this content to create your own site. The preview updates as you t
         </div>
       </div>
     `;
-    SecureHTML.sanitizeAndRender(loadingHTML, mainContent);
-  }
-
-  showExpiryWarning() {
-    const timeUntilExpiry = tokenManager.getTimeUntilExpiry();
-    const minutesLeft = Math.floor(timeUntilExpiry / (60 * 1000));
-
-    this.showError(
-      `⚠️ Your session expires in ${minutesLeft} minutes. Please save your work.`,
-      'warning',
-    );
+    MinimalSecurity.sanitizeAndRender(loadingHTML, mainContent);
   }
 
   animateLoadingDots() {

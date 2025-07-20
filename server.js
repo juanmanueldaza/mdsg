@@ -47,6 +47,31 @@ app.use((req, res, next) => {
   res.setHeader('X-XSS-Protection', '1; mode=block');
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
 
+  // Content Security Policy
+  const cspPolicy = [
+    "default-src 'self'",
+    "script-src 'self'",
+    "style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com",
+    "img-src 'self' data: https:",
+    "connect-src 'self' https://api.github.com https://github.com https://*.github.io",
+    "font-src 'self' https://cdnjs.cloudflare.com",
+    "frame-ancestors 'none'",
+    "frame-src 'none'",
+    "object-src 'none'",
+    "base-uri 'self'",
+    "form-action 'self' https://github.com",
+  ].join('; ');
+
+  res.setHeader('Content-Security-Policy', cspPolicy);
+
+  // Additional security headers
+  res.setHeader(
+    'Permissions-Policy',
+    'geolocation=(), microphone=(), camera=()',
+  );
+  res.setHeader('Cross-Origin-Embedder-Policy', 'require-corp');
+  res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
+
   if (NODE_ENV === 'production') {
     res.setHeader(
       'Strict-Transport-Security',

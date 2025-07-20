@@ -1147,3 +1147,44 @@ body {
       background 0.2s ease-out;
   }
 }
+
+/* Validation Status Styles */
+.validation-info {
+  color: #0969da !important;
+  background-color: #f0f6ff !important;
+  padding: 4px 8px;
+  border-radius: 4px;
+  border: 1px solid #0969da;
+}
+
+.validation-warning {
+  color: #9a6700 !important;
+  background-color: #fff8c5 !important;
+  padding: 4px 8px;
+  border-radius: 4px;
+  border: 1px solid #d1a650;
+}
+
+.validation-success {
+  color: #1a7f37 !important;
+  background-color: #dafbe1 !important;
+  padding: 4px 8px;
+  border-radius: 4px;
+  border: 1px solid #1a7f37;
+}
+
+.validation-error {
+  color: #d1242f !important;
+  background-color: #ffebee !important;
+  padding: 4px 8px;
+  border-radius: 4px;
+  border: 1px solid #d1242f;
+  font-weight: 500;
+}
+
+/* Auto-save status element base styles */
+#auto-save-status {
+  font-size: 0.875rem;
+  transition: all 0.2s ease-in-out;
+  display: inline-block;
+}

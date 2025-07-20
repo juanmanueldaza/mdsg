@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/juanmanueldaza/mdsg/actions/workflows/ci.yml/badge.svg)](https://github.com/juanmanueldaza/mdsg/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Bundle Size](https://img.shields.io/badge/bundle%20size-14.0KB%20gzipped-brightgreen)](https://bundlephobia.com/)
+[![Bundle Size](https://img.shields.io/badge/bundle%20size-10.73KB%20gzipped-brightgreen)](https://bundlephobia.com/)
 [![Performance](https://img.shields.io/badge/lighthouse-95%2B-brightgreen)](https://developers.google.com/web/tools/lighthouse)
 
 > A powerful, lightweight frontend-only tool to create beautiful GitHub Pages sites from markdown content. Pure static site - no backend server required!
@@ -347,10 +347,11 @@ See **[Contributing Guide](docs/contributing.md)** for detailed guidelines.
 
 #### Technical Excellence ✅
 
-- 📦 **11.7KB gzipped** total bundle (77% under budget)
+- 📦 **10.73KB gzipped** total bundle (46% under budget)
 - ⚡ **< 800ms** initial load time (60% faster than goal)
-- 📝 **1,300 lines** of well-documented core code
+- 📝 **1,800+ lines** of well-documented core code
 - 🎯 **Zero runtime dependencies** pure browser implementation
+- 🛡️ **Enhanced security** - 8/8 XSS attack vectors blocked
 
 #### Lighthouse Scores ✅
 

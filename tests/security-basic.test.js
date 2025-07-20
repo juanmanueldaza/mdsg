@@ -1,6 +1,6 @@
 // Basic security validation tests for MDSG
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { SecureHTML } from '../src/utils/security.js';
+import { SecureHTML } from '../src/security-minimal.js';
 
 describe('Basic Security Functions', () => {
   describe('Text Escaping', () => {
