@@ -123,8 +123,7 @@ mdsg/
 │   └── .prettierrc          # Code formatting rules
 │
 ├── 🚀 Build & Deployment
-│   ├── vite.config.js        # Optimized build configuration
-│   ├── performance-analyzer.js # Performance monitoring tools
+│   ├── vite.config.js        # Optimized build configuration  
 │   └── .github/workflows/    # CI/CD pipeline
 │
 └── 📖 Documentation
@@ -279,8 +278,8 @@ npm run size
 # Run performance audit
 npm run perf
 
-# Check for improvements
-node performance-analyzer.js
+# Check bundle size and performance
+npm run size
 ```
 
 **No backend deployment required!** MDSG works entirely as a static site.

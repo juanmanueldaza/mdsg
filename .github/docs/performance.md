@@ -335,12 +335,13 @@ const apiCache = new APICache();
 
 ## 📊 Performance Monitoring
 
-> **Agent Tool**: Use `node performance-analyzer.js` for comprehensive analysis
+> **Agent Tool**: Use `npm run size` for bundle analysis and `npm run build` for performance checks
 > **CI Integration**: Performance tests run automatically per `testing.md#performance-testing`
 
-### Custom Performance Analyzer
-```javascript
-// performance-analyzer.js integration
+### Bundle Size Monitoring
+```bash
+# Check current bundle size
+npm run size
 class PerformanceMonitor {
   constructor() {
     this.metrics = {
