@@ -65,7 +65,7 @@ class MDSG {
     // Suppress browser extension errors
     window.addEventListener('error', (event) => {
       // Ignore extension-related errors
-      if (event.filename && (event.filename.includes('extension://') || 
+      if (event.filename && (event.filename.includes('extension://') ||
           event.filename.includes('chrome-extension://') ||
           event.filename.includes('moz-extension://'))) {
         event.preventDefault();
@@ -154,7 +154,6 @@ class MDSG {
         </div>
       </div>
     `;
-    MinimalSecurity.sanitizeAndRender(successHTML, mainContent);
   }
 
   getEditorUI() {
@@ -233,7 +232,6 @@ Write something interesting about yourself here...
         </div>
       </div>
     `;
-    MinimalSecurity.sanitizeAndRender(tokenInputHTML, mainContent);
   }
 
   checkAuth() {
@@ -303,7 +301,6 @@ Write something interesting about yourself here...
   }
 
   showTokenInput() {
-    const mainContent = document.getElementById('main-content');
     const tokenInputHTML = `
       <div class="token-input-section">
         <div class="token-header">
@@ -375,6 +372,21 @@ Write something interesting about yourself here...
     `;
 
     // Setup event handlers
+    document.getElementById('save-token')?.addEventListener('click', () => {
+      this.savePersonalToken();
+    });
+
+    document.getElementById('cancel-token')?.addEventListener('click', () => {
+      this.cancelAuthentication();
+    });
+
+    // Render the token input UI
+    const mainContent = document.getElementById('main-content');
+    if (mainContent) {
+      mainContent.innerHTML = tokenInputHTML;
+    }
+
+    // Setup event handlers after rendering
     document.getElementById('save-token')?.addEventListener('click', () => {
       this.savePersonalToken();
     });
@@ -933,15 +945,15 @@ Add code: \`console.log('Hello World!')\`
 
     // Use minimal content validation
     const isValid = MinimalSecurity.validateContent(this.content);
-    
+
     if (!isValid) {
       this.showValidationStatus(
         'Content validation failed: Content contains dangerous patterns',
-        'error'
+        'error',
       );
       return false;
     }
-    
+
     // Show appropriate status based on content length
     if (this.content.length === 0) {
       this.showValidationStatus('Write some content to get started', 'info');
@@ -950,10 +962,10 @@ Add code: \`console.log('Hello World!')\`
     } else {
       this.showValidationStatus(
         `Content looks good! (${(this.content.length / 1024).toFixed(1)}KB)`,
-        'success'
+        'success',
       );
     }
-    
+
     return true;
   }
 
@@ -1566,12 +1578,12 @@ Start editing this content to create your own site. The preview updates as you t
     if (!token) {
       throw new Error('No authentication token available');
     }
-    
+
     // Validate origin for security (CSRF protection)
     if (!MinimalSecurity.validateOrigin('https://mdsg.daza.ar')) {
       console.warn('Invalid origin detected for GitHub Pages operation');
     }
-    
+
     const response = await fetch(
       `https://api.github.com/repos/${this.user.login}/${repoName}/pages`,
       {
@@ -1658,7 +1670,6 @@ Start editing this content to create your own site. The preview updates as you t
   }
 
   showSuccess(repo) {
-    const mainContent = document.getElementById('main-content');
     const successHTML = `
       <div class="success-section">
         <div class="success-header">
@@ -1718,6 +1729,13 @@ Start editing this content to create your own site. The preview updates as you t
       </div>
     `;
 
+    // Render the success UI
+    const mainContent = document.getElementById('main-content');
+    if (mainContent) {
+      mainContent.innerHTML = successHTML;
+    }
+
+    // Setup event handler after rendering
     document.getElementById('create-another')?.addEventListener('click', () => {
       this.content = '';
       this.showEditor();

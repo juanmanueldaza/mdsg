@@ -22,7 +22,7 @@ export class CSRFProtection {
         array[i] = Math.floor(Math.random() * 256);
       }
     }
-    
+
     return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
   }
 
@@ -36,9 +36,9 @@ export class CSRFProtection {
       const csrfData = {
         token,
         created: Date.now(),
-        expires: Date.now() + (60 * 60 * 1000) // 1 hour
+        expires: Date.now() + (60 * 60 * 1000), // 1 hour
       };
-      
+
       sessionStorage.setItem('mdsg_csrf_token', JSON.stringify(csrfData));
       return true;
     } catch (error) {
@@ -59,7 +59,7 @@ export class CSRFProtection {
       }
 
       const csrfData = JSON.parse(csrfDataStr);
-      
+
       // Check if token is expired
       if (Date.now() > csrfData.expires) {
         sessionStorage.removeItem('mdsg_csrf_token');
@@ -80,12 +80,12 @@ export class CSRFProtection {
    */
   static initializeProtection() {
     let token = this.getToken();
-    
+
     if (!token) {
       token = this.generateToken();
       this.storeToken(token);
     }
-    
+
     return token;
   }
 
@@ -101,14 +101,14 @@ export class CSRFProtection {
     }
 
     const currentOrigin = window.location.origin;
-    
+
     // Allow localhost for development
     const allowedOrigins = [
       expectedOrigin,
       'http://localhost:3000',
       'http://localhost:5173',
       'http://127.0.0.1:3000',
-      'http://127.0.0.1:5173'
+      'http://127.0.0.1:5173',
     ];
 
     return allowedOrigins.includes(currentOrigin);
@@ -126,7 +126,7 @@ export class CSRFProtection {
     }
 
     const referrer = document.referrer;
-    
+
     // If no referrer, require same origin
     if (!referrer) {
       return this.validateOrigin(expectedOrigin);
@@ -186,7 +186,7 @@ export class CSRFProtection {
       // Validate CSRF token
       const formToken = form.querySelector('input[name="csrf_token"]')?.value;
       const sessionToken = this.getToken();
-      
+
       if (!formToken || !sessionToken || formToken !== sessionToken) {
         console.error('CSRF protection: Invalid or missing token');
         event.preventDefault();
@@ -231,7 +231,7 @@ export class CSRFProtection {
 
     return {
       isValid: errors.length === 0,
-      errors
+      errors,
     };
   }
 
@@ -263,7 +263,7 @@ export class CSRFProtection {
    */
   static async secureFetch(url, options = {}, expectedOrigin = 'https://mdsg.daza.ar') {
     // Validate that this is a sensitive operation
-    const isSensitiveOperation = options.method && 
+    const isSensitiveOperation = options.method &&
       ['POST', 'PUT', 'DELETE', 'PATCH'].includes(options.method.toUpperCase());
 
     if (isSensitiveOperation) {
@@ -280,7 +280,7 @@ export class CSRFProtection {
       const secureHeaders = this.createSecureHeaders(token);
       options.headers = {
         ...secureHeaders,
-        ...options.headers
+        ...options.headers,
       };
     }
 
@@ -304,12 +304,12 @@ export class CSRFProtection {
    */
   static getStatus() {
     const token = this.getToken();
-    
+
     return {
       isActive: !!token,
       hasValidToken: !!token,
       origin: typeof window !== 'undefined' ? window.location.origin : 'unknown',
-      referrer: typeof document !== 'undefined' ? document.referrer : 'unknown'
+      referrer: typeof document !== 'undefined' ? document.referrer : 'unknown',
     };
   }
 }

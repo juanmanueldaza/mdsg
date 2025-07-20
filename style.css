@@ -173,6 +173,7 @@ header p {
   outline: none;
   touch-action: manipulation;
   -webkit-appearance: none;
+  appearance: none;
 }
 
 #markdown-editor:focus {

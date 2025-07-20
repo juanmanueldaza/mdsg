@@ -476,16 +476,6 @@ class MDSG {
       repository_name: (name) => /^[a-zA-Z0-9._-]+$/.test(name) && name.length <= 100
     };
     return validators[type] ? validators[type](input) : false;
-    return html;
-  }
-
-  // ✅ WORKING: Input validation
-  validateInput(input, type) {
-    const validators = {
-      github_token: (token) => /^[a-zA-Z0-9_]+$/.test(token) && token.length >= 20,
-      repository_name: (name) => /^[a-zA-Z0-9._-]+$/.test(name) && name.length <= 100
-    };
-    return validators[type] ? validators[type](input) : false;
   }
 
   // ✅ WORKING: Content validation

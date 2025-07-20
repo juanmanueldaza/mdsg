@@ -27,7 +27,7 @@ export class MinimalSecurity {
    */
   static sanitizeHTML(html) {
     if (typeof html !== 'string') return '';
-    
+
     // First sanitize any remaining markdown-style links with dangerous URLs
     html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (match, text, url) => {
       if (url.match(/^(javascript:|vbscript:|data:)/i)) {
@@ -35,36 +35,36 @@ export class MinimalSecurity {
       }
       return match; // Keep safe links as-is
     });
-    
+
     // Remove script tags and their content completely
     html = html.replace(/<script[^>]*>.*?<\/script>/gis, '');
-    
+
     // Remove dangerous content patterns that might leak from script tags
     html = html.replace(/This should be removed[!'"]*/gi, '');
-    
+
     // Remove SVG elements (can contain XSS)
     html = html.replace(/<svg[^>]*>.*?<\/svg>/gis, '');
-    
+
     // Remove ALL event handlers aggressively
     html = html.replace(/\s(on\w+)\s*=\s*["'][^"']*["']/gi, '');
     html = html.replace(/\s(on\w+)\s*=\s*[^"'\s>]+/gi, '');
-    
+
     // Remove javascript: and vbscript: URLs
     html = html.replace(/href\s*=\s*["'](javascript:|vbscript:)[^"']*["']/gi, '');
     html = html.replace(/src\s*=\s*["'](javascript:|vbscript:)[^"']*["']/gi, '');
-    
+
     // Remove data URLs from href and src attributes (can contain XSS)
     html = html.replace(/href\s*=\s*["']data:[^"']*["']/gi, '');
     html = html.replace(/src\s*=\s*["']data:[^"']*["']/gi, '');
-    
+
     // Remove JavaScript in CSS style attributes
     html = html.replace(/style\s*=\s*["'][^"']*javascript:[^"']*["']/gi, '');
     html = html.replace(/style\s*=\s*["'][^"']*expression\s*\([^"']*\)["']/gi, '');
-    
+
     // Remove dangerous elements completely
     html = html.replace(/<(iframe|object|embed|form|input|meta|link|svg)[^>]*>/gi, '');
     html = html.replace(/<\/?(iframe|object|embed|form|input|meta|link|svg)[^>]*>/gi, '');
-    
+
     // Enhance external links with safety attributes
     html = html.replace(/<a\s+([^>]*href\s*=\s*["']https?:\/\/[^"']+["'][^>]*)>/gi, (match, attrs) => {
       // Only add if not already present
@@ -76,7 +76,7 @@ export class MinimalSecurity {
       }
       return `<a ${attrs}>`;
     });
-    
+
     // Remove remaining dangerous content patterns
     html = html.replace(/localStorage\.getItem/gi, '');
     html = html.replace(/document\.cookie/gi, '');
@@ -85,17 +85,17 @@ export class MinimalSecurity {
     html = html.replace(/eval\s*\(/gi, '');
     html = html.replace(/atob\s*\(/gi, '');
     html = html.replace(/document\.write/gi, '');
-    
+
     // Remove malicious domains and URLs
     html = html.replace(/https?:\/\/[^"'\s>]*evil\.com[^"'\s>]*/gi, '');
     html = html.replace(/https?:\/\/[^"'\s>]*attacker\.com[^"'\s>]*/gi, '');
     html = html.replace(/evil\.com/gi, '');
     html = html.replace(/attacker\.com/gi, '');
-    
+
     // More aggressive onerror removal from attributes
     html = html.replace(/onerror\s*=\s*["'][^"']*["']/gi, '');
     html = html.replace(/onerror\s*=\s*[^"'\s>]+/gi, '');
-    
+
     return html;
   }
 
@@ -111,7 +111,7 @@ export class MinimalSecurity {
    */
   static sanitizeAndRender(html, element) {
     if (!element || typeof html !== 'string') return;
-    
+
     const sanitized = this.sanitizeHTML(html);
     element.innerHTML = sanitized;
   }
@@ -142,7 +142,7 @@ export class MinimalSecurity {
   static validateContent(content) {
     if (typeof content !== 'string') return false;
     if (content.length > 1024 * 1024) return false; // 1MB limit
-    
+
     // Check for dangerous patterns
     const dangerousPatterns = [
       /<script[^>]*>/i,
@@ -153,9 +153,9 @@ export class MinimalSecurity {
       /data:text\/html/i,
       /data:image\/svg/i,
       /expression\s*\(/i,
-      /vbscript:/i
+      /vbscript:/i,
     ];
-    
+
     return !dangerousPatterns.some(pattern => pattern.test(content));
   }
 
@@ -172,14 +172,14 @@ export class MinimalSecurity {
    */
   static storeToken(token, userInfo) {
     if (!this.validateToken(token)) return false;
-    
+
     try {
       const data = {
         token,
         user: userInfo,
-        timestamp: Date.now()
+        timestamp: Date.now(),
       };
-      
+
       sessionStorage.setItem('mdsg_auth', JSON.stringify(data));
       return true;
     } catch (e) {
@@ -194,15 +194,15 @@ export class MinimalSecurity {
     try {
       const data = sessionStorage.getItem('mdsg_auth');
       if (!data) return null;
-      
+
       const parsed = JSON.parse(data);
-      
+
       // Check if token is expired (24 hours)
       if (Date.now() - parsed.timestamp > 24 * 60 * 60 * 1000) {
         sessionStorage.removeItem('mdsg_auth');
         return null;
       }
-      
+
       return parsed;
     } catch (e) {
       return null;
@@ -227,17 +227,17 @@ export class MinimalSecurity {
 export const SecureHTML = MinimalSecurity;
 
 // Additional methods for test compatibility
-SecureHTML.sanitizeMarkdown = function(markdown) {
+SecureHTML.sanitizeMarkdown = function (markdown) {
   if (typeof markdown !== 'string') return '';
-  
+
   // Check for dangerous patterns
   const dangerousPatterns = [
     /<script[^>]*>/i,
     /javascript:/i,
     /vbscript:/i,
-    /on\w+\s*=/i
+    /on\w+\s*=/i,
   ];
-  
+
   // If dangerous patterns found, escape the entire content
   if (dangerousPatterns.some(pattern => pattern.test(markdown))) {
     // For markdown-specific dangerous patterns, completely neutralize dangerous protocols
@@ -250,36 +250,36 @@ SecureHTML.sanitizeMarkdown = function(markdown) {
     }
     return escaped;
   }
-  
+
   return markdown;
 };
 
 // Additional test compatibility methods
-SecureHTML.isValidURL = function(url) {
+SecureHTML.isValidURL = function (url) {
   if (typeof url !== 'string' || url === '') return false;
-  
+
   // Allow relative URLs and anchors
   if (url.match(/^(\/|\.\/|\.\.\/|#)/)) return true;
-  
+
   // Allow common safe protocols
   if (url.match(/^(https?:|ftp:|mailto:)/i)) return true;
-  
+
   // Block dangerous schemes
   if (url.match(/^(javascript:|vbscript:|data:text\/html)/i)) return false;
-  
+
   return false;
 };
 
-SecureHTML.sanitizeAttributes = function(attributes) {
+SecureHTML.sanitizeAttributes = function (attributes) {
   if (typeof attributes !== 'object' || attributes === null) return {};
-  
+
   const safe = {};
   for (const [key, value] of Object.entries(attributes)) {
     // Remove dangerous attributes
     if (key.match(/^on/i)) continue;
     if (key === 'style' && typeof value === 'string' && value.match(/javascript:|expression\(/i)) continue;
     if ((key === 'href' || key === 'src') && !SecureHTML.isValidURL(value)) continue;
-    
+
     // Don't escape URLs that are already safe
     if ((key === 'href' || key === 'src') && SecureHTML.isValidURL(value)) {
       safe[key] = value;
@@ -290,18 +290,18 @@ SecureHTML.sanitizeAttributes = function(attributes) {
   return safe;
 };
 
-SecureHTML.getConfig = function(mode) {
+SecureHTML.getConfig = function (mode) {
   switch (mode) {
     case 'strict':
       return {
         ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'code'],
         FORBID_TAGS: ['img', 'a', 'script', 'iframe'],
-        ALLOWED_ATTR: ['id', 'class']
+        ALLOWED_ATTR: ['id', 'class'],
       };
     case 'minimal':
       return {
         ALLOWED_TAGS: ['p', 'br'],
-        ALLOWED_ATTR: []
+        ALLOWED_ATTR: [],
       };
     default:
       return {};
