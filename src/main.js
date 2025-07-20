@@ -1426,7 +1426,27 @@ Start editing this content to create your own site. The preview updates as you t
 <title>${MinimalSecurity.escapeText(siteTitle)}</title>
     <meta name="description" content="A beautiful site created with MDSG">
     <meta name="generator" content="MDSG - Markdown Site Generator">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.2.0/github-markdown-light.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.2.0/github-markdown-light.min.css" integrity="sha384-EO78zcRLJOWOYmZKYbYhPIHo53ToVMiu54zJoucRPfThAtC6Y5VNw4aT3GTnkaP+" crossorigin="anonymous">
+    <script>
+        // SRI Fallback: Check if CDN CSS loaded, provide fallback if not
+        window.addEventListener('load', function() {
+            const link = document.querySelector('link[href*="github-markdown-css"]');
+            if (link) {
+                link.onerror = function() {
+                    console.warn('CDN CSS failed to load, using fallback styles');
+                    const fallbackStyle = document.createElement('style');
+                    fallbackStyle.textContent = \`
+                        .markdown-body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; line-height: 1.6; }
+                        .markdown-body h1, .markdown-body h2, .markdown-body h3 { margin-top: 1.5em; margin-bottom: 0.5em; font-weight: 600; }
+                        .markdown-body p { margin-bottom: 1em; }
+                        .markdown-body code { padding: 0.2em 0.4em; background-color: #f6f8fa; border-radius: 3px; }
+                        .markdown-body pre { background-color: #f6f8fa; padding: 1em; border-radius: 6px; overflow-x: auto; }
+                    \`;
+                    document.head.appendChild(fallbackStyle);
+                };
+            }
+        });
+    </script>
     <style>
         body {
             box-sizing: border-box;
