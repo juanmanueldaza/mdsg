@@ -249,6 +249,7 @@ npm run build --analyze                            # Bundle composition
 6. **Follow incremental delivery** - build on proven foundation
 7. **Prioritize security** - validate all user inputs, sanitize outputs
 8. **Test incrementally** - validate after each significant change
+9. **⚠️ Do NOT add AI co-author signatures** - use standard commit messages only
 
 ## 🔄 Continuous Improvement
 

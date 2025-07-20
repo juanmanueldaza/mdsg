@@ -40,7 +40,40 @@ npm run build > /dev/null 2>&1 && echo "✅ Build Success" || echo "❌ Build Fa
 curl -s -o /dev/null -w "%{http_code}" https://mdsg.daza.ar/ | grep -q "200" && echo "✅ Site Live" || echo "❌ Site Down"
 ```
 
-## 📋 GitHub Issues Management (AI Agent Protocol)
+## � Commit Message Standards (AI Agent Protocol)
+
+**🎯 MANDATORY**: AI agents MUST follow these commit message standards.
+
+### Commit Message Format
+```bash
+# ✅ PREFERRED FORMAT: Conventional Commits (simple)
+git commit -m "feat: Add new feature description"
+git commit -m "fix: Resolve specific issue description"
+git commit -m "docs: Update documentation"
+git commit -m "test: Add/update test coverage"
+git commit -m "perf: Improve performance"
+git commit -m "security: Enhance security measures"
+
+# ⚠️ IMPORTANT: Do NOT add AI co-author signatures
+# ❌ AVOID: "Co-authored-by: AI Assistant <ai@github.com>"
+# ❌ AVOID: AI attribution in commit messages
+# ✅ USE: Standard descriptive commit messages only
+
+# ✅ EXAMPLES OF GOOD COMMIT MESSAGES
+git commit -m "feat: Add table parsing to markdown processor"
+git commit -m "fix: Resolve XSS vulnerability in link sanitization"
+git commit -m "docs: Update GitHub Issues workflow documentation"
+git commit -m "test: Add comprehensive security test coverage"
+```
+
+### Commit Best Practices
+- **Keep messages concise and descriptive**
+- **Use conventional commit prefixes** (feat:, fix:, docs:, test:, etc.)
+- **Focus on what was changed, not who made the change**
+- **No AI attribution or co-author signatures**
+- **Use present tense** ("Add feature" not "Added feature")
+
+## �📋 GitHub Issues Management (AI Agent Protocol)
 
 **🎯 MANDATORY**: AI agents MUST always use the GitHub CLI (`gh`) client for issue management and resolution.
 
