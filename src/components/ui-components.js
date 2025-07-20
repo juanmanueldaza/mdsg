@@ -1,5 +1,4 @@
 export class UIComponentBuilder {
-
   static buildMainInterface() {
     return `
       <div class="container">
@@ -316,7 +315,12 @@ Write something interesting about yourself here...
       </div>
     `;
   }
-  static buildErrorMessage(title, message, actionText = 'Try Again', actionId = 'retry-btn') {
+  static buildErrorMessage(
+    title,
+    message,
+    actionText = 'Try Again',
+    actionId = 'retry-btn',
+  ) {
     return `
       <div class="error-container">
         <div class="error-icon">⚠️</div>
@@ -326,7 +330,12 @@ Write something interesting about yourself here...
       </div>
     `;
   }
-  static buildSuccessMessage(title, message, actionText = 'Continue', actionId = 'continue-btn') {
+  static buildSuccessMessage(
+    title,
+    message,
+    actionText = 'Continue',
+    actionId = 'continue-btn',
+  ) {
     return `
       <div class="success-container">
         <div class="success-icon">✅</div>

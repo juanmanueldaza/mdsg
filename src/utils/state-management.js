@@ -21,7 +21,6 @@ export class AuthenticationState {
     this.user = user;
     this.token = token;
     this.lastAuthenticationTime = new Date().toISOString();
-
   }
   clearAuthentication() {
     this.reset();
@@ -37,8 +36,8 @@ export class AuthenticationState {
   getAuthHeaders() {
     this.requireAuthentication();
     return {
-      'Authorization': `token ${this.token}`,
-      'Accept': 'application/vnd.github.v3+json',
+      Authorization: `token ${this.token}`,
+      Accept: 'application/vnd.github.v3+json',
       'User-Agent': 'MDSG-App',
     };
   }
@@ -80,16 +79,17 @@ export class AuthenticationState {
   clearStoredAuth() {
     try {
       localStorage.removeItem('mdsg_auth');
-    } catch (error) {
-    }
+    } catch (error) {}
   }
   _isValidStoredAuth(authData) {
-    return authData &&
-           authData.user &&
-           authData.token &&
-           authData.user.login &&
-           typeof authData.token === 'string' &&
-           authData.token.length > 0;
+    return (
+      authData &&
+      authData.user &&
+      authData.token &&
+      authData.user.login &&
+      typeof authData.token === 'string' &&
+      authData.token.length > 0
+    );
   }
   isTokenExpired() {
     if (!this.lastAuthenticationTime) return true;
@@ -119,7 +119,7 @@ export class ContentState {
     const oldContent = this.content;
     this.content = newContent;
     this._updateCounts();
-    this.hasUnsavedChanges = (oldContent !== newContent);
+    this.hasUnsavedChanges = oldContent !== newContent;
 
     if (this.hasUnsavedChanges) {
       this._scheduleAutoSave();
@@ -127,14 +127,19 @@ export class ContentState {
   }
   setRepoName(name) {
     if (!this.isValidRepoName(name)) {
-      throw new Error('Invalid repository name: must contain only letters, numbers, dots, hyphens, and underscores');
+      throw new Error(
+        'Invalid repository name: must contain only letters, numbers, dots, hyphens, and underscores',
+      );
     }
     this.repoName = name.toLowerCase();
   }
   _updateCounts() {
     this.charCount = this.content.length;
     this.wordCount = this.content.trim()
-      ? this.content.trim().split(/\s+/).filter(word => word.length > 0).length
+      ? this.content
+        .trim()
+        .split(/\s+/)
+        .filter(word => word.length > 0).length
       : 0;
   }
   markSaved() {
@@ -148,8 +153,7 @@ export class ContentState {
     return /^[a-zA-Z0-9._-]+$/.test(name);
   }
   isContentValid() {
-    return typeof this.content === 'string' &&
-           this.content.trim().length > 0;
+    return typeof this.content === 'string' && this.content.trim().length > 0;
   }
   getStats() {
     return {
@@ -171,8 +175,7 @@ export class ContentState {
           return true;
         }
       }
-    } catch (error) {
-    }
+    } catch (error) {}
     return false;
   }
   saveToStorage() {
@@ -212,7 +215,6 @@ export class ContentState {
 
     try {
       localStorage.removeItem('mdsg_content');
-    } catch (error) {
-    }
+    } catch (error) {}
   }
 }

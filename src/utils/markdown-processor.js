@@ -1,5 +1,4 @@
 export class MarkdownProcessor {
-
   static process(markdown) {
     if (!markdown) return '';
 
@@ -12,9 +11,7 @@ export class MarkdownProcessor {
                 this._processTextFormatting(
                   this._processLists(
                     this._processBlockquotes(
-                      this._processHeaders(
-                        this._processCodeBlocks(markdown),
-                      ),
+                      this._processHeaders(this._processCodeBlocks(markdown)),
                     ),
                   ),
                 ),

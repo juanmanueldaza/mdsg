@@ -1,5 +1,4 @@
 export class MinimalSecurity {
-
   static escapeText(text) {
     if (typeof text !== 'string') return '';
     return text
@@ -29,27 +28,45 @@ export class MinimalSecurity {
     html = html.replace(/\s(on\w+)\s*=\s*["'][^"']*["']/gi, '');
     html = html.replace(/\s(on\w+)\s*=\s*[^"'\s>]+/gi, '');
 
-    html = html.replace(/href\s*=\s*["'](javascript:|vbscript:)[^"']*["']/gi, '');
-    html = html.replace(/src\s*=\s*["'](javascript:|vbscript:)[^"']*["']/gi, '');
+    html = html.replace(
+      /href\s*=\s*["'](javascript:|vbscript:)[^"']*["']/gi,
+      '',
+    );
+    html = html.replace(
+      /src\s*=\s*["'](javascript:|vbscript:)[^"']*["']/gi,
+      '',
+    );
 
     html = html.replace(/href\s*=\s*["']data:[^"']*["']/gi, '');
     html = html.replace(/src\s*=\s*["']data:[^"']*["']/gi, '');
 
     html = html.replace(/style\s*=\s*["'][^"']*javascript:[^"']*["']/gi, '');
-    html = html.replace(/style\s*=\s*["'][^"']*expression\s*\([^"']*\)["']/gi, '');
+    html = html.replace(
+      /style\s*=\s*["'][^"']*expression\s*\([^"']*\)["']/gi,
+      '',
+    );
 
-    html = html.replace(/<(iframe|object|embed|form|input|meta|link|svg)[^>]*>/gi, '');
-    html = html.replace(/<\/?(iframe|object|embed|form|input|meta|link|svg)[^>]*>/gi, '');
+    html = html.replace(
+      /<(iframe|object|embed|form|input|meta|link|svg)[^>]*>/gi,
+      '',
+    );
+    html = html.replace(
+      /<\/?(iframe|object|embed|form|input|meta|link|svg)[^>]*>/gi,
+      '',
+    );
 
-    html = html.replace(/<a\s+([^>]*href\s*=\s*["']https?:\/\/[^"']+["'][^>]*)>/gi, (match, attrs) => {
-      if (!attrs.includes('target=')) {
-        attrs += ' target="_blank"';
-      }
-      if (!attrs.includes('rel=')) {
-        attrs += ' rel="noopener noreferrer"';
-      }
-      return `<a ${attrs}>`;
-    });
+    html = html.replace(
+      /<a\s+([^>]*href\s*=\s*["']https?:\/\/[^"']+["'][^>]*)>/gi,
+      (match, attrs) => {
+        if (!attrs.includes('target=')) {
+          attrs += ' target="_blank"';
+        }
+        if (!attrs.includes('rel=')) {
+          attrs += ' rel="noopener noreferrer"';
+        }
+        return `<a ${attrs}>`;
+      },
+    );
 
     html = html.replace(/localStorage\.getItem/gi, '');
     html = html.replace(/document\.cookie/gi, '');
@@ -115,7 +132,9 @@ export class MinimalSecurity {
   static generateCSRFToken() {
     const array = new Uint8Array(32);
     crypto.getRandomValues(array);
-    return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
+    return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join(
+      '',
+    );
   }
 
   static storeCSRFToken(token) {
@@ -195,8 +214,7 @@ export class MinimalSecurity {
       sessionStorage.removeItem('mdsg_csrf');
       localStorage.removeItem('mdsg_token');
       localStorage.removeItem('mdsg_user');
-    } catch (e) {
-    }
+    } catch (e) {}
   }
   static storeContent(content, key = 'mdsg_content') {
     if (!this.validateContent(content)) {
@@ -245,7 +263,7 @@ export class MinimalSecurity {
     let hash = 0;
     for (let i = 0; i < content.length; i++) {
       const char = content.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
+      hash = (hash << 5) - hash + char;
       hash = hash & hash;
     }
     return hash.toString(16);
@@ -269,7 +287,9 @@ SecureHTML.sanitizeMarkdown = function (markdown) {
     if (markdown.includes('javascript:') || markdown.includes('vbscript:')) {
       escaped = escaped.replace(/javascript:/gi, 'javascript&#58;');
       escaped = escaped.replace(/vbscript:/gi, 'vbscript&#58;');
-      return '&lt;span class="dangerous-content"&gt;' + escaped + '&lt;/span&gt;';
+      return (
+        '&lt;span class="dangerous-content"&gt;' + escaped + '&lt;/span&gt;'
+      );
     }
     return escaped;
   }
@@ -295,13 +315,20 @@ SecureHTML.sanitizeAttributes = function (attributes) {
   const safe = {};
   for (const [key, value] of Object.entries(attributes)) {
     if (key.match(/^on/i)) continue;
-    if (key === 'style' && typeof value === 'string' && value.match(/javascript:|expression\(/i)) continue;
-    if ((key === 'href' || key === 'src') && !SecureHTML.isValidURL(value)) continue;
+    if (
+      key === 'style' &&
+      typeof value === 'string' &&
+      value.match(/javascript:|expression\(/i)
+    )
+      continue;
+    if ((key === 'href' || key === 'src') && !SecureHTML.isValidURL(value))
+      continue;
 
     if ((key === 'href' || key === 'src') && SecureHTML.isValidURL(value)) {
       safe[key] = value;
     } else {
-      safe[key] = typeof value === 'string' ? MinimalSecurity.escapeText(value) : value;
+      safe[key] =
+        typeof value === 'string' ? MinimalSecurity.escapeText(value) : value;
     }
   }
   return safe;

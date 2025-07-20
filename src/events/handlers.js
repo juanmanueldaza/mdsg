@@ -46,8 +46,10 @@ export class EventHandlerService {
   setupAuthenticationEvents(_container) {
     const loginBtn = container.querySelector('#login-btn');
     if (loginBtn) {
-      const loginStream = fromClick(loginBtn)
-        .map(() => ({ type: 'auth.login.requested', timestamp: Date.now() }));
+      const loginStream = fromClick(loginBtn).map(() => ({
+        type: 'auth.login.requested',
+        timestamp: Date.now(),
+      }));
 
       this.subscriptions.add(
         loginStream.subscribe(_event => {
@@ -60,8 +62,10 @@ export class EventHandlerService {
 
     const demoBtn = container.querySelector('#demo-btn');
     if (demoBtn) {
-      const demoStream = fromClick(demoBtn)
-        .map(() => ({ type: 'auth.demo.requested', timestamp: Date.now() }));
+      const demoStream = fromClick(demoBtn).map(() => ({
+        type: 'auth.demo.requested',
+        timestamp: Date.now(),
+      }));
 
       this.subscriptions.add(
         demoStream.subscribe(_event => {
@@ -77,7 +81,11 @@ export class EventHandlerService {
     if (tokenInput) {
       const tokenStream = debouncedInput(tokenInput, 500)
         .filter(value => value.length > 10)
-        .map(value => ({ type: 'auth.token.changed', token: value, timestamp: Date.now() }));
+        .map(value => ({
+          type: 'auth.token.changed',
+          token: value,
+          timestamp: Date.now(),
+        }));
 
       this.subscriptions.add(
         tokenStream.subscribe(_event => {
@@ -146,13 +154,12 @@ export class EventHandlerService {
     const editor = container.querySelector('#markdown-editor');
     if (!editor) return;
 
-    const contentStream = debouncedInput(editor, 300)
-      .map(content => ({
-        type: 'editor.content.changed',
-        content,
-        wordCount: content.split(/\s+/).filter(w => w.length > 0).length,
-        timestamp: Date.now(),
-      }));
+    const contentStream = debouncedInput(editor, 300).map(content => ({
+      type: 'editor.content.changed',
+      content,
+      wordCount: content.split(/\s+/).filter(w => w.length > 0).length,
+      timestamp: Date.now(),
+    }));
 
     this.subscriptions.add(
       contentStream.subscribe(_event => {
@@ -176,14 +183,13 @@ export class EventHandlerService {
       }),
     );
 
-    const shortcutStream = keyboardShortcuts(editor)
-      .map(e => ({
-        type: 'editor.shortcut.triggered',
-        key: e.key,
-        ctrlKey: e.ctrlKey,
-        metaKey: e.metaKey,
-        event: e,
-      }));
+    const shortcutStream = keyboardShortcuts(editor).map(e => ({
+      type: 'editor.shortcut.triggered',
+      key: e.key,
+      ctrlKey: e.ctrlKey,
+      metaKey: e.metaKey,
+      event: e,
+    }));
 
     this.subscriptions.add(
       shortcutStream.subscribe(_event => {
@@ -211,15 +217,14 @@ export class EventHandlerService {
   setupNavigationEvents(_container) {
     const navButtons = container.querySelectorAll('[data-nav]');
 
-    const navStream = from(Array.from(navButtons))
-      .flatMap(button =>
-        fromClick(button).map(e => ({
-          type: 'navigation.tab.clicked',
-          tab: button.dataset.nav,
-          timestamp: Date.now(),
-          event: e,
-        })),
-      );
+    const navStream = from(Array.from(navButtons)).flatMap(button =>
+      fromClick(button).map(e => ({
+        type: 'navigation.tab.clicked',
+        tab: button.dataset.nav,
+        timestamp: Date.now(),
+        event: e,
+      })),
+    );
 
     this.subscriptions.add(
       navStream.subscribe(_event => {
@@ -228,12 +233,11 @@ export class EventHandlerService {
       }),
     );
 
-    const hashStream = fromEvent(window, 'hashchange')
-      .map(() => ({
-        type: 'navigation.hash.changed',
-        hash: window.location.hash,
-        timestamp: Date.now(),
-      }));
+    const hashStream = fromEvent(window, 'hashchange').map(() => ({
+      type: 'navigation.hash.changed',
+      hash: window.location.hash,
+      timestamp: Date.now(),
+    }));
 
     this.subscriptions.add(
       hashStream.subscribe(_event => {
@@ -242,12 +246,11 @@ export class EventHandlerService {
       }),
     );
 
-    const backButtonStream = fromEvent(window, 'popstate')
-      .map(e => ({
-        type: 'navigation.back.pressed',
-        state: e.state,
-        timestamp: Date.now(),
-      }));
+    const backButtonStream = fromEvent(window, 'popstate').map(e => ({
+      type: 'navigation.back.pressed',
+      state: e.state,
+      timestamp: Date.now(),
+    }));
 
     this.subscriptions.add(
       backButtonStream.subscribe(_event => {
@@ -309,14 +312,13 @@ export class EventHandlerService {
   }
 
   setupKeyboardShortcuts(_container) {
-    const globalShortcuts = keyboardShortcuts(document)
-      .map(e => ({
-        type: 'shortcut.global',
-        key: e.key,
-        ctrlKey: e.ctrlKey,
-        metaKey: e.metaKey,
-        event: e,
-      }));
+    const globalShortcuts = keyboardShortcuts(document).map(e => ({
+      type: 'shortcut.global',
+      key: e.key,
+      ctrlKey: e.ctrlKey,
+      metaKey: e.metaKey,
+      event: e,
+    }));
 
     this.subscriptions.add(
       globalShortcuts.subscribe(_event => {
@@ -336,9 +338,11 @@ export class EventHandlerService {
         timestamp: Date.now(),
       }))
       .filter(_event => {
-        return !event.filename?.includes('extension://') &&
-               !event.filename?.includes('chrome-extension://') &&
-               !event.filename?.includes('moz-extension://');
+        return (
+          !event.filename?.includes('extension://') &&
+          !event.filename?.includes('chrome-extension://') &&
+          !event.filename?.includes('moz-extension://')
+        );
       });
 
     this.subscriptions.add(
@@ -393,9 +397,7 @@ export class EventHandlerService {
     const end = editor.selectionEnd;
 
     editor.value =
-      editor.value.substring(0, start) +
-      '    ' +
-      editor.value.substring(end);
+      editor.value.substring(0, start) + '    ' + editor.value.substring(end);
 
     editor.selectionStart = editor.selectionEnd = start + 4;
 
@@ -464,9 +466,7 @@ export class EventHandlerService {
 
     const newText = before + replacement + after;
     editor.value =
-      editor.value.substring(0, start) +
-      newText +
-      editor.value.substring(end);
+      editor.value.substring(0, start) + newText + editor.value.substring(end);
 
     const newCursorPos = start + before.length + replacement.length;
     editor.setSelectionRange(newCursorPos, newCursorPos);
@@ -514,8 +514,7 @@ export class EventHandlerService {
     this.subscriptions.forEach(unsubscribe => {
       try {
         unsubscribe();
-      } catch (error) {
-      }
+      } catch (error) {}
     });
 
     this.subscriptions.clear();

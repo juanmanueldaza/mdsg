@@ -30,7 +30,6 @@ const SUSPICIOUS_PATTERNS = [
   /<svg[^>]*onload/i,
 ];
 export class InputValidator {
-
   static validateGitHubToken(token) {
     const errors = [];
 
@@ -44,11 +43,15 @@ export class InputValidator {
     }
 
     if (token.length > FILE_SIZE_LIMITS.TOKEN) {
-      errors.push(`Token is too long (maximum ${FILE_SIZE_LIMITS.TOKEN} characters)`);
+      errors.push(
+        `Token is too long (maximum ${FILE_SIZE_LIMITS.TOKEN} characters)`,
+      );
     }
 
     if (!/^[a-zA-Z0-9_]+$/.test(token)) {
-      errors.push('Token contains invalid characters (only alphanumeric and underscore allowed)');
+      errors.push(
+        'Token contains invalid characters (only alphanumeric and underscore allowed)',
+      );
     }
 
     if (/[<>'"&]/.test(token)) {
@@ -76,11 +79,15 @@ export class InputValidator {
     }
 
     if (trimmed.length > FILE_SIZE_LIMITS.REPOSITORY_NAME) {
-      errors.push(`Repository name is too long (maximum ${FILE_SIZE_LIMITS.REPOSITORY_NAME} characters)`);
+      errors.push(
+        `Repository name is too long (maximum ${FILE_SIZE_LIMITS.REPOSITORY_NAME} characters)`,
+      );
     }
 
     if (!/^[a-zA-Z0-9._-]+$/.test(trimmed)) {
-      errors.push('Repository name can only contain letters, numbers, dots, hyphens, and underscores');
+      errors.push(
+        'Repository name can only contain letters, numbers, dots, hyphens, and underscores',
+      );
     }
 
     if (trimmed.startsWith('.') || trimmed.endsWith('.')) {
@@ -91,7 +98,30 @@ export class InputValidator {
       errors.push('Repository name cannot start or end with a hyphen');
     }
 
-    const reservedNames = ['CON', 'PRN', 'AUX', 'NUL', 'COM1', 'COM2', 'COM3', 'COM4', 'COM5', 'COM6', 'COM7', 'COM8', 'COM9', 'LPT1', 'LPT2', 'LPT3', 'LPT4', 'LPT5', 'LPT6', 'LPT7', 'LPT8', 'LPT9'];
+    const reservedNames = [
+      'CON',
+      'PRN',
+      'AUX',
+      'NUL',
+      'COM1',
+      'COM2',
+      'COM3',
+      'COM4',
+      'COM5',
+      'COM6',
+      'COM7',
+      'COM8',
+      'COM9',
+      'LPT1',
+      'LPT2',
+      'LPT3',
+      'LPT4',
+      'LPT5',
+      'LPT6',
+      'LPT7',
+      'LPT8',
+      'LPT9',
+    ];
     if (reservedNames.includes(trimmed.toUpperCase())) {
       errors.push('Repository name cannot be a reserved system name');
     }
@@ -113,13 +143,17 @@ export class InputValidator {
 
     const contentSize = new Blob([markdown]).size;
     if (contentSize > FILE_SIZE_LIMITS.MARKDOWN) {
-      errors.push(`Markdown content is too large (${(contentSize / 1024).toFixed(1)}KB, maximum ${FILE_SIZE_LIMITS.MARKDOWN / 1024}KB)`);
+      errors.push(
+        `Markdown content is too large (${(contentSize / 1024).toFixed(1)}KB, maximum ${FILE_SIZE_LIMITS.MARKDOWN / 1024}KB)`,
+      );
     }
 
     const suspiciousFindings = [];
-    SUSPICIOUS_PATTERNS.forEach((pattern) => {
+    SUSPICIOUS_PATTERNS.forEach(pattern => {
       if (pattern.test(markdown)) {
-        suspiciousFindings.push(`Suspicious pattern detected: ${pattern.source}`);
+        suspiciousFindings.push(
+          `Suspicious pattern detected: ${pattern.source}`,
+        );
       }
     });
 
@@ -129,12 +163,16 @@ export class InputValidator {
 
     const lines = markdown.split('\n');
     if (lines.length > 10000) {
-      warnings.push('Markdown content has a very large number of lines, which may affect performance');
+      warnings.push(
+        'Markdown content has a very large number of lines, which may affect performance',
+      );
     }
 
     const longLines = lines.filter(line => line.length > 10000);
     if (longLines.length > 0) {
-      warnings.push(`${longLines.length} lines exceed 10,000 characters, which may affect performance`);
+      warnings.push(
+        `${longLines.length} lines exceed 10,000 characters, which may affect performance`,
+      );
     }
 
     return {
@@ -165,7 +203,9 @@ export class InputValidator {
     const trimmed = description.trim();
 
     if (trimmed.length > FILE_SIZE_LIMITS.DESCRIPTION) {
-      errors.push(`Description is too long (maximum ${FILE_SIZE_LIMITS.DESCRIPTION} characters)`);
+      errors.push(
+        `Description is too long (maximum ${FILE_SIZE_LIMITS.DESCRIPTION} characters)`,
+      );
     }
 
     if (/<[^>]*>/.test(trimmed)) {
@@ -196,7 +236,6 @@ export class InputValidator {
       if (!parsedURL.hostname || parsedURL.hostname.length === 0) {
         errors.push('URL must have a valid hostname');
       }
-
     } catch (error) {
       errors.push('Invalid URL format');
     }
@@ -208,12 +247,7 @@ export class InputValidator {
     };
   }
   static validateSiteCreation(inputs) {
-    const {
-      token,
-      repositoryName,
-      markdownContent,
-      description = '',
-    } = inputs;
+    const { token, repositoryName, markdownContent, description = '' } = inputs;
 
     const validations = {
       token: this.validateGitHubToken(token),
@@ -234,7 +268,9 @@ export class InputValidator {
       }
 
       if (validation.warnings) {
-        allWarnings.push(...validation.warnings.map(warning => `${field}: ${warning}`));
+        allWarnings.push(
+          ...validation.warnings.map(warning => `${field}: ${warning}`),
+        );
       }
     }
 

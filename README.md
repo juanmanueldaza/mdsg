@@ -123,7 +123,7 @@ mdsg/
 │   └── .prettierrc          # Code formatting rules
 │
 ├── 🚀 Build & Deployment
-│   ├── vite.config.js        # Optimized build configuration  
+│   ├── vite.config.js        # Optimized build configuration
 │   └── .github/workflows/    # CI/CD pipeline
 │
 └── 📖 Documentation

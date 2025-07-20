@@ -5,7 +5,7 @@ export class Observable {
   }
 
   subscribe(observer) {
-    const wrappedObserver = (value) => {
+    const wrappedObserver = value => {
       let result = value;
       for (const operator of this.operators) {
         result = operator(result);
@@ -22,8 +22,7 @@ export class Observable {
       return this.subscribe(value => {
         try {
           observer(mapper(value));
-        } catch (__error) {
-        }
+        } catch (__error) {}
       });
     });
   }
@@ -38,7 +37,7 @@ export class Observable {
   }
   static fromEvent(element, eventType, options = {}) {
     return new Observable(observer => {
-      const handler = (event) => observer(event);
+      const handler = event => observer(event);
       element.addEventListener(eventType, handler, options);
 
       return () => {
@@ -48,8 +47,7 @@ export class Observable {
   }
   static fromPromise(promise) {
     return new Observable(observer => {
-      promise.then(observer).catch(_error => {
-      });
+      promise.then(observer).catch(_error => {});
 
       return () => {};
     });
@@ -134,8 +132,10 @@ export class EventBus {
     return {
       activeEvents: this.subjects.size,
       events: Array.from(this.subjects.keys()),
-      totalSubscriptions: Array.from(this.subjects.values())
-        .reduce((total, subject) => total + subject.observerCount, 0),
+      totalSubscriptions: Array.from(this.subjects.values()).reduce(
+        (total, subject) => total + subject.observerCount,
+        0,
+      ),
     };
   }
 }
@@ -156,8 +156,7 @@ export class Subject extends Observable {
     this.observers.forEach(observer => {
       try {
         observer(value);
-      } catch (__error) {
-      }
+      } catch (__error) {}
     });
   }
   complete() {
@@ -198,8 +197,7 @@ export class EventManager {
     this.subscriptions.forEach(unsubscribe => {
       try {
         unsubscribe();
-      } catch (__error) {
-      }
+      } catch (__error) {}
     });
     this.subscriptions.clear();
   }
@@ -214,17 +212,19 @@ export class EventManager {
 export const eventBus = new EventBus();
 export const eventManager = new EventManager();
 
-export const fromClick = (element) => Observable.fromEvent(element, 'click');
-export const fromInput = (element) => Observable.fromEvent(element, 'input');
-export const fromChange = (element) => Observable.fromEvent(element, 'change');
-export const fromKeydown = (element) => Observable.fromEvent(element, 'keydown');
-export const fromSubmit = (element) => Observable.fromEvent(element, 'submit');
+export const fromClick = element => Observable.fromEvent(element, 'click');
+export const fromInput = element => Observable.fromEvent(element, 'input');
+export const fromChange = element => Observable.fromEvent(element, 'change');
+export const fromKeydown = element => Observable.fromEvent(element, 'keydown');
+export const fromSubmit = element => Observable.fromEvent(element, 'submit');
 
 export const debouncedInput = (element, delay = 300) =>
-  fromInput(element).debounce(delay).map(e => e.target.value);
+  fromInput(element)
+    .debounce(delay)
+    .map(e => e.target.value);
 
 export const throttledScroll = (element, delay = 100) =>
   Observable.fromEvent(element, 'scroll').throttle(delay);
 
-export const keyboardShortcuts = (element) =>
+export const keyboardShortcuts = element =>
   fromKeydown(element).filter(e => e.ctrlKey || e.metaKey);

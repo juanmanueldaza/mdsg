@@ -1,5 +1,4 @@
 export class CSRFProtection {
-
   static generateToken() {
     const array = new Uint8Array(32);
     if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
@@ -10,14 +9,16 @@ export class CSRFProtection {
       }
     }
 
-    return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
+    return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join(
+      '',
+    );
   }
   static storeToken(token) {
     try {
       const csrfData = {
         token,
         created: Date.now(),
-        expires: Date.now() + (60 * 60 * 1000),
+        expires: Date.now() + 60 * 60 * 1000,
       };
 
       sessionStorage.setItem('mdsg_csrf_token', JSON.stringify(csrfData));
@@ -110,7 +111,7 @@ export class CSRFProtection {
     }
 
     const originalSubmitHandler = form.onsubmit;
-    form.onsubmit = (event) => {
+    form.onsubmit = event => {
       if (!this.validateOrigin(expectedOrigin)) {
         event.preventDefault();
         return false;
@@ -171,8 +172,13 @@ export class CSRFProtection {
 
     return headers;
   }
-  static async secureFetch(url, options = {}, expectedOrigin = 'https://mdsg.daza.ar') {
-    const isSensitiveOperation = options.method &&
+  static async secureFetch(
+    url,
+    options = {},
+    expectedOrigin = 'https://mdsg.daza.ar',
+  ) {
+    const isSensitiveOperation =
+      options.method &&
       ['POST', 'PUT', 'DELETE', 'PATCH'].includes(options.method.toUpperCase());
 
     if (isSensitiveOperation) {
@@ -180,7 +186,9 @@ export class CSRFProtection {
 
       const validation = this.validateRequest(token, expectedOrigin);
       if (!validation.isValid) {
-        throw new Error(`CSRF validation failed: ${validation.errors.join(', ')}`);
+        throw new Error(
+          `CSRF validation failed: ${validation.errors.join(', ')}`,
+        );
       }
 
       const secureHeaders = this.createSecureHeaders(token);
@@ -195,8 +203,7 @@ export class CSRFProtection {
   static clearProtection() {
     try {
       sessionStorage.removeItem('mdsg_csrf_token');
-    } catch (error) {
-    }
+    } catch (error) {}
   }
   static getStatus() {
     const token = this.getToken();
@@ -204,7 +211,8 @@ export class CSRFProtection {
     return {
       isActive: !!token,
       hasValidToken: !!token,
-      origin: typeof window !== 'undefined' ? window.location.origin : 'unknown',
+      origin:
+        typeof window !== 'undefined' ? window.location.origin : 'unknown',
       referrer: typeof document !== 'undefined' ? document.referrer : 'unknown',
     };
   }

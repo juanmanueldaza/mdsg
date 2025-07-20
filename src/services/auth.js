@@ -6,7 +6,11 @@ export class AuthenticationService {
   }
   isAuthenticated() {
     const tokenData = MinimalSecurity.getToken();
-    return !!(tokenData && tokenData.token && this.isValidToken(tokenData.token));
+    return !!(
+      tokenData &&
+      tokenData.token &&
+      this.isValidToken(tokenData.token)
+    );
   }
   getCurrentUser() {
     const tokenData = MinimalSecurity.getToken();
@@ -39,7 +43,6 @@ export class AuthenticationService {
     };
 
     MinimalSecurity.storeToken(token, enhancedUser);
-
   }
   setDemoMode() {
     const demoUser = {
@@ -79,30 +82,41 @@ export class AuthenticationService {
 
       if (!response.ok) {
         if (response.status === 401) {
-          throw new Error('Invalid token - please check your GitHub personal access token');
+          throw new Error(
+            'Invalid token - please check your GitHub personal access token',
+          );
         }
         if (response.status === 403) {
-          throw new Error('Token does not have required permissions - please ensure "repo" and "user" scopes are enabled');
+          throw new Error(
+            'Token does not have required permissions - please ensure "repo" and "user" scopes are enabled',
+          );
         }
-        throw new Error(`GitHub API error: ${response.status} ${response.statusText}`);
+        throw new Error(
+          `GitHub API error: ${response.status} ${response.statusText}`,
+        );
       }
 
       const userData = await response.json();
 
       if (!userData.login) {
-        throw new Error('Unable to fetch user information - token may be invalid');
+        throw new Error(
+          'Unable to fetch user information - token may be invalid',
+        );
       }
 
       return userData;
     } catch (error) {
       if (error.message.includes('fetch')) {
-        throw new Error('Unable to connect to GitHub API - please check your internet connection');
+        throw new Error(
+          'Unable to connect to GitHub API - please check your internet connection',
+        );
       }
       throw error;
     }
   }
   generateCSRFToken() {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    const chars =
+      'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
     let result = '';
     for (let i = 0; i < 32; i++) {
       result += chars.charAt(Math.floor(Math.random() * chars.length));

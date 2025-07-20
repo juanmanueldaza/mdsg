@@ -22,9 +22,9 @@ export default defineConfig({
       // 🧪 ALCHEMICAL TRANSFORMATION: Clean aliases replace index.js confusion
       '@components': resolve(__dirname, 'src/components'),
       '@utils': resolve(__dirname, 'src/utils'),
-      '@services': resolve(__dirname, 'src/services'),  
+      '@services': resolve(__dirname, 'src/services'),
       '@events': resolve(__dirname, 'src/events'),
-      
+
       // 🎯 Specific module aliases for clean imports
       '@auth': resolve(__dirname, 'src/services/auth.js'),
       '@github': resolve(__dirname, 'src/services/github.js'),
@@ -35,7 +35,7 @@ export default defineConfig({
       '@security': resolve(__dirname, 'src/utils/security-minimal.js'),
       '@markdown': resolve(__dirname, 'src/utils/markdown-processor.js'),
       '@ui': resolve(__dirname, 'src/components/ui-components.js'),
-      '@state': resolve(__dirname, 'src/utils/state-management.js')
-    }
-  }
+      '@state': resolve(__dirname, 'src/utils/state-management.js'),
+    },
+  },
 });

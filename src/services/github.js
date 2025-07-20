@@ -30,7 +30,9 @@ export class GitHubAPIService {
       });
 
       if (!response.ok) {
-        throw new Error(`Failed to fetch user: ${response.status} ${response.statusText}`);
+        throw new Error(
+          `Failed to fetch user: ${response.status} ${response.statusText}`,
+        );
       }
 
       const userData = await response.json();
@@ -64,7 +66,9 @@ export class GitHubAPIService {
 
     const repositoryConfig = {
       name: sanitizedName,
-      description: description || `My markdown site created with MDSG on ${new Date().toLocaleDateString()}`,
+      description:
+        description ||
+        `My markdown site created with MDSG on ${new Date().toLocaleDateString()}`,
       ...defaultOptions,
       ...options,
     };
@@ -89,7 +93,9 @@ export class GitHubAPIService {
         if (this.isRepositoryExistsError(errorData)) {
           throw new Error(`Repository '${sanitizedName}' already exists`);
         }
-        throw new Error(`Invalid repository configuration: ${errorData.message || 'Unknown validation error'}`);
+        throw new Error(
+          `Invalid repository configuration: ${errorData.message || 'Unknown validation error'}`,
+        );
       }
 
       if (response.status === 401) {
@@ -97,10 +103,14 @@ export class GitHubAPIService {
       }
 
       if (response.status === 403) {
-        throw new Error('Permission denied. You may have reached your repository limit.');
+        throw new Error(
+          'Permission denied. You may have reached your repository limit.',
+        );
       }
 
-      throw new Error(`Failed to create repository (${response.status}): ${errorData.message || response.statusText}`);
+      throw new Error(
+        `Failed to create repository (${response.status}): ${errorData.message || response.statusText}`,
+      );
     } catch (error) {
       if (error.message.includes('fetch')) {
         throw new Error('Unable to connect to GitHub API');
@@ -108,7 +118,11 @@ export class GitHubAPIService {
       throw error;
     }
   }
-  async createRepositoryWithAutoNaming(baseName, description = '', maxAttempts = 10) {
+  async createRepositoryWithAutoNaming(
+    baseName,
+    description = '',
+    maxAttempts = 10,
+  ) {
     let attempt = 0;
 
     while (attempt < maxAttempts) {
@@ -125,7 +139,9 @@ export class GitHubAPIService {
       }
     }
 
-    throw new Error(`Unable to create repository after ${maxAttempts} attempts. Please try a different name.`);
+    throw new Error(
+      `Unable to create repository after ${maxAttempts} attempts. Please try a different name.`,
+    );
   }
   isRepositoryExistsError(errorData) {
     if (errorData.errors) {
@@ -135,9 +151,10 @@ export class GitHubAPIService {
       return nameError && nameError.code === 'already_exists';
     }
 
-    return errorData.message && (
-      errorData.message.includes('already exists') ||
-      errorData.message.includes('name already exists')
+    return (
+      errorData.message &&
+      (errorData.message.includes('already exists') ||
+        errorData.message.includes('name already exists'))
     );
   }
   async uploadContent(repoName, filePath, content, commitMessage) {
@@ -171,7 +188,9 @@ export class GitHubAPIService {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(`Failed to upload content: ${errorData.message || response.statusText}`);
+        throw new Error(
+          `Failed to upload content: ${errorData.message || response.statusText}`,
+        );
       }
 
       const result = await response.json();
@@ -227,7 +246,9 @@ export class GitHubAPIService {
       }
 
       const errorData = await response.json().catch(() => ({}));
-      throw new Error(`Failed to enable GitHub Pages: ${errorData.message || response.statusText}`);
+      throw new Error(
+        `Failed to enable GitHub Pages: ${errorData.message || response.statusText}`,
+      );
     } catch (error) {
       if (error.message.includes('fetch')) {
         throw new Error('Unable to connect to GitHub API');

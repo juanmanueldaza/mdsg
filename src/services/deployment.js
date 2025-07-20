@@ -22,7 +22,9 @@ export class DeploymentService {
     }
 
     if (!this.validateContentForDeployment(content)) {
-      throw new Error('Content validation failed - contains potentially dangerous patterns');
+      throw new Error(
+        'Content validation failed - contains potentially dangerous patterns',
+      );
     }
 
     const deploymentOptions = {
@@ -36,7 +38,10 @@ export class DeploymentService {
       this.updateProgress('Starting deployment...', 0);
 
       this.updateProgress('Creating repository...', 25);
-      const repo = await this.createDeploymentRepository(repoName, deploymentOptions);
+      const repo = await this.createDeploymentRepository(
+        repoName,
+        deploymentOptions,
+      );
 
       this.updateProgress('Uploading your content...', 50);
       await this.uploadSiteContent(repo.name, content);
@@ -64,7 +69,10 @@ export class DeploymentService {
         options.maxNamingAttempts,
       );
     } else {
-      return await this.github.createRepository(sanitizedName, options.description);
+      return await this.github.createRepository(
+        sanitizedName,
+        options.description,
+      );
     }
   }
   sanitizeRepositoryName(name) {
@@ -323,22 +331,27 @@ export class DeploymentService {
 
     if (error.message.includes('Authentication failed')) {
       errorMessage = 'Authentication expired';
-      errorDetails = 'Please log out and log in again to refresh your credentials.';
+      errorDetails =
+        'Please log out and log in again to refresh your credentials.';
     } else if (error.message.includes('rate limit')) {
       errorMessage = 'GitHub API rate limit exceeded';
       errorDetails = 'Please wait a few minutes and try again.';
     } else if (error.message.includes('Permission denied')) {
       errorMessage = 'Permission denied';
-      errorDetails = 'Please make sure you granted repository access during login.';
+      errorDetails =
+        'Please make sure you granted repository access during login.';
     } else if (error.message.includes('repository limit')) {
       errorMessage = 'Repository limit reached';
-      errorDetails = 'You may have reached your GitHub repository limit for this account.';
+      errorDetails =
+        'You may have reached your GitHub repository limit for this account.';
     } else if (error.message.includes('Unable to create repository after')) {
       errorMessage = 'Repository naming conflict';
-      errorDetails = 'Multiple repositories with similar names exist. Please delete some old MDSG repositories.';
+      errorDetails =
+        'Multiple repositories with similar names exist. Please delete some old MDSG repositories.';
     } else if (error.message.includes('Content validation failed')) {
       errorMessage = 'Content security validation failed';
-      errorDetails = 'Your content contains patterns that could be unsafe for deployment.';
+      errorDetails =
+        'Your content contains patterns that could be unsafe for deployment.';
     }
 
     const enhancedError = new Error(`${errorMessage}: ${errorDetails}`);
@@ -348,7 +361,10 @@ export class DeploymentService {
     return enhancedError;
   }
   categorizeError(error) {
-    if (error.message.includes('Authentication') || error.message.includes('401')) {
+    if (
+      error.message.includes('Authentication') ||
+      error.message.includes('401')
+    ) {
       return 'authentication';
     }
     if (error.message.includes('Permission') || error.message.includes('403')) {
@@ -357,7 +373,10 @@ export class DeploymentService {
     if (error.message.includes('rate limit')) {
       return 'rate_limit';
     }
-    if (error.message.includes('repository') && error.message.includes('exist')) {
+    if (
+      error.message.includes('repository') &&
+      error.message.includes('exist')
+    ) {
       return 'naming_conflict';
     }
     if (error.message.includes('Content validation')) {

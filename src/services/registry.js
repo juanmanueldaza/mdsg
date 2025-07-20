@@ -104,4 +104,5 @@ export const serviceRegistry = new ServiceRegistry();
 
 export const getAuthService = () => serviceRegistry.getAuthenticationService();
 export const getGitHubService = () => serviceRegistry.getGitHubService();
-export const getDeploymentService = () => serviceRegistry.getDeploymentService();
+export const getDeploymentService = () =>
+  serviceRegistry.getDeploymentService();
