@@ -8,6 +8,20 @@
 - **Auto-Deploy**: GitHub Actions workflow ✅
 
 ## 🚀 **DEPLOYMENT ARCHITECTURE**
+
+### **⚡ Automated Workflow Monitoring** (NEW!)
+```bash
+# Check CI/CD status after push
+./.github/scripts/check-workflows.sh
+
+# Smart push with auto-monitoring  
+./.github/scripts/smart-push.sh "commit message"
+
+# Git push auto-triggers workflow checking
+git push origin main  # Auto-monitors via hook
+```
+
+### **GitHub Pages Pipeline**
 ```
 Code Push → GitHub Actions → Build → GitHub Pages → Live Site
           ↓
