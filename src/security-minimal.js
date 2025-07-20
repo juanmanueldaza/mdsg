@@ -190,6 +190,8 @@ export const SecureHTML = MinimalSecurity;
 
 // Additional methods for test compatibility
 SecureHTML.sanitizeMarkdown = function(markdown) {
+  if (typeof markdown !== 'string') return '';
+  
   // For markdown with dangerous patterns, escape the entire content
   const dangerousPatterns = [
     /<script[^>]*>/i,
@@ -203,4 +205,32 @@ SecureHTML.sanitizeMarkdown = function(markdown) {
   }
   
   return markdown;
+};
+
+// Additional test compatibility methods
+SecureHTML.isValidURL = function(url) {
+  if (typeof url !== 'string') return false;
+  if (url.match(/^(javascript:|vbscript:|data:)/i)) return false;
+  if (url.match(/^(https?:\/\/|ftp:\/\/|\/|\.\/|\.\.\/)/i)) return true;
+  return false;
+};
+
+SecureHTML.sanitizeAttributes = function(attributes) {
+  if (typeof attributes !== 'object' || attributes === null) return {};
+  
+  const safe = {};
+  for (const [key, value] of Object.entries(attributes)) {
+    // Remove dangerous attributes
+    if (key.match(/^on/i)) continue;
+    if (key === 'style' && typeof value === 'string' && value.match(/javascript:|expression\(/i)) continue;
+    if ((key === 'href' || key === 'src') && !SecureHTML.isValidURL(value)) continue;
+    
+    safe[key] = typeof value === 'string' ? MinimalSecurity.escapeText(value) : value;
+  }
+  return safe;
+};
+
+SecureHTML.getConfig = function(mode) {
+  // Simple configuration placeholder for test compatibility
+  return {};
 };

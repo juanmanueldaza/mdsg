@@ -11,7 +11,9 @@ class MDSG {
     this.content = '';
     this.repoName = '';
     this.existingSites = [];
+    this.currentSite = null;
     this.isMobile = this.detectMobile();
+    this.isTouch = this.detectTouch();
     this.csrfToken = this.generateCSRFToken();
     this.init();
   }
@@ -34,6 +36,18 @@ class MDSG {
     return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
       navigator.userAgent,
     );
+  }
+
+  detectTouch() {
+    // Handle testing environment
+    if (typeof global !== 'undefined' && global.window) {
+      return 'ontouchstart' in global.window;
+    }
+
+    if (typeof window === 'undefined') {
+      return false;
+    }
+    return 'ontouchstart' in window || navigator.maxTouchPoints > 0;
   }
 
   init() {
@@ -798,26 +812,23 @@ Add code: \`console.log('Hello World!')\`
     html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
 
     // Links and images (process before paragraphs to avoid nesting)
-    html = html.replace(
-      /!\[([^\]]*)\]\(([^)]+)\)/g,
-      (match, alt, src) => {
-        // Validate image URLs for security
-        if (src.match(/^(javascript:|vbscript:|data:)/i)) {
-          return `![${alt}](#invalid-url)`;
-        }
-        return `<img src="${src}" alt="${alt}" />`;
+    // Process images FIRST to avoid conflicts with link processing
+    html = html.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (match, alt, src) => {
+      // Validate image URLs for security
+      if (src.match(/^(javascript:|vbscript:|data:)/i)) {
+        return `![${alt}](#invalid-url)`;
       }
-    );
-    html = html.replace(
-      /\[([^\]]+)\]\(([^)]+)\)/g,
-      (match, text, href) => {
-        // Validate link URLs for security
-        if (href.match(/^(javascript:|vbscript:|data:)/i)) {
-          return text; // Just return the text without the link
-        }
-        return `<a href="${href}" target="_blank" rel="noopener">${text}</a>`;
+      return `<img src="${src}" alt="${alt}" loading="lazy" />`;
+    });
+
+    // Process links AFTER images
+    html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (match, text, href) => {
+      // Validate link URLs for security
+      if (href.match(/^(javascript:|vbscript:|data:)/i)) {
+        return text; // Just return the text without the link
       }
-    );
+      return `<a href="${href}" target="_blank" rel="noopener noreferrer">${text}</a>`;
+    });
 
     // Auto-link standalone URLs (simple approach)
     html = html.replace(
@@ -854,13 +865,8 @@ Add code: \`console.log('Hello World!')\`
       return match;
     });
 
-    // Ensure all external links have proper security attributes
-    html = html.replace(
-      /(<a[^>]+href=["']https?:\/\/[^"']*["'][^>]*)/g,
-      '$1 target="_blank" rel="noopener noreferrer"',
-    );
-
-    return html;
+    // Apply security sanitization and return
+    return MinimalSecurity.sanitizeHTML(html);
   }
 
   updateWordCount() {
