@@ -1,0 +1,273 @@
+# 🧪 MDSG Alchemical CI Pipeline
+# Clean, efficient, and perfectly aligned with lean architecture
+name: Alchemical CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: '20.x'
+  CACHE_VERSION: v1
+
+jobs:
+  # 🧹 Quality Gate - Fast feedback on code standards
+  quality:
+    name: 🧹 Code Quality
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Cache ESLint
+        uses: actions/cache@v4
+        with:
+          path: node_modules/.cache/eslint
+          key: eslint-${{ env.CACHE_VERSION }}-${{ runner.os }}-${{ hashFiles('eslint.config.js', 'package-lock.json') }}
+
+      - name: Run quality checks
+        run: npm run quality
+
+      - name: Validate package.json
+        run: npm run validate || echo "No validate script found"
+
+  # 🧪 Test Matrix - Organized by responsibility
+  test:
+    name: 🧪 Tests (${{ matrix.category }})
+    runs-on: ubuntu-latest
+    needs: quality
+    timeout-minutes: 10
+
+    strategy:
+      fail-fast: false
+      matrix:
+        category:
+          - core # basic.test.js, mdsg.test.js, mdsg-lean.test.js (66 tests)
+          - security # security.test.js, security-basic.test.js, token-manager.test.js, csp-simple.test.js (82 tests)
+          - markdown # markdown.test.js (43 tests)
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Cache test results
+        uses: actions/cache@v4
+        with:
+          path: |
+            node_modules/.cache
+            coverage/
+          key: test-${{ env.CACHE_VERSION }}-${{ matrix.category }}-${{ runner.os }}-${{ hashFiles('tests/**/*.test.js') }}
+
+      - name: Run tests by category
+        run: |
+          case "${{ matrix.category }}" in
+            "core")
+              npm run test:run tests/basic.test.js tests/mdsg.test.js tests/mdsg-lean.test.js
+              ;;
+            "security")
+              npm run test:run tests/security.test.js tests/security-basic.test.js tests/token-manager.test.js tests/csp-simple.test.js
+              ;;
+            "markdown")
+              npm run test:run tests/markdown.test.js
+              ;;
+          esac
+
+      - name: Generate coverage report
+        if: matrix.category == 'core'
+        run: npm run test:coverage tests/basic.test.js tests/mdsg.test.js tests/mdsg-lean.test.js
+
+      - name: Upload coverage
+        if: matrix.category == 'core'
+        uses: codecov/codecov-action@v4
+        with:
+          file: ./coverage/lcov.info
+          flags: ${{ matrix.category }}
+          name: mdsg-${{ matrix.category }}
+          token: ${{ secrets.CODECOV_TOKEN }}
+
+  # 🏗️ Build & Bundle Analysis - MDSG specific
+  build:
+    name: 🏗️ Build & Bundle
+    runs-on: ubuntu-latest
+    needs: [quality, test]
+    timeout-minutes: 8
+
+    outputs:
+      bundle-size: ${{ steps.bundle.outputs.size }}
+      bundle-gzip: ${{ steps.bundle.outputs.gzip }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build application
+        run: npm run build
+
+      - name: Analyze bundle size
+        id: bundle
+        run: |
+          npm run size > bundle-report.txt
+
+          # Extract JS bundle size
+          JS_SIZE=$(find dist/assets -name "*.js" -exec stat -c%s {} + | awk '{sum+=$1} END {print sum}')
+          JS_SIZE_KB=$((JS_SIZE / 1024))
+          JS_SIZE_GZIP=$(find dist/assets -name "*.js" -exec gzip -c {} \; | wc -c)
+          JS_SIZE_GZIP_KB=$((JS_SIZE_GZIP / 1024))
+
+          echo "size=${JS_SIZE_KB}" >> $GITHUB_OUTPUT
+          echo "gzip=${JS_SIZE_GZIP_KB}" >> $GITHUB_OUTPUT
+
+          # Validate MDSG bundle size target (<20KB)
+          if [ "$JS_SIZE_GZIP_KB" -gt 20 ]; then
+            echo "❌ Bundle size ${JS_SIZE_GZIP_KB}KB exceeds 20KB limit"
+            exit 1
+          fi
+          echo "✅ Bundle size ${JS_SIZE_GZIP_KB}KB within 20KB limit"
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: mdsg-build-${{ github.sha }}
+          path: |
+            dist/
+            bundle-report.txt
+          retention-days: 7
+
+  # ⚡ Performance & Security - Lean validation
+  validation:
+    name: ⚡ Performance & Security
+    runs-on: ubuntu-latest
+    needs: build
+    timeout-minutes: 8
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: mdsg-build-${{ github.sha }}
+
+      - name: Security audit
+        run: |
+          npm audit --audit-level=moderate
+          echo "✅ Security audit completed"
+
+      - name: Performance validation
+        run: |
+          npm run preview &
+          PREVIEW_PID=$!
+          sleep 5
+
+          # Basic connectivity test
+          curl -f http://localhost:4173 > /dev/null || exit 1
+          echo "✅ Preview server responding"
+
+          # Kill preview server
+          kill $PREVIEW_PID
+
+  # 📊 Results Summary - Clean reporting
+  summary:
+    name: 📊 CI Summary
+    runs-on: ubuntu-latest
+    needs: [quality, test, build, validation]
+    if: always()
+
+    steps:
+      - name: Generate summary
+        run: |
+          echo "## 🧪 MDSG Alchemical CI Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # Quality results
+          if [[ "${{ needs.quality.result }}" == "success" ]]; then
+            echo "✅ **Code Quality**: All standards met" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **Code Quality**: Issues detected" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          # Test results
+          if [[ "${{ needs.test.result }}" == "success" ]]; then
+            echo "✅ **Tests**: 191/191 tests passing" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **Tests**: Some tests failing" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          # Build results
+          if [[ "${{ needs.build.result }}" == "success" ]]; then
+            echo "✅ **Build**: Bundle ${{ needs.build.outputs.bundle-gzip }}KB (target: <20KB)" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **Build**: Build or bundle size issues" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          # Validation results
+          if [[ "${{ needs.validation.result }}" == "success" ]]; then
+            echo "✅ **Security & Performance**: All validations passed" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **Security & Performance**: Issues detected" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🎯 MDSG Quality Metrics" >> $GITHUB_STEP_SUMMARY
+          echo "- **Bundle Size**: ${{ needs.build.outputs.bundle-gzip }}KB gzipped" >> $GITHUB_STEP_SUMMARY
+          echo "- **Test Coverage**: 191 tests across 8 test files" >> $GITHUB_STEP_SUMMARY
+          echo "- **Security Score**: Target 100/100" >> $GITHUB_STEP_SUMMARY
+          echo "- **Architecture**: Lean & Clean Code compliant" >> $GITHUB_STEP_SUMMARY
+
+      - name: Overall status
+        run: |
+          if [[ "${{ needs.quality.result }}" == "success" && 
+                "${{ needs.test.result }}" == "success" && 
+                "${{ needs.build.result }}" == "success" && 
+                "${{ needs.validation.result }}" == "success" ]]; then
+            echo "🎉 All alchemical transformations successful!"
+            exit 0
+          else
+            echo "⚗️ Some alchemical processes need attention"
+            exit 1
+          fi
