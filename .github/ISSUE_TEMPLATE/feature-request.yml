@@ -1,0 +1,126 @@
+name: ✨ Feature Request
+description: Suggest a new feature for MDSG
+title: '[FEATURE] '
+labels: ['enhancement']
+assignees: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for suggesting a new feature! Please consider MDSG's constraints: **20KB bundle limit**, **frontend-only**, **security-first**.
+
+  - type: textarea
+    id: feature-summary
+    attributes:
+      label: Feature Summary
+      description: A concise description of the proposed feature
+      placeholder: Brief summary of the feature...
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem-statement
+    attributes:
+      label: Problem Statement
+      description: What problem does this feature solve?
+      placeholder: Describe the problem this feature addresses...
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposed-solution
+    attributes:
+      label: Proposed Solution
+      description: How would you like this feature to work?
+      placeholder: Describe your proposed solution...
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternative Solutions
+      description: Any alternative approaches you've considered
+      placeholder: Describe alternative solutions...
+    validations:
+      required: false
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority Level
+      description: How important is this feature?
+      options:
+        - Critical (blocks core functionality)
+        - High (significantly improves UX)
+        - Medium (nice to have improvement)
+        - Low (minor enhancement)
+    validations:
+      required: true
+
+  - type: dropdown
+    id: complexity
+    attributes:
+      label: Estimated Complexity
+      description: How complex do you think this feature is?
+      options:
+        - Simple (small UI change, configuration)
+        - Medium (new component, moderate logic)
+        - Complex (major architecture change)
+        - Unknown
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: constraints-check
+    attributes:
+      label: MDSG Constraints Assessment
+      description: Consider how this feature impacts MDSG's constraints
+      options:
+        - label: Feature respects 20KB bundle size limit
+        - label: Feature works in frontend-only environment (no backend)
+        - label: Feature maintains security standards (no XSS risks)
+        - label: Feature preserves existing functionality and tests
+        - label: Feature aligns with MDSG's core purpose (markdown site generation)
+
+  - type: textarea
+    id: bundle-impact
+    attributes:
+      label: Bundle Size Impact
+      description: How might this feature affect the bundle size?
+      placeholder: |
+        Estimate:
+        - Additional JS: ~X KB
+        - Additional CSS: ~X KB
+        - New dependencies: None/List them
+        - Mitigation strategies: ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: user-stories
+    attributes:
+      label: User Stories
+      description: Write user stories for this feature
+      placeholder: |
+        As a [user type], I want [goal] so that [benefit].
+
+        Example:
+        As a content creator, I want dark mode support so that I can work comfortably in low-light environments.
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: validation
+    attributes:
+      label: Validation Checklist
+      description: Please confirm before submitting
+      options:
+        - label: I have searched existing issues for similar feature requests
+          required: true
+        - label: I have considered MDSG's 20KB bundle constraint
+          required: true
+        - label: This feature aligns with MDSG's frontend-only architecture
+          required: true
+        - label: I have provided sufficient detail for evaluation
+          required: true

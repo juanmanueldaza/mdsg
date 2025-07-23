@@ -10,8 +10,15 @@ import {
 } from '@observable';
 
 export class EventHandlerService {
-  constructor(authService, deploymentService, contentState, uiManager) {
+  constructor(
+    authService,
+    gitHubService,
+    deploymentService,
+    contentState,
+    uiManager,
+  ) {
     this.authService = authService;
+    this.gitHubService = gitHubService;
     this.deploymentService = deploymentService;
     this.contentState = contentState;
     this.uiManager = uiManager;
@@ -28,7 +35,9 @@ export class EventHandlerService {
   }
 
   initialize(container = document) {
+    console.log('🚀 EventHandler initialize called, container:', container);
     if (this.initialized) {
+      console.log('⚠️ Already initialized, skipping');
       return;
     }
 
@@ -55,7 +64,13 @@ export class EventHandlerService {
         loginStream.subscribe(event => {
           this.trackEvent(event.type);
           eventBus.emit('auth.login.start', event);
-          this.authService.initiateGitHubOAuth();
+          // Call the UI manager's loginWithGitHub method
+          if (
+            this.uiManager &&
+            typeof this.uiManager.loginWithGitHub === 'function'
+          ) {
+            this.uiManager.loginWithGitHub();
+          }
         }),
       );
     }
@@ -100,9 +115,12 @@ export class EventHandlerService {
       this.subscriptions.add(
         fromClick(saveTokenBtn).subscribe(() => {
           this.trackEvent('auth.token.save');
-          const token = tokenInput?.value?.trim();
-          if (token) {
-            this.authService.validateTokenWithGitHub(token);
+          // Call the UI manager's savePersonalToken method
+          if (
+            this.uiManager &&
+            typeof this.uiManager.savePersonalToken === 'function'
+          ) {
+            this.uiManager.savePersonalToken();
           }
         }),
       );
@@ -129,9 +147,12 @@ export class EventHandlerService {
       this.subscriptions.add(
         enterKeyStream.subscribe(_event => {
           this.trackEvent('auth.token.enter');
-          const token = tokenInput.value?.trim();
-          if (token) {
-            this.authService.validateTokenWithGitHub(token);
+          // Call the UI manager's savePersonalToken method for Enter key
+          if (
+            this.uiManager &&
+            typeof this.uiManager.savePersonalToken === 'function'
+          ) {
+            this.uiManager.savePersonalToken();
           }
         }),
       );
@@ -151,7 +172,9 @@ export class EventHandlerService {
   }
 
   setupEditorEvents(container) {
+    console.log('🔍 setupEditorEvents called, container:', container);
     const editor = container.querySelector('#markdown-editor');
+    console.log('📝 Editor found:', editor ? '✅ YES' : '❌ NO');
     if (!editor) return;
 
     const contentStream = debouncedInput(editor, 300).map(content => ({
@@ -163,6 +186,7 @@ export class EventHandlerService {
 
     this.subscriptions.add(
       contentStream.subscribe(event => {
+        console.log('⚡ contentStream event:', event.content?.substring(0, 50));
         this.trackEvent(event.type);
         this.contentState.setContent(event.content);
         eventBus.emit('content.updated', event);
@@ -264,18 +288,113 @@ export class EventHandlerService {
   }
 
   setupDeploymentEvents(container) {
-    const deployBtn = container.querySelector('#deploy-btn');
-    if (!deployBtn) return;
+    console.log('🚀 setupDeploymentEvents called, container:', container);
+
+    // Support multiple deploy buttons with different IDs
+    const deploySelectors = [
+      '#main-deploy-btn',
+      '#form-deploy-btn',
+      '#editor-deploy-btn',
+    ];
+    let deployBtn = null;
+
+    for (const selector of deploySelectors) {
+      deployBtn = container.querySelector(selector);
+      if (deployBtn) {
+        console.log('📤 Deploy button found:', selector, '✅ YES');
+        break;
+      }
+    }
+
+    if (!deployBtn) {
+      console.log(
+        '❌ No deploy button found with any selector:',
+        deploySelectors,
+      );
+      return;
+    }
 
     const deployStream = fromClick(deployBtn)
-      .map(() => ({
-        type: 'deployment.requested',
-        content: this.contentState.getContent(),
-        authenticated: this.authService.isAuthenticated(),
-        timestamp: Date.now(),
-      }))
+      .map(() => {
+        try {
+          console.log('🎯 Deploy button CLICKED! Creating event...');
+          console.log('🔍 Checking auth service:', this.authService);
+          console.log(
+            '🔍 Auth service methods:',
+            Object.getOwnPropertyNames(this.authService),
+          );
+
+          const isAuth = this.authService.isAuthenticated();
+          console.log('🔍 Authentication check result:', isAuth);
+
+          // Get content directly from editor first, then try content state as fallback
+          const editor = document.querySelector('#markdown-editor');
+          const editorContent = editor?.value || '';
+          console.log(
+            '🔍 Direct editor content:',
+            editorContent?.length,
+            'characters',
+          );
+          console.log('🔍 Direct editor raw:', JSON.stringify(editorContent));
+
+          let content = editorContent;
+
+          // Try to get content from state as fallback (with error handling)
+          try {
+            if (
+              this.contentState &&
+              typeof this.contentState.getContent === 'function'
+            ) {
+              const stateContent = this.contentState.getContent();
+              console.log(
+                '🔍 Content state check:',
+                stateContent?.length,
+                'characters',
+              );
+              console.log(
+                '🔍 Raw content from state:',
+                JSON.stringify(stateContent),
+              );
+              // Use state content if editor is empty but state has content
+              if (!content && stateContent) {
+                content = stateContent;
+              }
+            } else {
+              console.log(
+                '⚠️ Content state not available or getContent not a function',
+              );
+            }
+          } catch (error) {
+            console.log('⚠️ Error accessing content state:', error);
+          }
+
+          const event = {
+            type: 'deployment.requested',
+            content,
+            authenticated: isAuth,
+            timestamp: Date.now(),
+          };
+          console.log('📋 Event created successfully:', event);
+          return event;
+        } catch (error) {
+          console.error('❌ Error in deploy button map:', error);
+          throw error;
+        }
+      })
       .filter(event => {
-        if (!event.content.trim()) {
+        console.log(
+          '🔍 Deploy validation - Content length:',
+          event.content?.length,
+          'Auth:',
+          event.authenticated,
+        );
+        console.log(
+          '🔍 Deploy validation - Content preview:',
+          event.content?.substring(0, 50),
+        );
+
+        if (!event.content || !event.content.trim()) {
+          console.log('❌ Deploy failed: No content');
           eventBus.emit('deployment.error', {
             error: 'No content to deploy',
             type: 'validation_error',
@@ -284,6 +403,7 @@ export class EventHandlerService {
         }
 
         if (!event.authenticated) {
+          console.log('❌ Deploy failed: Not authenticated');
           eventBus.emit('deployment.error', {
             error: 'Authentication required',
             type: 'auth_error',
@@ -291,14 +411,48 @@ export class EventHandlerService {
           return false;
         }
 
+        console.log('✅ Deploy validation passed - proceeding to deployment');
         return true;
       });
 
     this.subscriptions.add(
-      deployStream.subscribe(event => {
+      deployStream.subscribe(async event => {
+        console.log('🚀 Deploy button clicked! Event:', event);
         this.trackEvent(event.type);
         eventBus.emit('deployment.start', event);
-        this.deploymentService.deployToGitHubPages(event.content);
+
+        try {
+          console.log('📦 Starting deployment process...');
+
+          // Generate a repository name based on content or timestamp
+          const timestamp = new Date()
+            .toISOString()
+            .slice(0, 10)
+            .replace(/-/g, '');
+          const contentHash = event.content
+            .substring(0, 10)
+            .toLowerCase()
+            .replace(/[^a-z0-9]/g, '');
+          const repoName = `mdsg-site-${contentHash || timestamp}`;
+
+          console.log('📂 Using repository name:', repoName);
+
+          const result = await this.deploymentService.deployToGitHubPages(
+            event.content,
+            repoName,
+          );
+          console.log('✅ Deployment successful:', result);
+          eventBus.emit('deployment.success', {
+            result,
+            timestamp: Date.now(),
+          });
+        } catch (error) {
+          console.error('❌ Deployment failed:', error);
+          eventBus.emit('deployment.error', {
+            error: error.message || 'Deployment failed',
+            timestamp: Date.now(),
+          });
+        }
       }),
     );
 
@@ -513,6 +667,11 @@ export class EventHandlerService {
   }
 
   cleanup() {
+    console.log(
+      '🧹 EventHandler cleanup called, removing',
+      this.subscriptions.size,
+      'subscriptions',
+    );
     this.subscriptions.forEach(unsubscribe => {
       try {
         unsubscribe();
@@ -520,7 +679,8 @@ export class EventHandlerService {
     });
 
     this.subscriptions.clear();
-    eventBus.clearAll();
+    // DON'T clear the global event bus - other parts of MDSG are using it!
+    // eventBus.clearAll(); // ❌ This was breaking the main.js event listeners
     eventManager.cleanup();
     this.eventStreams.clear();
 
@@ -528,6 +688,7 @@ export class EventHandlerService {
   }
 
   reinitialize() {
+    console.log('🔄 EventHandler reinitialize called');
     this.cleanup();
     this.initialize();
   }

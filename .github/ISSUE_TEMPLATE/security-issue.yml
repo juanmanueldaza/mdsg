@@ -1,0 +1,148 @@
+name: 🔒 Security Issue
+description: Report a security vulnerability (privately handled)
+title: '[SECURITY] '
+labels: ['security']
+assignees: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ⚠️ **IMPORTANT**: For security vulnerabilities, please also email directly to ensure private handling.
+
+        MDSG maintains a **100/100 security score**. Help us keep it that way!
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity Level
+      description: How severe is this security issue?
+      options:
+        - Critical (Remote code execution, data breach)
+        - High (XSS, authentication bypass)
+        - Medium (Information disclosure, CSRF)
+        - Low (Security hardening, best practices)
+    validations:
+      required: true
+
+  - type: dropdown
+    id: vulnerability-type
+    attributes:
+      label: Vulnerability Type
+      description: What type of security issue is this?
+      options:
+        - Cross-Site Scripting (XSS)
+        - Content Security Policy (CSP) bypass
+        - Input validation bypass
+        - Authentication/Authorization
+        - Information disclosure
+        - Dependency vulnerability
+        - Configuration issue
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: vulnerability-description
+    attributes:
+      label: Vulnerability Description
+      description: Describe the security issue (be specific but avoid public exploitation details)
+      placeholder: Describe the vulnerability...
+    validations:
+      required: true
+
+  - type: textarea
+    id: attack-vector
+    attributes:
+      label: Attack Vector
+      description: How could this vulnerability be exploited?
+      placeholder: Describe the attack vector...
+    validations:
+      required: true
+
+  - type: textarea
+    id: impact-assessment
+    attributes:
+      label: Impact Assessment
+      description: What is the potential impact of this vulnerability?
+      placeholder: |
+        Potential impacts:
+        - Data confidentiality: 
+        - Data integrity:
+        - System availability:
+        - User security:
+    validations:
+      required: true
+
+  - type: textarea
+    id: affected-components
+    attributes:
+      label: Affected Components
+      description: Which parts of MDSG are affected?
+      placeholder: |
+        Affected files/components:
+        - src/...
+        - Specific functions:
+        - User inputs:
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction-steps
+    attributes:
+      label: Steps to Reproduce
+      description: Minimal steps to reproduce (avoid detailed exploitation)
+      placeholder: |
+        1. Navigate to...
+        2. Enter input...
+        3. Observe behavior...
+    validations:
+      required: true
+
+  - type: textarea
+    id: mitigation-suggestions
+    attributes:
+      label: Suggested Mitigation
+      description: Do you have suggestions for fixing this issue?
+      placeholder: |
+        Suggested fixes:
+        - Input sanitization:
+        - CSP updates:
+        - Validation improvements:
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: security-context
+    attributes:
+      label: Security Context
+      description: Additional security considerations
+      options:
+        - label: This issue affects user data security
+        - label: This issue could bypass existing security measures
+        - label: This issue involves third-party dependencies
+        - label: This issue affects the MinimalSecurity utility
+        - label: This issue could impact the 100/100 security score
+
+  - type: input
+    id: browser-info
+    attributes:
+      label: Browser/Environment
+      description: Browser and version where issue was discovered
+      placeholder: Chrome 118, Firefox 119, etc.
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: validation
+    attributes:
+      label: Validation Checklist
+      description: Please confirm before submitting
+      options:
+        - label: I have verified this is a legitimate security issue
+          required: true
+        - label: I have not disclosed this issue publicly
+          required: true
+        - label: I understand this will be handled with appropriate security protocols
+          required: true
+        - label: I have provided sufficient detail for assessment
+          required: true

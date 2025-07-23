@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 💬 General Discussion
+    url: https://github.com/juanmanueldaza/mdsg/discussions
+    about: Ask questions, share ideas, or discuss MDSG with the community
+  - name: 🔒 Private Security Report
+    url: mailto:security@daza.ar
+    about: Report security vulnerabilities privately via email
+  - name: 📖 Documentation
+    url: https://mdsg.daza.ar/
+    about: Check the live documentation and examples

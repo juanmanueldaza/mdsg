@@ -1224,3 +1224,78 @@ body {
 .error-fallback button:hover {
   background: #0056b3;
 }
+
+/* Deployment Section */
+.deployment-actions {
+  background: white;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-top: 1rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e1e5e9;
+}
+
+.deployment-info h4 {
+  color: #2c3e50;
+  margin-bottom: 0.5rem;
+  font-size: 1.1rem;
+}
+
+.deployment-info p {
+  color: #666;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+}
+
+.deploy-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 1rem;
+  width: 100%;
+  justify-content: center;
+}
+
+.deploy-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.deploy-button:active {
+  transform: translateY(0);
+}
+
+.deploy-button:disabled {
+  background: #bbb;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.deploy-icon {
+  font-size: 1.1rem;
+}
+
+.deploy-text {
+  font-weight: 600;
+}
+
+@media (max-width: 768px) {
+  .deployment-actions {
+    margin-top: 1rem;
+    padding: 1rem;
+  }
+
+  .deploy-button {
+    padding: 0.875rem 1rem;
+    font-size: 0.95rem;
+  }
+}

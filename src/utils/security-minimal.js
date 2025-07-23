@@ -89,11 +89,64 @@ export class MinimalSecurity {
   static sanitize(html) {
     return this.sanitizeHTML(html);
   }
-  static sanitizeAndRender(html, element) {
+  static sanitizeAndRender(html, element, options = {}) {
     if (!element || typeof html !== 'string') return;
 
-    const sanitized = this.sanitizeHTML(html);
-    element.innerHTML = sanitized;
+    // For trusted application UI (like token input forms), use safe rendering
+    if (options.trusted === true) {
+      const sanitized = this.sanitizeTrustedUI(html);
+      element.innerHTML = sanitized;
+    } else {
+      // For user content, use strict sanitization
+      const sanitized = this.sanitizeHTML(html);
+      element.innerHTML = sanitized;
+    }
+  }
+
+  static sanitizeTrustedUI(html) {
+    if (typeof html !== 'string') return '';
+
+    // Remove dangerous scripts and event handlers, but allow safe form elements
+    html = html.replace(/<script[^>]*>.*?<\/script>/gis, '');
+    html = html.replace(/\s(on\w+)\s*=\s*["'][^"']*["']/gi, '');
+    html = html.replace(/\s(on\w+)\s*=\s*[^"'\s>]+/gi, '');
+
+    // Remove dangerous protocol handlers
+    html = html.replace(
+      /href\s*=\s*["'](javascript:|vbscript:)[^"']*["']/gi,
+      '',
+    );
+    html = html.replace(
+      /src\s*=\s*["'](javascript:|vbscript:)[^"']*["']/gi,
+      '',
+    );
+
+    // Remove dangerous style expressions
+    html = html.replace(/style\s*=\s*["'][^"']*javascript:[^"']*["']/gi, '');
+    html = html.replace(
+      /style\s*=\s*["'][^"']*expression\s*\([^"']*\)["']/gi,
+      '',
+    );
+
+    // Remove dangerous elements but keep safe form inputs
+    html = html.replace(/<(iframe|object|embed|meta|link|svg)[^>]*>/gi, '');
+    html = html.replace(/<\/?(iframe|object|embed|meta|link|svg)[^>]*>/gi, '');
+
+    // Ensure external links are safe
+    html = html.replace(
+      /<a\s+([^>]*href\s*=\s*["']https?:\/\/[^"']+["'][^>]*)>/gi,
+      (match, attrs) => {
+        if (!attrs.includes('target=')) {
+          attrs += ' target="_blank"';
+        }
+        if (!attrs.includes('rel=')) {
+          attrs += ' rel="noopener noreferrer"';
+        }
+        return `<a ${attrs}>`;
+      },
+    );
+
+    return html;
   }
   static validateToken(token) {
     if (!token || typeof token !== 'string') return false;

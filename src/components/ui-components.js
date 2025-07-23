@@ -99,6 +99,7 @@ export class UIComponentBuilder {
       <div class="editor-section">
         ${this.buildUserInfo(user)}
         ${this.buildEditorContainer(content)}
+        ${this.buildDeploymentActions()}
       </div>
     `;
   }
@@ -222,7 +223,7 @@ Write something interesting about yourself here...
   static buildEditorActions() {
     return `
       <div class="actions">
-        <button id="deploy-btn" class="primary-btn">
+        <button id="editor-deploy-btn" class="primary-btn">
           🚀 Deploy to GitHub Pages
         </button>
       </div>
@@ -261,7 +262,7 @@ Write something interesting about yourself here...
             Choose a unique name for your GitHub repository
           </small>
         </div>
-        <button id="deploy-btn" class="primary-btn deploy-button" disabled>
+        <button id="form-deploy-btn" class="primary-btn deploy-button" disabled>
           <span class="deploy-icon">🚀</span>
           <span class="deploy-text">Deploy to GitHub Pages</span>
         </button>
@@ -347,10 +348,17 @@ Write something interesting about yourself here...
   }
   static buildDeploymentActions() {
     return `
-      <div class="actions">
-        <button id="deploy-btn" class="primary-btn">
-          🚀 Deploy to GitHub Pages
-        </button>
+      <div class="deployment-actions">
+        <div class="deployment-info">
+          <h4>🚀 Ready to publish?</h4>
+          <p>Deploy your site to GitHub Pages with one click</p>
+        </div>
+        <div class="actions">
+          <button id="main-deploy-btn" class="primary-btn deploy-button">
+            <span class="deploy-icon">🚀</span>
+            <span class="deploy-text">Deploy to GitHub Pages</span>
+          </button>
+        </div>
       </div>
     `;
   }

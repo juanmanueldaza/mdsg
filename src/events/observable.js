@@ -37,6 +37,101 @@ export class Observable {
       });
     });
   }
+
+  debounce(delay) {
+    return new Observable(observer => {
+      let timeoutId = null;
+
+      return this.subscribe(value => {
+        if (timeoutId) {
+          clearTimeout(timeoutId);
+        }
+
+        timeoutId = setTimeout(() => {
+          observer(value);
+          timeoutId = null;
+        }, delay);
+      });
+    });
+  }
+
+  throttle(delay) {
+    return new Observable(observer => {
+      let lastEmitted = 0;
+      let timeoutId = null;
+
+      return this.subscribe(value => {
+        const now = Date.now();
+        const timeSinceLastEmit = now - lastEmitted;
+
+        if (timeSinceLastEmit >= delay) {
+          observer(value);
+          lastEmitted = now;
+        } else {
+          if (timeoutId) {
+            clearTimeout(timeoutId);
+          }
+
+          timeoutId = setTimeout(() => {
+            observer(value);
+            lastEmitted = Date.now();
+            timeoutId = null;
+          }, delay - timeSinceLastEmit);
+        }
+      });
+    });
+  }
+
+  take(count) {
+    return new Observable(observer => {
+      let taken = 0;
+      const unsubscribe = this.subscribe(value => {
+        if (taken < count) {
+          observer(value);
+          taken++;
+          if (taken >= count) {
+            unsubscribe();
+          }
+        }
+      });
+      return unsubscribe;
+    });
+  }
+
+  flatMap(mapper) {
+    return new Observable(observer => {
+      const subscriptions = new Set();
+
+      const mainSubscription = this.subscribe(value => {
+        try {
+          const innerObservable = mapper(value);
+          if (
+            innerObservable &&
+            typeof innerObservable.subscribe === 'function'
+          ) {
+            const innerSubscription = innerObservable.subscribe(innerValue => {
+              observer(innerValue);
+            });
+            subscriptions.add(innerSubscription);
+          }
+        } catch {
+          // Silently ignore mapping errors
+        }
+      });
+
+      return () => {
+        mainSubscription();
+        subscriptions.forEach(unsubscribe => {
+          try {
+            unsubscribe();
+          } catch {
+            // Silently ignore cleanup errors
+          }
+        });
+        subscriptions.clear();
+      };
+    });
+  }
   static fromEvent(element, eventType, options = {}) {
     return new Observable(observer => {
       const handler = event => observer(event);

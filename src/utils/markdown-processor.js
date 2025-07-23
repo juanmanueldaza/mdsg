@@ -4,10 +4,10 @@ export class MarkdownProcessor {
 
     return this._finalCleanup(
       this._wrapParagraphs(
-        this._processEmailLinks(
-          this._processAutoLinks(
-            this._processLinks(
-              this._processImages(
+        this._processImages(
+          this._processEmailLinks(
+            this._processAutoLinks(
+              this._processLinks(
                 this._processTextFormatting(
                   this._processLists(
                     this._processBlockquotes(
@@ -78,10 +78,23 @@ export class MarkdownProcessor {
     });
   }
   static _processAutoLinks(html) {
-    return html.replace(
-      /\b(https?:\/\/[^\s<]+)(?![^<]*<\/a>)/g,
-      '<a href="$1" target="_blank" rel="noopener">$1</a>',
+    // Split on common HTML attribute patterns to avoid processing URLs inside them
+    const parts = html.split(
+      /(\b(?:href|src|action|data-[^=]*|url)=["'][^"']*["'])/,
     );
+
+    return parts
+      .map((part, index) => {
+        // Only process odd-indexed parts (the non-attribute parts)
+        if (index % 2 === 0) {
+          return part.replace(
+            /\b(https?:\/\/[^\s<>"']+)(?![^<]*(?:<\/a>|["'>]))/g,
+            '<a href="$1" target="_blank" rel="noopener">$1</a>',
+          );
+        }
+        return part; // Keep attribute parts unchanged
+      })
+      .join('');
   }
   static _processEmailLinks(html) {
     return html.replace(
