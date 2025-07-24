@@ -22,9 +22,7 @@ export class Observable {
       return this.subscribe(value => {
         try {
           observer(mapper(value));
-        } catch {
-          // Silently ignore mapping errors
-        }
+        } catch {}
       });
     });
   }
@@ -114,9 +112,7 @@ export class Observable {
             });
             subscriptions.add(innerSubscription);
           }
-        } catch {
-          // Silently ignore mapping errors
-        }
+        } catch {}
       });
 
       return () => {
@@ -124,9 +120,7 @@ export class Observable {
         subscriptions.forEach(unsubscribe => {
           try {
             unsubscribe();
-          } catch {
-            // Silently ignore cleanup errors
-          }
+          } catch {}
         });
         subscriptions.clear();
       };
@@ -203,7 +197,7 @@ export class EventBus {
       if (this.globalErrorHandler) {
         this.globalErrorHandler(_error, eventName, data);
       } else {
-        // Silent error handling
+        // Silent fail - no global error handler configured
       }
     }
   }
@@ -254,9 +248,7 @@ export class Subject extends Observable {
     this.observers.forEach(observer => {
       try {
         observer(value);
-      } catch {
-        // Silently ignore observer errors
-      }
+      } catch {}
     });
   }
   complete() {
@@ -297,9 +289,7 @@ export class EventManager {
     this.subscriptions.forEach(unsubscribe => {
       try {
         unsubscribe();
-      } catch {
-        // Silently ignore cleanup errors
-      }
+      } catch {}
     });
     this.subscriptions.clear();
   }

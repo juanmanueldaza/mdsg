@@ -144,26 +144,32 @@ mdsg/
 
 ### 👤 User Guides
 
-- **[Getting Started Guide](docs/user-guide.md)** - Complete beginner tutorial
-  with screenshots
-- **[Markdown Reference](docs/markdown-guide.md)** - All supported markdown
+- **[Getting Started Guide](docs/user/getting-started.md)** - Complete beginner
+  tutorial with screenshots
+- **[Markdown Reference](docs/user/markdown-guide.md)** - All supported markdown
   features
-- **[Site Management](docs/site-management.md)** - Managing multiple sites and
-  editing
-- **[Troubleshooting](docs/troubleshooting.md)** - Common issues and solutions
+- **[Site Management](docs/user/site-management.md)** - Managing multiple sites
+  and editing
+- **[Troubleshooting](docs/user/troubleshooting.md)** - Common issues and
+  solutions
 
 ### 👨‍💻 Developer Documentation
 
 - **[Development Setup](SETUP_GUIDE.md)** - Local development environment
-- **[API Reference](docs/api-reference.md)** - JavaScript API documentation
-- **[Contributing Guide](docs/contributing.md)** - How to contribute to MDSG
-- **[Architecture Overview](docs/architecture.md)** - Technical design decisions
+- **[API Reference](docs/developer/api-reference.md)** - JavaScript API
+  documentation
+- **[Contributing Guide](docs/developer/contributing.md)** - How to contribute
+  to MDSG
+- **[Architecture Overview](docs/developer/architecture.md)** - Technical design
+  decisions
 
 ### 🚀 Deployment & Operations
 
-- **[Production Deployment](docs/deployment.md)** - Deploy MDSG to production
-- **[Performance Guide](docs/performance.md)** - Optimization techniques
-- **[Security Guide](docs/security.md)** - Security best practices
+- **[Production Deployment](docs/operations/deployment.md)** - Deploy MDSG to
+  production
+- **[Performance Guide](docs/operations/performance.md)** - Optimization
+  techniques
+- **[Security Guide](docs/operations/security.md)** - Security best practices
 
 ## 🏗️ KISS Principles Applied
 

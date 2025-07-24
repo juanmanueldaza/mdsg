@@ -1,3 +1,5 @@
+import { MinimalSecurity, SecureHTML } from './security-minimal.js';
+
 export const FILE_SIZE_LIMITS = {
   MARKDOWN: 1024 * 1024,
   REPOSITORY_NAME: 100,
@@ -32,32 +34,9 @@ const SUSPICIOUS_PATTERNS = [
 export class InputValidator {
   static validateGitHubToken(token) {
     const errors = [];
-
-    if (!token || typeof token !== 'string') {
-      errors.push('Token is required and must be a string');
-      return { isValid: false, errors };
+    if (!MinimalSecurity.validateToken(token)) {
+      errors.push('Token is invalid (see MinimalSecurity rules)');
     }
-
-    if (token.length < 20) {
-      errors.push('Token is too short (minimum 20 characters)');
-    }
-
-    if (token.length > FILE_SIZE_LIMITS.TOKEN) {
-      errors.push(
-        `Token is too long (maximum ${FILE_SIZE_LIMITS.TOKEN} characters)`,
-      );
-    }
-
-    if (!/^[a-zA-Z0-9_]+$/.test(token)) {
-      errors.push(
-        'Token contains invalid characters (only alphanumeric and underscore allowed)',
-      );
-    }
-
-    if (/[<>'"&]/.test(token)) {
-      errors.push('Token contains potentially dangerous characters');
-    }
-
     return {
       isValid: errors.length === 0,
       errors,
@@ -220,26 +199,9 @@ export class InputValidator {
   }
   static validateURL(url) {
     const errors = [];
-
-    if (!url || typeof url !== 'string') {
-      errors.push('URL is required and must be a string');
-      return { isValid: false, errors };
+    if (!SecureHTML.isValidURL(url)) {
+      errors.push('URL is invalid (see SecureHTML rules)');
     }
-
-    try {
-      const parsedURL = new URL(url);
-
-      if (!['http:', 'https:'].includes(parsedURL.protocol)) {
-        errors.push('URL must use HTTP or HTTPS protocol');
-      }
-
-      if (!parsedURL.hostname || parsedURL.hostname.length === 0) {
-        errors.push('URL must have a valid hostname');
-      }
-    } catch (error) {
-      errors.push('Invalid URL format');
-    }
-
     return {
       isValid: errors.length === 0,
       errors,

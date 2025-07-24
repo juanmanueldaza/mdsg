@@ -1,26 +1,20 @@
+import { MinimalSecurity } from './security-minimal.js';
 export class MarkdownProcessor {
   static process(markdown) {
     if (!markdown) return '';
-
-    return this._finalCleanup(
-      this._wrapParagraphs(
-        this._processImages(
-          this._processEmailLinks(
-            this._processAutoLinks(
-              this._processLinks(
-                this._processTextFormatting(
-                  this._processLists(
-                    this._processBlockquotes(
-                      this._processHeaders(this._processCodeBlocks(markdown)),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
+    let html = markdown;
+    html = this._processCodeBlocks(html);
+    html = this._processHeaders(html);
+    html = this._processBlockquotes(html);
+    html = this._processLists(html);
+    html = this._processTextFormatting(html);
+    html = this._processImages(html);
+    html = this._processLinks(html);
+    html = this._processAutoLinks(html);
+    html = this._processEmailLinks(html);
+    html = this._wrapParagraphs(html);
+    html = this._finalCleanup(html);
+    return html;
   }
   static _processCodeBlocks(html) {
     return html.replace(/```([^`]*?)```/gs, '<pre><code>$1</code></pre>');
@@ -62,11 +56,15 @@ export class MarkdownProcessor {
       .replace(/`([^`]+)`/g, '<code>$1</code>');
   }
   static _processImages(html) {
+    // KISS: Only allow safe URLs, escape alt text, DRY: use MinimalSecurity
+    // Use imported MinimalSecurity (ESM)
     return html.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (match, alt, src) => {
-      if (this._isDangerousUrl(src)) {
-        return `![${alt}](#invalid-url)`;
+      if (!MinimalSecurity.isValidURL(src)) {
+        // Render as broken image with alt text for invalid URLs
+        return `<img src="#invalid-url" alt="${MinimalSecurity.escapeText(alt)}" loading="lazy" />`;
       }
-      return `<img src="${src}" alt="${alt}" loading="lazy" />`;
+      // Only escape alt, not src
+      return `<img src="${src}" alt="${MinimalSecurity.escapeText(alt)}" loading="lazy" />`;
     });
   }
   static _processLinks(html) {
@@ -78,21 +76,20 @@ export class MarkdownProcessor {
     });
   }
   static _processAutoLinks(html) {
-    // Split on common HTML attribute patterns to avoid processing URLs inside them
     const parts = html.split(
-      /(\b(?:href|src|action|data-[^=]*|url)=["'][^"']*["'])/,
+      /(\b(?:href|src|action|data-[^=]*|url)=["'][^"']*["'])/, // Split parts for processing
     );
-
+    // ...existing code...
     return parts
       .map((part, index) => {
-        // Only process odd-indexed parts (the non-attribute parts)
+        // ...existing code...
         if (index % 2 === 0) {
           return part.replace(
             /\b(https?:\/\/[^\s<>"']+)(?![^<]*(?:<\/a>|["'>]))/g,
             '<a href="$1" target="_blank" rel="noopener">$1</a>',
           );
         }
-        return part; // Keep attribute parts unchanged
+        return part;
       })
       .join('');
   }
@@ -104,13 +101,13 @@ export class MarkdownProcessor {
   }
   static _wrapParagraphs(html) {
     return html
-      .replace(/\n\s*\n/g, '</p><p>')
+      .replace(/\n\s*\n/g, '</p><p>') // Replace multiple newlines with paragraph tags
       .replace(/^(.)/gm, '<p>$1')
       .replace(/(.*)$/gm, '$1</p>');
   }
   static _finalCleanup(html) {
     return html
-      .replace(/<p><\/p>/g, '')
+      .replace(/<p><\/p>/g, '') // Remove empty paragraphs
       .replace(/<p>(<h[1-6][^>]*>.*?<\/h[1-6]>)<\/p>/g, '$1')
       .replace(/<p>(<ul>.*?<\/ul>)<\/p>/gs, '$1')
       .replace(/<p>(<ol>.*?<\/ol>)<\/p>/gs, '$1')
@@ -134,3 +131,4 @@ export class MarkdownProcessor {
       .replace(/^-+|-+$/g, '');
   }
 }
+// ...existing code...

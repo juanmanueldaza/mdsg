@@ -1,4 +1,3 @@
-// Import styles for Vite processing
 import '../style.css';
 
 import { MinimalSecurity } from '@security';
@@ -53,9 +52,7 @@ class MDSG {
   }
 
   set authenticated(value) {
-    if (value) {
-      // Authentication state already handled by auth service
-    } else {
+    if (!value) {
       this.auth.clearAuthentication();
     }
   }
@@ -116,9 +113,9 @@ class MDSG {
     window.addEventListener('error', event => {
       if (
         event.filename &&
-        (event.filename.includes('extension://') ||
-          event.filename.includes('chrome-extension://') ||
-          event.filename.includes('moz-extension://'))
+        (event.filename.includes('extension:') ||
+          event.filename.includes('chrome-extension:') ||
+          event.filename.includes('moz-extension:'))
       ) {
         event.preventDefault();
         return false;
@@ -183,13 +180,9 @@ class MDSG {
     document.getElementById('demo-btn')?.addEventListener('click', () => {
       this.startDemoMode();
     });
-
-    // Add fallback for save-token button
     document.getElementById('save-token')?.addEventListener('click', () => {
       this.savePersonalToken();
     });
-
-    // Add fallback for cancel-token button
     document.getElementById('cancel-token')?.addEventListener('click', () => {
       this.showWelcomeScreen();
     });
@@ -209,15 +202,10 @@ class MDSG {
     });
 
     eventBus.on(MDSG_EVENTS.CONTENT_UPDATED, event => {
-      console.log(
-        '📨 CONTENT_UPDATED event received:',
-        event.content?.substring(0, 50),
-      );
       this.handleContentUpdate(event);
     });
 
     eventBus.on(MDSG_EVENTS.PREVIEW_UPDATE, _event => {
-      console.log('📨 PREVIEW_UPDATE event received');
       this.updatePreview();
     });
 
@@ -252,26 +240,20 @@ class MDSG {
   }
 
   handleContentUpdate(event) {
-    console.log(
-      '📝 handleContentUpdate() called, new content:',
-      event.content?.substring(0, 50),
-    );
+    // ...existing code...
     this.content = event.content;
     this.updateWordCount();
   }
 
   handleDeploymentStart(_event) {
-    console.log('📡 handleDeploymentStart called!', _event);
     this.showError('Deploying to GitHub Pages...', 'info');
   }
 
   handleDeploymentSuccess(_event) {
-    console.log('✅ handleDeploymentSuccess called!', _event);
     this.showError('Site deployed successfully!', 'success');
   }
 
   handleDeploymentError(event) {
-    console.log('❌ handleDeploymentError called!', event);
     this.showError(`Deployment failed: ${event.error}`, 'error');
   }
 
@@ -667,8 +649,6 @@ Create lists:
     MinimalSecurity.sanitizeAndRender(this.getEditorUI(), mainContent);
     this.setupEditorHandlers();
     this.updatePreview();
-
-    // Reinitialize event handlers for new DOM elements
     if (this.eventHandler) {
       this.eventHandler.reinitialize();
     }
@@ -679,10 +659,7 @@ Create lists:
   }
 
   updatePreview() {
-    console.log(
-      '🔄 updatePreview() called, content:',
-      this.content?.substring(0, 50),
-    );
+    // ...existing code...
     const preview = document.getElementById('preview');
     if (preview) {
       if (this.content.trim() === '') {

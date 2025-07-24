@@ -1,0 +1,8 @@
+# Ignore development scripts and debug utilities
+scripts/
+*.new
+*.backup
+debug-*.js
+test-*.js
+node_modules/
+dist/

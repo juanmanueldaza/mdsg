@@ -10,6 +10,10 @@ export default [
   prettierConfig,
 
   {
+    ignores: ['scripts/**', 'dist/**', 'node_modules/**'],
+  },
+
+  {
     languageOptions: {
       ecmaVersion: 2024,
       sourceType: 'module',

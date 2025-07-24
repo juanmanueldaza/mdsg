@@ -3,13 +3,23 @@ import {
   eventBus,
   eventManager,
   fromClick,
-  // fromInput, // TODO: Implement input handling
+  // ...existing code...
   fromKeydown,
   debouncedInput,
   keyboardShortcuts,
 } from '@observable';
 
-export class EventHandlerService {
+// Simple logging utility for development - can be disabled in production
+const logger = {
+  log: (...args) => {
+    if (process.env.NODE_ENV !== 'production') {
+      // eslint-disable-next-line no-console
+      console.log(...args);
+    }
+  },
+};
+
+class EventHandlerService {
   constructor(
     authService,
     gitHubService,
@@ -35,9 +45,9 @@ export class EventHandlerService {
   }
 
   initialize(container = document) {
-    console.log('🚀 EventHandler initialize called, container:', container);
+    logger.log('🚀 EventHandler initialize called, container:', container);
     if (this.initialized) {
-      console.log('⚠️ Already initialized, skipping');
+      logger.log('⚠️ Already initialized, skipping');
       return;
     }
 
@@ -172,9 +182,9 @@ export class EventHandlerService {
   }
 
   setupEditorEvents(container) {
-    console.log('🔍 setupEditorEvents called, container:', container);
+    logger.log('🔍 setupEditorEvents called, container:', container);
     const editor = container.querySelector('#markdown-editor');
-    console.log('📝 Editor found:', editor ? '✅ YES' : '❌ NO');
+    logger.log('📝 Editor found:', editor ? '✅ YES' : '❌ NO');
     if (!editor) return;
 
     const contentStream = debouncedInput(editor, 300).map(content => ({
@@ -186,7 +196,7 @@ export class EventHandlerService {
 
     this.subscriptions.add(
       contentStream.subscribe(event => {
-        console.log('⚡ contentStream event:', event.content?.substring(0, 50));
+        logger.log('⚡ contentStream event:', event.content?.substring(0, 50));
         this.trackEvent(event.type);
         this.contentState.setContent(event.content);
         eventBus.emit('content.updated', event);
@@ -288,9 +298,7 @@ export class EventHandlerService {
   }
 
   setupDeploymentEvents(container) {
-    console.log('🚀 setupDeploymentEvents called, container:', container);
-
-    // Support multiple deploy buttons with different IDs
+    logger.log('🚀 setupDeploymentEvents called, container:', container);
     const deploySelectors = [
       '#main-deploy-btn',
       '#form-deploy-btn',
@@ -301,13 +309,13 @@ export class EventHandlerService {
     for (const selector of deploySelectors) {
       deployBtn = container.querySelector(selector);
       if (deployBtn) {
-        console.log('📤 Deploy button found:', selector, '✅ YES');
+        logger.log('📤 Deploy button found:', selector, '✅ YES');
         break;
       }
     }
 
     if (!deployBtn) {
-      console.log(
+      logger.log(
         '❌ No deploy button found with any selector:',
         deploySelectors,
       );
@@ -317,55 +325,51 @@ export class EventHandlerService {
     const deployStream = fromClick(deployBtn)
       .map(() => {
         try {
-          console.log('🎯 Deploy button CLICKED! Creating event...');
-          console.log('🔍 Checking auth service:', this.authService);
-          console.log(
+          logger.log('🎯 Deploy button CLICKED! Creating event...');
+          logger.log('🔍 Checking auth service:', this.authService);
+          logger.log(
             '🔍 Auth service methods:',
             Object.getOwnPropertyNames(this.authService),
           );
 
           const isAuth = this.authService.isAuthenticated();
-          console.log('🔍 Authentication check result:', isAuth);
-
-          // Get content directly from editor first, then try content state as fallback
+          logger.log('🔍 Authentication check result:', isAuth);
           const editor = document.querySelector('#markdown-editor');
           const editorContent = editor?.value || '';
-          console.log(
+          logger.log(
             '🔍 Direct editor content:',
             editorContent?.length,
             'characters',
           );
-          console.log('🔍 Direct editor raw:', JSON.stringify(editorContent));
+          logger.log('🔍 Direct editor raw:', JSON.stringify(editorContent));
 
           let content = editorContent;
-
-          // Try to get content from state as fallback (with error handling)
           try {
             if (
               this.contentState &&
               typeof this.contentState.getContent === 'function'
             ) {
               const stateContent = this.contentState.getContent();
-              console.log(
+              logger.log(
                 '🔍 Content state check:',
                 stateContent?.length,
                 'characters',
               );
-              console.log(
+              logger.log(
                 '🔍 Raw content from state:',
                 JSON.stringify(stateContent),
               );
-              // Use state content if editor is empty but state has content
+
               if (!content && stateContent) {
                 content = stateContent;
               }
             } else {
-              console.log(
+              logger.log(
                 '⚠️ Content state not available or getContent not a function',
               );
             }
           } catch (error) {
-            console.log('⚠️ Error accessing content state:', error);
+            logger.log('⚠️ Error accessing content state:', error);
           }
 
           const event = {
@@ -374,27 +378,27 @@ export class EventHandlerService {
             authenticated: isAuth,
             timestamp: Date.now(),
           };
-          console.log('📋 Event created successfully:', event);
+          logger.log('📋 Event created successfully:', event);
           return event;
         } catch (error) {
-          console.error('❌ Error in deploy button map:', error);
+          logger.log('❌ Error in deploy button map:', error);
           throw error;
         }
       })
       .filter(event => {
-        console.log(
+        logger.log(
           '🔍 Deploy validation - Content length:',
           event.content?.length,
           'Auth:',
           event.authenticated,
         );
-        console.log(
+        logger.log(
           '🔍 Deploy validation - Content preview:',
           event.content?.substring(0, 50),
         );
 
         if (!event.content || !event.content.trim()) {
-          console.log('❌ Deploy failed: No content');
+          logger.log('❌ Deploy failed: No content');
           eventBus.emit('deployment.error', {
             error: 'No content to deploy',
             type: 'validation_error',
@@ -403,7 +407,7 @@ export class EventHandlerService {
         }
 
         if (!event.authenticated) {
-          console.log('❌ Deploy failed: Not authenticated');
+          logger.log('❌ Deploy failed: Not authenticated');
           eventBus.emit('deployment.error', {
             error: 'Authentication required',
             type: 'auth_error',
@@ -411,20 +415,18 @@ export class EventHandlerService {
           return false;
         }
 
-        console.log('✅ Deploy validation passed - proceeding to deployment');
+        logger.log('✅ Deploy validation passed - proceeding to deployment');
         return true;
       });
 
     this.subscriptions.add(
       deployStream.subscribe(async event => {
-        console.log('🚀 Deploy button clicked! Event:', event);
+        logger.log('🚀 Deploy button clicked! Event:', event);
         this.trackEvent(event.type);
         eventBus.emit('deployment.start', event);
 
         try {
-          console.log('📦 Starting deployment process...');
-
-          // Generate a repository name based on content or timestamp
+          logger.log('📦 Starting deployment process...');
           const timestamp = new Date()
             .toISOString()
             .slice(0, 10)
@@ -435,19 +437,19 @@ export class EventHandlerService {
             .replace(/[^a-z0-9]/g, '');
           const repoName = `mdsg-site-${contentHash || timestamp}`;
 
-          console.log('📂 Using repository name:', repoName);
+          logger.log('📂 Using repository name:', repoName);
 
           const result = await this.deploymentService.deployToGitHubPages(
             event.content,
             repoName,
           );
-          console.log('✅ Deployment successful:', result);
+          logger.log('✅ Deployment successful:', result);
           eventBus.emit('deployment.success', {
             result,
             timestamp: Date.now(),
           });
         } catch (error) {
-          console.error('❌ Deployment failed:', error);
+          logger.log('❌ Deployment failed:', error);
           eventBus.emit('deployment.error', {
             error: error.message || 'Deployment failed',
             timestamp: Date.now(),
@@ -496,9 +498,9 @@ export class EventHandlerService {
       }))
       .filter(event => {
         return (
-          !event.filename?.includes('extension://') &&
-          !event.filename?.includes('chrome-extension://') &&
-          !event.filename?.includes('moz-extension://')
+          !event.filename?.includes('extension:') &&
+          !event.filename?.includes('chrome-extension:') &&
+          !event.filename?.includes('moz-extension:')
         );
       });
 
@@ -667,7 +669,7 @@ export class EventHandlerService {
   }
 
   cleanup() {
-    console.log(
+    logger.log(
       '🧹 EventHandler cleanup called, removing',
       this.subscriptions.size,
       'subscriptions',
@@ -680,7 +682,7 @@ export class EventHandlerService {
 
     this.subscriptions.clear();
     // DON'T clear the global event bus - other parts of MDSG are using it!
-    // eventBus.clearAll(); // ❌ This was breaking the main.js event listeners
+
     eventManager.cleanup();
     this.eventStreams.clear();
 
@@ -688,42 +690,11 @@ export class EventHandlerService {
   }
 
   reinitialize() {
-    console.log('🔄 EventHandler reinitialize called');
+    logger.log('🔄 EventHandler reinitialize called');
     this.cleanup();
     this.initialize();
   }
 }
-
-export const MDSG_EVENTS = {
-  AUTH_LOGIN_START: 'auth.login.start',
-  AUTH_LOGIN_SUCCESS: 'auth.login.success',
-  AUTH_LOGIN_ERROR: 'auth.login.error',
-  AUTH_DEMO_START: 'auth.demo.start',
-  AUTH_TOKEN_VALIDATE: 'auth.token.validate',
-  AUTH_LOGOUT: 'auth.logout.requested',
-
-  CONTENT_UPDATED: 'content.updated',
-  CONTENT_VALIDATE: 'content.validate',
-  CONTENT_CLEAR: 'content.clear.requested',
-  CONTENT_SAMPLE: 'content.sample.requested',
-
-  PREVIEW_UPDATE: 'preview.update.requested',
-  PREVIEW_MODE_TOGGLE: 'preview.mode.toggle',
-  PREVIEW_FULLSCREEN: 'preview.fullscreen.toggle',
-
-  DEPLOYMENT_START: 'deployment.start',
-  DEPLOYMENT_PROGRESS: 'deployment.progress',
-  DEPLOYMENT_SUCCESS: 'deployment.success',
-  DEPLOYMENT_ERROR: 'deployment.error',
-
-  EDITOR_FORMAT_BOLD: 'editor.format.bold',
-  EDITOR_FORMAT_ITALIC: 'editor.format.italic',
-  EDITOR_FORMAT_LINK: 'editor.format.link',
-
-  GLOBAL_ERROR: 'global.error',
-  AUTOSAVE_REQUESTED: 'autosave.requested',
-  AUTOSAVE_FORCE: 'autosave.force',
-};
 
 export default EventHandlerService;
 
