@@ -697,5 +697,6 @@ class EventHandlerService {
 }
 
 export default EventHandlerService;
+export { EventHandlerService };
 
-export { eventBus } from '@observable';
+export { eventBus, MDSG_EVENTS } from '@observable';

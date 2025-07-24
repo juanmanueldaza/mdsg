@@ -320,3 +320,16 @@ export const throttledScroll = (element, delay = 100) =>
 
 export const keyboardShortcuts = element =>
   fromKeydown(element).filter(e => e.ctrlKey || e.metaKey);
+
+// MDSG Event Constants
+export const MDSG_EVENTS = {
+  AUTH_LOGIN_SUCCESS: 'auth:login:success',
+  AUTH_LOGOUT: 'auth:logout',
+  CONTENT_UPDATED: 'content:updated',
+  PREVIEW_UPDATE: 'preview:update',
+  AUTOSAVE_REQUESTED: 'autosave:requested',
+  DEPLOYMENT_START: 'deployment:start',
+  DEPLOYMENT_SUCCESS: 'deployment:success',
+  DEPLOYMENT_ERROR: 'deployment:error',
+  GLOBAL_ERROR: 'global:error',
+};
